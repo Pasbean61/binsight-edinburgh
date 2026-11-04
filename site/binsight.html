@@ -8,60 +8,42 @@
 /* Layout: a civic operations brief. Narrative chapters run down a 1120px column and open into a
    full-width live console; the AI twin is a quiet rail docked to the right edge. */
 :root {
-  --paper: #f5f7f5;          /* cool off-white with a faint green bias */
-  --surface: #ffffff;
-  --raised: #fbfcfb;
-  --ink: #14201b;
-  --ink-2: #44514b;
-  --ink-3: #75817b;
-  --line: #dde3df;
-  --line-2: #c9d1cc;
+  /* platinum grey: one deliberate light look, the same on every device */
+  --paper: #e8eaed;          /* platinum */
+  --surface: #f6f7f8;        /* pearl panels on the platinum ground */
+  --raised: #fbfbfc;
+  --ink: #1b2026;            /* graphite */
+  --ink-2: #4a525b;
+  --ink-3: #7b838c;
+  --line: #d4d8dc;
+  --line-2: #c2c7cd;
   --accent: #0d6b55;         /* Edinburgh green: the one accent */
   --accent-ink: #ffffff;
-  --accent-soft: #e2efe9;
-  --land: #eef1ee;
-  --sea: #dfe8e7;
-  --road: #d3d9d5;
-  --park: #dfeadf;
+  --accent-soft: #dde9e4;
+  --land: #f2f3f4;
+  --sea: #d6dbe0;
+  --road: #c9ced4;
+  --park: #dde5df;
   /* semantic fill scale (separate from the accent) */
-  --f0: #c4dccf; --f1: #9cc7b1; --f2: #e9c46a; --f3: #e28d4a; --f4: #c9442f;
-  --good: #2f7d5b; --warn: #b7791f; --bad: #b8402c;
-  --shadow: 0 1px 2px rgba(20, 32, 27, .06), 0 8px 24px rgba(20, 32, 27, .06);
-  --shadow-2: 0 2px 6px rgba(20, 32, 27, .08), 0 24px 60px rgba(20, 32, 27, .12);
+  --f0: #c6d6cf; --f1: #95bfab; --f2: #e2bd5f; --f3: #dd8746; --f4: #c4432f;
+  --good: #2f7d5b; --warn: #a96f17; --bad: #b8402c;
+  --shadow: 0 1px 2px rgba(27, 32, 38, .06), 0 8px 24px rgba(27, 32, 38, .07);
+  --shadow-2: 0 2px 6px rgba(27, 32, 38, .08), 0 24px 60px rgba(27, 32, 38, .14);
   --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
   --body: "Public Sans", "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --r: 14px;
   --rail: 400px;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --paper: #0d1311; --surface: #141c19; --raised: #18211e; --ink: #e6ece9; --ink-2: #b2bdb8; --ink-3: #82908a;
-    --line: #26302c; --line-2: #33403a; --accent: #4cc19d; --accent-ink: #062018; --accent-soft: #173229;
-    --land: #151d1a; --sea: #0f1a1b; --road: #26312d; --park: #17261f;
-    --f0: #2c4a3d; --f1: #3f7a60; --f2: #d6b04f; --f3: #df8a46; --f4: #e0573f;
-    --good: #5cc496; --warn: #e2a948; --bad: #ef6a52;
-    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
-    --shadow-2: 0 2px 6px rgba(0, 0, 0, .35), 0 24px 60px rgba(0, 0, 0, .4);
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --paper: #0d1311; --surface: #141c19; --raised: #18211e; --ink: #e6ece9; --ink-2: #b2bdb8; --ink-3: #82908a;
-  --line: #26302c; --line-2: #33403a; --accent: #4cc19d; --accent-ink: #062018; --accent-soft: #173229;
-  --land: #151d1a; --sea: #0f1a1b; --road: #26312d; --park: #17261f;
-  --f0: #2c4a3d; --f1: #3f7a60; --f2: #d6b04f; --f3: #df8a46; --f4: #e0573f;
-  --good: #5cc496; --warn: #e2a948; --bad: #ef6a52;
-  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
-  --shadow-2: 0 2px 6px rgba(0, 0, 0, .35), 0 24px 60px rgba(0, 0, 0, .4);
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 72px; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation: none !important; transition: none !important; } }
 body {
-  background: var(--paper); color: var(--ink); font: 400 16px/1.6 var(--body);
+  background-color: var(--paper);
+  background-image: linear-gradient(180deg, #f1f2f4 0%, var(--paper) 520px), radial-gradient(1200px 600px at 85% -10%, rgba(255, 255, 255, .7), transparent 70%);
+  background-repeat: no-repeat; color: var(--ink); font: 400 16px/1.6 var(--body);
   -webkit-font-smoothing: antialiased; overflow-x: hidden;
 }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--paper); }
