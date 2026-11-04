@@ -124,7 +124,7 @@
 <section class="chapter wrap console" id="console">
   <div class="chapter-head">
     <div><span class="eyebrow">Live map</span><h2>Tomorrow’s plan, stop by stop</h2></div>
-    <p>Every dot is a real general-waste communal bin stop from the council’s register, placed in its real ward. Colour shows the simulated forecast. Click any stop, route or ward, or search a street.</p>
+    <p>Every dot is a real general-waste communal bin stop from the council’s register, placed in its real ward. Press play to watch tomorrow’s shift: 18 trucks leave Seafield at 06:00, drive real streets and empty each flagged bin. Hover a ward, click any stop, or follow a truck.</p>
   </div>
   <div class="consolekpis" id="consoleKpis"></div>
   <div class="toolbar">
@@ -134,13 +134,21 @@
     </div>
     <div class="field"><label for="layerSel">Colour by</label><select id="layerSel"><option value="pred">Tomorrow’s forecast</option><option value="fill">Fill now</option><option value="prob">Overflow risk</option><option value="net">Council register: all streams</option></select></div>
     <div class="field"><label for="wardSel">Ward</label><select id="wardSel"><option value="-1">All 17 wards</option></select></div>
-    <label class="toggle"><input type="checkbox" id="routesChk" checked> Routes</label>
+    <label class="toggle"><input type="checkbox" id="routesChk"> All routes</label>
     <label class="toggle"><input type="checkbox" id="flagChk"> Flagged only</label>
   </div>
+  <div class="fleet" id="fleet" aria-label="Follow a truck"></div>
   <div class="map-shell">
     <div id="map" aria-label="Interactive map of Edinburgh communal bin stops"></div>
     <div class="map-note" id="mapNote">Loading Edinburgh…</div>
     <div class="legend" id="legend"></div>
+    <div class="playbar" id="playbar" role="group" aria-label="Replay tomorrow's collection">
+      <button class="pb-play" type="button" id="pbPlay" aria-label="Play tomorrow's collection"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path id="pbIcon" d="M3 1.5v11l9-5.5z" fill="currentColor"/></svg></button>
+      <div class="pb-time"><b id="pbClock">06:00</b><span id="pbDay">Shift starts</span></div>
+      <input type="range" id="pbRange" min="0" max="1000" value="0" step="1" aria-label="Time of day">
+      <div class="pb-speed" role="group" aria-label="Playback speed"><button type="button" data-s="5">1×</button><button type="button" data-s="15" class="on">3×</button><button type="button" data-s="50">10×</button></div>
+      <div class="pb-stats" id="pbStats"></div>
+    </div>
     <div class="map-panel" id="panel" hidden></div>
   </div>
 

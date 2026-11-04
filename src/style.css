@@ -358,6 +358,43 @@ tbody tr:last-child td { border-bottom: 0; }
 .partners svg { width: 100%; max-width: 680px; height: auto; display: block; margin: 8px auto 0; }
 #modelTable td:first-child { white-space: normal; min-width: 150px; }
 .map-note { left: 60px !important; }
+/* fleet strip: follow a truck */
+.fleet { display: flex; gap: 6px; align-items: center; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 12px; }
+.fleet::-webkit-scrollbar { display: none; }
+.fleet .lbl { font-size: 12px; color: var(--ink-3); white-space: nowrap; margin-right: 4px; }
+.fleet button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 5px 10px 5px 7px; cursor: pointer; font: 600 12px var(--mono); white-space: nowrap; color: var(--ink-2); transition: border-color .15s, background .15s; }
+.fleet button i { width: 10px; height: 10px; border-radius: 50%; }
+.fleet button:hover { border-color: var(--ink-3); }
+.fleet button.on { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.fleet button .pc { font-weight: 400; opacity: .7; }
+/* playback bar: the shift replay on the live map */
+.playbar {
+  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 520;
+  display: grid; grid-template-columns: auto auto minmax(120px, 1fr) auto; grid-template-areas: "play time range speed" "stats stats stats stats";
+  gap: 6px 12px; align-items: center; width: min(620px, calc(100% - 28px));
+  background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(12px);
+  border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-2); padding: 10px 14px;
+}
+.pb-play { grid-area: play; width: 38px; height: 38px; border-radius: 50%; border: 0; background: var(--ink); color: var(--surface); cursor: pointer; display: grid; place-items: center; }
+.pb-play:hover { background: var(--accent); }
+.pb-time { grid-area: time; display: flex; flex-direction: column; line-height: 1.15; min-width: 74px; }
+.pb-time b { font: 700 18px/1.1 var(--mono); font-variant-numeric: tabular-nums; }
+.pb-time span { font-size: 11px; color: var(--ink-3); }
+.playbar input[type=range] { grid-area: range; width: 100%; accent-color: var(--accent); min-width: 0; }
+.pb-speed { grid-area: speed; display: inline-flex; background: var(--paper); border-radius: 99px; padding: 2px; }
+.pb-speed button { border: 0; background: none; font: 600 12px var(--mono); padding: 4px 8px; border-radius: 99px; cursor: pointer; color: var(--ink-3); }
+.pb-speed button.on { background: var(--ink); color: var(--surface); }
+.pb-stats { grid-area: stats; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.pb-stats b { color: var(--ink); font-weight: 650; }
+.pb-stats .bar { flex: 1 1 100%; height: 4px; border-radius: 99px; background: var(--paper); overflow: hidden; }
+.pb-stats .bar span { display: block; height: 100%; background: var(--accent); }
+.legend { bottom: auto !important; top: 14px; left: auto !important; right: 14px; }
+.map-panel { bottom: 112px !important; }
+@media (max-width: 640px) { .map-panel { top: 14px !important; height: auto !important; bottom: 150px !important; } }
+@media (max-width: 640px) {
+  .playbar { grid-template-columns: auto auto minmax(0, 1fr); grid-template-areas: "play time speed" "range range range" "stats stats stats"; bottom: 10px; padding: 8px 10px; }
+  .legend { display: none; }
+}
 .step-detail > div, .explainer > div, .results-grid > *, .biz-grid > *, .planner > * { min-width: 0; }
 @media (max-width: 640px) {
   .legend { padding: 8px 10px; font-size: 11px; }

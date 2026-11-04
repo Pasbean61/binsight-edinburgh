@@ -28,7 +28,7 @@ const havKm = (a, b) => { const R = Math.PI / 180, dLa = (b[0] - a[0]) * R, dLo 
 
 /* fill colour scale */
 let PAL = {};
-function readPalette() { PAL = { f: ["--f0", "--f1", "--f2", "--f3", "--f4"].map(css), accent: css("--accent"), ink: css("--ink"), ink3: css("--ink-3"), land: css("--land"), sea: css("--sea"), road: css("--road"), park: css("--park"), line: css("--line"), surface: css("--surface"), paper: css("--paper"), line2: css("--line-2"), good: css("--good"), warn: css("--warn"), bad: css("--bad") }; }
+function readPalette() { PAL = { accentSoft: css("--accent-soft"), f: ["--f0", "--f1", "--f2", "--f3", "--f4"].map(css), accent: css("--accent"), ink: css("--ink"), ink3: css("--ink-3"), land: css("--land"), sea: css("--sea"), road: css("--road"), park: css("--park"), line: css("--line"), surface: css("--surface"), paper: css("--paper"), line2: css("--line-2"), good: css("--good"), warn: css("--warn"), bad: css("--bad") }; }
 const fillColor = v => v >= 90 ? PAL.f[4] : v >= 80 ? PAL.f[3] : v >= 60 ? PAL.f[2] : v >= 35 ? PAL.f[1] : PAL.f[0];
 const probColor = p => p >= .9 ? PAL.f[4] : p >= .5 ? PAL.f[3] : p >= .1 ? PAL.f[2] : p >= .01 ? PAL.f[1] : PAL.f[0];
 const TRUCK_HUES = ["#2a7ab8", "#c2552d", "#7b5ea7", "#2e8b6e", "#c08a1e", "#b8417a", "#4a7d2a", "#3b5bb5", "#a8532f", "#1f8a99"];
@@ -37,7 +37,7 @@ const STREAM_COLORS = { "Communal Bin": "#5f6f68", "Packaging": "#2a7ab8", "Bott
 
 /* ── state ───────────────────────────────────────── */
 const D = {};
-const UI = { layer: "pred", ward: -1, flagOnly: false, routes: true, selTruck: -1, selStop: -1 };
+const UI = { layer: "pred", ward: -1, flagOnly: false, routes: false, selTruck: -1, selStop: -1, follow: -1, hoverWard: -1 };
 window.BS = { D, UI };
 
 async function getJSON(p) { const r = await fetch(p); if (!r.ok) throw new Error(p + " " + r.status); return r.json(); }
@@ -292,9 +292,18 @@ function initMap() {
   map.attributionControl.addAttribution("Wards: ONS (OGL) · Streets © OpenStreetMap · Bins: City of Edinburgh Council (OGL)");
   const B = D.base;
   // land / wards
+  map.createPane("hi"); map.getPane("hi").style.zIndex = 450; map.getPane("hi").style.pointerEvents = "none";
+  const hiR = L.svg({ pane: "hi" });
+  wardHi = { hover: L.polygon([], { pane: "hi", renderer: hiR, fill: false, color: PAL.accent, weight: 2, opacity: 0, dashArray: "5 4", interactive: false }).addTo(map),
+             sel: L.polygon([], { pane: "hi", renderer: hiR, fill: false, color: PAL.accent, weight: 2.8, opacity: 0, interactive: false }).addTo(map) };
   wardLayer = L.layerGroup().addTo(map);
   D.base.wards.forEach((w, wi) => {
-    const shape = L.polygon(w.rings.map(r => decode(r)), { renderer: canvas, color: PAL.line2, weight: 1, fillColor: PAL.land, fillOpacity: 1, interactive: false });
+    const shape = L.polygon(w.rings.map(r => decode(r)), { renderer: canvas, color: PAL.line2, weight: 1, fillColor: PAL.land, fillOpacity: 1, interactive: true, bubblingMouseEvents: false });
+    const ws = D.site.wards[wi];
+    shape.bindTooltip(() => `<b>${esc(ws.name)}</b><br>${fmt(ws.stops)} stops · ${fmt(ws.flagged)} flagged tomorrow`, { sticky: true, direction: "top", offset: [0, -8] });
+    shape.on("mouseover", () => { UI.hoverWard = wi; wardStyle(wi); });
+    shape.on("mouseout", () => { if (UI.hoverWard === wi) UI.hoverWard = -1; wardStyle(wi); });
+    shape.on("click", () => BS.focusWard(wi));
     shape.addTo(wardLayer); wardShapes[wi] = shape;
   });
   const parks = B.parks.filter(p => p.k === "park").map(p => decode(p.ring)), lakes = B.parks.filter(p => p.k === "water").map(p => decode(p.ring));
@@ -335,15 +344,30 @@ function initMap() {
   L.circleMarker(dep, { renderer: canvas, radius: 8, color: PAL.surface, weight: 2, fillColor: PAL.ink, fillOpacity: 1 }).bindTooltip("Seafield depot · 24 trucks", { direction: "top" }).addTo(map);
   highlight = L.layerGroup().addTo(map);
   map.on("zoomend", restyleStops);
+  BS.map = map;
+  initPlayback();
   const all = L.latLngBounds(S.lat.map((la, i) => [la, S.lon[i]]));
   map.fitBounds(all, { padding: [20, 20] });
   // the container can change size after first layout (fonts, the twin rail, phones): keep the map filled
-  let fitted = false;
-  new ResizeObserver(() => { map.invalidateSize(); if (!fitted && UI.selStop < 0 && UI.selTruck < 0 && UI.ward < 0) map.fitBounds(all, { padding: [20, 20] }); }).observe($(".map-shell"));
+  let fitted = false; const born = performance.now();
+  setTimeout(() => { fitted = true; }, 4000);   // after the first layout settles, never move the camera on resize
+  new ResizeObserver(() => { map.invalidateSize(); if (!fitted && performance.now() - born < 4000 && UI.selStop < 0 && UI.selTruck < 0 && UI.ward < 0 && UI.follow < 0) map.fitBounds(all, { padding: [20, 20] }); }).observe($(".map-shell"));
   ["pointerdown", "wheel", "touchstart"].forEach(ev => $("#map").addEventListener(ev, () => { fitted = true; }, { passive: true }));
   $("#mapNote").textContent = `Snapshot ${fmtDate(D.site.snapshot, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })} · forecast for ${fmtDate(D.site.forecast_for, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`;
   initHeroHover();
 }
+function wardStyle(wi) {
+  const sh = wardShapes[wi]; if (!sh) return;
+  const sel = UI.ward === wi, hov = UI.hoverWard === wi, dim = UI.ward >= 0 && !sel;
+  sh.setStyle({ fillColor: hov && !sel ? PAL.accentSoft : PAL.land, fillOpacity: dim ? .55 : 1, color: PAL.line2, weight: 1 });
+  // outlines live in their own pane above the canvas, so they never hide the stops
+  if (wardHi) {
+    const rings = wi => D.base.wards[wi].rings.map(r => decode(r));
+    if (UI.hoverWard >= 0 && UI.hoverWard !== UI.ward) wardHi.hover.setLatLngs(rings(UI.hoverWard)).setStyle({ opacity: .9 }); else wardHi.hover.setStyle({ opacity: 0 });
+    if (UI.ward >= 0) wardHi.sel.setLatLngs(rings(UI.ward)).setStyle({ opacity: 1 }); else wardHi.sel.setStyle({ opacity: 0 });
+  }
+}
+let wardHi = null;
 function stopVisible(i) {
   if (UI.ward >= 0 && D.S.ward[i] !== UI.ward) return false;
   if (UI.flagOnly && !D.S.flag[i]) return false;
@@ -359,19 +383,20 @@ function restyleStops() {
     if (!vis) { if (stopLayer.hasLayer(m)) stopLayer.removeLayer(m); continue; }
     const v = UI.layer === "fill" ? S.fill[i] : S.pred[i];
     const col = UI.layer === "prob" ? probColor(S.prob[i]) : fillColor(v);
-    m.setStyle({ fillColor: col, color: PAL.surface, weight: z >= 14 ? 1.2 : .6 }); m.setRadius(i === UI.selStop ? r + 3 : r);
+    if (SIM.emptied?.[i]) m.setStyle({ fillColor: PAL.f0, color: PAL.accent, weight: 1.6 });
+    else m.setStyle({ fillColor: col, color: PAL.surface, weight: z >= 14 ? 1.2 : .6 });
+    m.setRadius(i === UI.selStop ? r + 3 : r);
     if (!stopLayer.hasLayer(m)) stopLayer.addLayer(m);
   }
-  D.wards.forEach((w, wi) => wardShapes[wi]?.setStyle({ fillColor: PAL.land, color: PAL.line2, fillOpacity: UI.ward >= 0 && UI.ward !== wi ? .55 : 1, weight: UI.ward === wi ? 2.4 : 1 }));
-  if (UI.ward >= 0) wardShapes[UI.ward]?.setStyle({ color: PAL.accent });
+  D.wards.forEach((w, wi) => wardStyle(wi));
   routeLines.forEach((pl, ti) => {
-    const show = UI.routes && !net;
+    const sel = UI.selTruck, show = !net && (UI.routes || sel === ti);
     if (!show) { routeLayer.removeLayer(pl); return; }
     if (!routeLayer.hasLayer(pl)) routeLayer.addLayer(pl);
-    const sel = UI.selTruck;
-    pl.setStyle({ opacity: sel < 0 ? .7 : sel === ti ? 1 : .12, weight: sel === ti ? 4 : 2.2 });
+    pl.setStyle({ opacity: sel < 0 ? .45 : sel === ti ? .95 : .1, weight: sel === ti ? 4 : 1.8 });
     if (sel === ti) pl.bringToFront();
   });
+  SIM.trails?.forEach((tl, ti) => tl.setStyle({ opacity: UI.selTruck < 0 || UI.selTruck === ti ? .9 : .15 }));
   drawLegend();
 }
 function drawLegend() {
@@ -386,7 +411,8 @@ function drawLegend() {
     ? [["≥ 90 %", 4], ["50–90 %", 3], ["10–50 %", 2], ["1–10 %", 1], ["< 1 %", 0]]
     : [["90–100 %", 4], ["80–90 %", 3], ["60–80 %", 2], ["35–60 %", 1], ["< 35 %", 0]];
   L_.innerHTML = `<div class="title">${t} <span class="tag sim" style="margin-left:4px">Sim</span></div>` + rows.map(([l, k]) => `<div class="row"><i style="background:${PAL.f[k]}"></i>${l}</div>`).join("") +
-    (UI.routes ? `<div class="row" style="margin-top:6px"><i style="border-radius:2px;height:3px;background:${truckColor(0)}"></i>Truck routes (${D.trucks.length})</div>` : "");
+    `<div class="row" style="margin-top:6px"><i style="background:${PAL.f0};box-shadow:0 0 0 1.6px ${PAL.accent} inset"></i>Emptied by a truck</div>` +
+    `<div class="row"><i style="background:${truckColor(0)};box-shadow:0 0 0 2px #fff inset"></i>Truck and its trail (${D.trucks.length})</div>`;
 }
 async function showNetwork(on) {
   if (on && !netLayer) {
@@ -405,7 +431,7 @@ async function showNetwork(on) {
 }
 
 /* detail panel */
-function panel(html) { const p = $("#panel"); p.innerHTML = `<button class="x" type="button" aria-label="Close panel">×</button>` + html; p.hidden = false; $(".x", p).onclick = () => { p.hidden = true; UI.selStop = -1; UI.selTruck = -1; highlight.clearLayers(); restyleStops(); }; p.scrollTop = 0; }
+function panel(html) { const p = $("#panel"); p.innerHTML = `<button class="x" type="button" aria-label="Close panel">×</button>` + html; p.hidden = false; $(".x", p).onclick = () => { p.hidden = true; UI.selStop = -1; UI.selTruck = -1; UI.follow = -1; $$("#fleet button").forEach(b => b.classList.remove("on")); highlight.clearLayers(); restyleStops(); }; p.scrollTop = 0; }
 const riskPill = p => p >= .5 ? `<span class="pill hi">High risk</span>` : p >= .1 ? `<span class="pill md">Watch</span>` : `<span class="pill lo">Low risk</span>`;
 BS.focusStop = async (i, opts = {}) => {
   if (!map) return;
@@ -461,23 +487,32 @@ async function drawSpark(i) {
     <circle cx="${x(last)}" cy="${y(h[last])}" r="3" fill="${PAL.ink}"/>
     <text x="4" y="${H - 2}">−72 h</text><text x="${x(last)}" y="${H - 2}" text-anchor="middle">now</text><text x="${W - 4}" y="${H - 2}" text-anchor="end">+24 h</text>`;
 }
-BS.focusTruck = ti => {
+BS.focusTruck = (ti, opts = {}) => {
   if (!map) return;
   const t = D.trucks[ti];
-  UI.selTruck = ti; UI.routes = true; $("#routesChk").checked = true;
+  UI.selTruck = ti;
+  if (!opts.follow && UI.follow !== ti) { UI.follow = -1; $$("#fleet button").forEach(b => b.classList.remove("on")); }
   highlight.clearLayers();
   restyleStops();
-  map.flyToBounds(routeLines[ti].getBounds(), { padding: [40, 40], duration: .6 });
+  if (opts.follow) {
+    const pn = $("#panel"), off = innerWidth > 640 ? 190 : 0;
+    map.setView(SIM.marks[ti].getLatLng(), 14, { animate: false });
+    map.panBy([off, 55], { animate: false });
+  }
+  else map.flyToBounds(routeLines[ti].getBounds(), { padding: [40, 40], duration: .6 });
   const wards = Object.entries(t.wards).sort((a, b) => b[1] - a[1]);
   panel(`<div class="dp">
     <span class="eyebrow" style="color:${t.color}">Truck route</span>
     <h3 style="margin-top:8px">${t.truck}</h3>
     <div class="sub">${esc(t.driver)} · plate ${esc(t.plate)} · from Seafield depot</div>
+    <p class="small" id="followLive" style="margin-top:10px;padding:8px 10px;background:var(--paper);border-radius:10px">${truckStatus(ti)}</p>
+    <div style="margin-top:8px"><button class="linkbtn" id="followBtn">${UI.follow === ti ? "Stop following" : "Follow this truck through the shift"}</button></div>
     <div class="gauge"><div><b>${fmt(t.stops.length)}</b><span>stops</span></div><div><b>${t.trips.length}</b><span>trips (tip between)</span></div><div><b>${fmt(t.km, 1)}</b><span>km planned</span></div><div><b>${fmt(t.road, 1)}</b><span>km by road (OSRM)</span></div></div>
     <dl class="kv"><dt>Waste collected</dt><dd>${fmt(t.load)} L</dd><dt>Load per trip</dt><dd>${t.trips.map(x => fmt(x.load / 1000, 1) + "k").join(" · ")} L</dd><dt>Driving time</dt><dd>${fmt(t.drive / 60, 1)} h</dd><dt>Service time (10 min/stop)</dt><dd>${fmt(t.stops.length * 10 / 60, 1)} h</dd></dl>
     <h4>Wards on this route</h4><p class="small" style="margin-top:6px">${wards.map(([w, c]) => `${esc(w)} (${c})`).join(", ")}</p>
     <p class="small" style="margin-top:14px"><button class="linkbtn" id="openDriver">Open driver view with every stop in order</button></p>
   </div>`);
+  $("#followBtn").onclick = () => { BS.follow(ti); $("#followBtn").textContent = UI.follow === ti ? "Stop following" : "Follow this truck through the shift"; };
   $("#openDriver").onclick = () => { BS.openTab("routes"); selectTruckInList(ti); $("#ctabs").scrollIntoView({ block: "start" }); };
 };
 BS.focusWard = wi => {
@@ -492,6 +527,166 @@ BS.focusWard = wi => {
     <h4>Area mix</h4><p class="small" style="margin-top:6px">${Object.entries(w.areas).filter(a => a[1]).map(([a, c]) => `${a}: ${c}`).join(" · ")}</p>
   </div>`);
 };
+/* ── shift replay: trucks drive their real street routes, bins empty as they are reached ── */
+const SIM = { t: 0, end: 0, playing: false, speed: 15, trucks: [], events: [], ptr: 0, emptied: null, layer: null, marks: [], started: false };
+function initPlayback() {
+  const svc = D.site.fleet.service_min, S = D.S;
+  SIM.emptied = new Uint8Array(D.n);
+  const kx = 111.32 * Math.cos(55.95 * Math.PI / 180), ky = 110.57;
+  const dist = (a, b) => Math.hypot((a[1] - b[1]) * kx, (a[0] - b[0]) * ky);
+  SIM.trucks = D.trucks.map(t => {
+    let t0 = 0; const trips = [];
+    for (const tr of t.trips) {
+      const pts = decode(tr.line), cum = [0];
+      for (let k = 1; k < pts.length; k++) cum.push(cum[k - 1] + dist(pts[k - 1], pts[k]));
+      const total = cum[cum.length - 1] || 1;
+      const driveMin = tr.drive_min ?? (tr.straight_km / D.site.fleet.speed_kmh * 60);
+      // place each stop on the street line (nearest vertex, never going backwards)
+      let j0 = 0; const stops = [];
+      tr.stops.forEach((i, k) => {
+        const p = [S.lat[i], S.lon[i]]; let best = j0, bd = Infinity;
+        for (let j = j0; j < pts.length; j++) { const d = dist(p, pts[j]); if (d < bd) { bd = d; best = j; } }
+        j0 = best;
+        const tArr = t0 + cum[best] / total * driveMin + k * svc;
+        stops.push({ i, d: cum[best], tArr, tDep: tArr + svc });
+        SIM.events.push([tArr, i]);
+      });
+      const dur = driveMin + tr.stops.length * svc;
+      trips.push({ pts, cum, total, t0, t1: t0 + dur, driveMin, stops, road: tr.road_km || 0 });
+      t0 += dur;
+    }
+    return { trips, end: t0, color: t.color, id: t.truck };
+  });
+  SIM.events.sort((a, b) => a[0] - b[0]);
+  SIM.end = Math.ceil(Math.max(...SIM.trucks.map(t => t.end)) / 10) * 10 + 10;
+  SIM.totalL = SIM.events.reduce((a, [, i]) => a + S.cap[i] * Math.min(S.pred[i], 100) / 100, 0);
+  // truck markers
+  const canvas = L.canvas({ padding: .3 });
+  // trails: the road each truck has already covered, growing as the shift plays
+  SIM.trails = SIM.trucks.map(tk => L.polyline([], { renderer: canvas, color: tk.color, weight: 3.2, opacity: .9, lineCap: "round", interactive: false }).addTo(map));
+  SIM.layer = L.layerGroup().addTo(map);
+  SIM.marks = SIM.trucks.map((tk, ti) => {
+    const m = L.circleMarker([D.site.depot.latitude, D.site.depot.longitude], { renderer: canvas, radius: 7, color: "#fff", weight: 2.2, fillColor: tk.color, fillOpacity: 1 });
+    m.bindTooltip(() => truckStatus(ti), { direction: "top", offset: [0, -6] });
+    m.on("click", () => BS.focusTruck(ti));
+    return m.addTo(SIM.layer);
+  });
+  // controls
+  const range = $("#pbRange");
+  $("#pbPlay").onclick = () => SIM.playing ? pause() : play();
+  range.oninput = () => { pause(); setT(+range.value / 1000 * SIM.end); };
+  $$(".pb-speed button").forEach(b => b.onclick = () => { SIM.speed = +b.dataset.s; $$(".pb-speed button").forEach(x => x.classList.toggle("on", x === b)); });
+  // fleet strip: click a truck to follow it
+  $("#fleet").innerHTML = `<span class="lbl">Follow a truck</span>` + D.trucks.map((t, ti) => `<button type="button" data-ti="${ti}" title="${t.truck}: ${t.stops.length} stops"><i style="background:${t.color}"></i>${t.truck.replace("EDI-RCV-", "")}<span class="pc" data-pc="${ti}"></span></button>`).join("");
+  $$("#fleet button").forEach(b => b.onclick = () => BS.follow(+b.dataset.ti));
+  map.on("dragstart", () => { if (UI.follow >= 0) { UI.follow = -1; $$("#fleet button").forEach(b => b.classList.remove("on")); const fb = $("#followBtn"); if (fb) fb.textContent = "Follow this truck through the shift"; } });
+  setT(0);
+  // start by itself the first time the map is on screen
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  new IntersectionObserver((es, ob) => { if (es.some(e => e.isIntersecting) && !SIM.started && !reduce) { ob.disconnect(); play(); } }, { threshold: .45 }).observe($(".map-shell"));
+  BS.play = play; BS.pause = pause; BS.setShiftTime = min => { pause(); setT(min); };
+}
+function truckPos(tk, t) {
+  for (const tr of tk.trips) {
+    if (t > tr.t1) continue;
+    if (t < tr.t0) break;
+    let prevD = 0, prevT = tr.t0, k = 0;
+    for (const s of tr.stops) {
+      if (t < s.tArr) return { at: along(tr, prevD + (s.d - prevD) * (t - prevT) / Math.max(1e-6, s.tArr - prevT)), state: "driving", next: k, tr };
+      if (t <= s.tDep) return { at: along(tr, s.d), state: "emptying", next: k, tr };
+      prevD = s.d; prevT = s.tDep; k++;
+    }
+    return { at: along(tr, prevD + (tr.total - prevD) * (t - prevT) / Math.max(1e-6, tr.t1 - prevT)), state: "to depot", next: k, tr };
+  }
+  return { at: [D.site.depot.latitude, D.site.depot.longitude], state: t <= 0 ? "at depot" : "done", next: 0 };
+}
+function along(tr, d) {
+  const c = tr.cum; let lo = 0, hi = c.length - 1;
+  while (lo < hi - 1) { const mid = (lo + hi) >> 1; if (c[mid] <= d) lo = mid; else hi = mid; }
+  const f = c[hi] > c[lo] ? (d - c[lo]) / (c[hi] - c[lo]) : 0, a = tr.pts[lo], b = tr.pts[hi];
+  return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+}
+function nearestCum(tr, at) {
+  // distance along the trip line of the truck's current position (it lies on the line, so the closest vertex is enough)
+  let best = 0, bd = Infinity;
+  for (let k = 0; k < tr.pts.length; k++) { const d = (tr.pts[k][0] - at[0]) ** 2 + (tr.pts[k][1] - at[1]) ** 2; if (d < bd) { bd = d; best = k; } }
+  return tr.cum[best];
+}
+BS.follow = ti => {
+  if (UI.follow === ti) { UI.follow = -1; $$("#fleet button").forEach(b => b.classList.remove("on")); return; }
+  UI.follow = ti;
+  $$("#fleet button").forEach(b => b.classList.toggle("on", +b.dataset.ti === ti));
+  BS.focusTruck(ti, { follow: true });
+  if (!SIM.playing) play();
+};
+function truckStatus(ti) {
+  const tk = SIM.trucks[ti], p = truckPos(tk, SIM.t), done = SIM.events.filter(([tt, i]) => tt <= SIM.t && D.S.truck[i] === ti).length;
+  const n = D.trucks[ti].stops.length;
+  const st = p.state === "emptying" ? `emptying ${esc(D.S.site[p.tr.stops[p.next].i])}` : p.state === "driving" ? `driving to ${esc(D.S.site[p.tr.stops[p.next].i])}` : p.state;
+  return `<b>${tk.id}</b> · ${done}/${n} stops<br>${st}`;
+}
+const clock = m => { const h = 6 + Math.floor(m / 60), mm = Math.floor(m % 60); return String(h % 24).padStart(2, "0") + ":" + String(mm).padStart(2, "0"); };
+function setT(t) {
+  SIM.t = clamp(t, 0, SIM.end);
+  const S = D.S, z = map.getZoom(), r = z < 11.5 ? 2.6 : z < 13 ? 3.6 : z < 15 ? 5 : 7;
+  // move the event pointer, restyling only the stops whose state changes
+  const ev = SIM.events;
+  while (SIM.ptr < ev.length && ev[SIM.ptr][0] <= SIM.t) { const i = ev[SIM.ptr][1]; SIM.emptied[i] = 1; styleStop(i, r); SIM.ptr++; }
+  while (SIM.ptr > 0 && ev[SIM.ptr - 1][0] > SIM.t) { SIM.ptr--; const i = ev[SIM.ptr][1]; SIM.emptied[i] = 0; styleStop(i, r); }
+  let km = 0, onRoad = 0;
+  const drawTrails = Math.abs(SIM.t - (SIM.lastTrail ?? -99)) >= 1.5 || !SIM.playing;
+  SIM.trucks.forEach((tk, ti) => {
+    const p = truckPos(tk, SIM.t); SIM.marks[ti].setLatLng(p.at);
+    if (p.state !== "done" && p.state !== "at depot") onRoad++;
+    for (const tr of tk.trips) km += tr.road * clamp((SIM.t - tr.t0) / (tr.t1 - tr.t0), 0, 1);
+    if (drawTrails) {
+      const lines = [];
+      for (const tr of tk.trips) {
+        if (SIM.t >= tr.t1) lines.push(tr.pts);
+        else if (SIM.t > tr.t0 && p.tr === tr) { const c = tr.cum, dNow = nearestCum(tr, p.at); const part = []; for (let k = 0; k < c.length && c[k] <= dNow; k++) part.push(tr.pts[k]); part.push(p.at); lines.push(part); }
+      }
+      SIM.trails[ti].setLatLngs(lines);
+      const pc = document.querySelector(`[data-pc="${ti}"]`); if (pc) pc.textContent = SIM.t > 0 ? " " + Math.round(100 * SIM.events.filter(([tt, i]) => tt <= SIM.t && D.S.truck[i] === ti).length / D.trucks[ti].stops.length) + "%" : "";
+    }
+    if (UI.follow === ti && p.state !== "done" && !map._panAnim?._inProgress) {
+      // re-centre only when the truck nears the edge of the part of the map the panel doesn't cover
+      const pn = $("#panel"), size = map.getSize(), off = !pn.hidden && innerWidth > 640 ? pn.offsetWidth + 28 : 0;
+      const pt = map.latLngToContainerPoint(p.at), w = size.x - off, mx = w * .22, my = size.y * .22;
+      if (pt.x < mx || pt.x > w - mx || pt.y < my || pt.y > size.y - my - 110) {
+        map.panTo(map.unproject(map.project(p.at).add([off / 2, 55])), { animate: true, duration: .5 });
+      }
+    }
+  });
+  if (drawTrails) SIM.lastTrail = SIM.t;
+  if (UI.follow >= 0 && UI.selTruck === UI.follow && !$("#panel").hidden && $("#followLive")) $("#followLive").innerHTML = truckStatus(UI.follow);
+  let litres = 0; for (let k = 0; k < SIM.ptr; k++) { const i = ev[k][1]; litres += S.cap[i] * Math.min(S.pred[i], 100) / 100; }
+  const pctDone = SIM.ptr / ev.length * 100;
+  $("#pbClock").textContent = clock(SIM.t);
+  $("#pbDay").textContent = SIM.t <= 0 ? "Shift starts" : SIM.t >= SIM.end ? "All trucks back" : fmtDate(D.site.forecast_for, { weekday: "short", day: "numeric", month: "short" }) + " · simulated";
+  $("#pbRange").value = Math.round(SIM.t / SIM.end * 1000);
+  $("#pbStats").innerHTML = `<span><b>${fmt(SIM.ptr)}</b> / ${fmt(ev.length)} stops emptied</span><span><b>${fmt(litres / 1000)}</b> m³ collected</span><span><b>${fmt(km)}</b> km driven</span><span><b>${onRoad}</b> trucks on the road</span><span class="bar"><span style="width:${pctDone}%"></span></span>`;
+}
+function styleStop(i, r) {
+  const m = markers[i]; if (!m || !stopLayer.hasLayer(m)) return;
+  if (SIM.emptied[i]) m.setStyle({ fillColor: PAL.f0, color: PAL.accent, weight: 1.6 });
+  else { const v = UI.layer === "fill" ? D.S.fill[i] : D.S.pred[i]; m.setStyle({ fillColor: UI.layer === "prob" ? probColor(D.S.prob[i]) : fillColor(v), color: PAL.surface, weight: .6 }); }
+}
+let raf = 0, last = 0;
+function play() {
+  SIM.started = true; if (SIM.t >= SIM.end) setT(0);
+  SIM.playing = true; $("#pbIcon").setAttribute("d", "M3 1.5h3v11H3zM8 1.5h3v11H8z"); $("#pbPlay").setAttribute("aria-label", "Pause");
+  last = performance.now(); cancelAnimationFrame(raf);
+  const step = now => {
+    if (!SIM.playing) return;
+    const dt = Math.min(.5, (now - last) / 1000); last = now;
+    setT(SIM.t + dt * SIM.speed);
+    if (SIM.t >= SIM.end) { pause(); return; }
+    raf = requestAnimationFrame(step);
+  };
+  raf = requestAnimationFrame(step);
+}
+function pause() { SIM.playing = false; cancelAnimationFrame(raf); $("#pbIcon").setAttribute("d", "M3 1.5v11l9-5.5z"); $("#pbPlay").setAttribute("aria-label", "Play tomorrow's collection"); }
+
 BS.highlightStops = ids => {
   highlight.clearLayers();
   ids.slice(0, 400).forEach(i => L.circleMarker([D.S.lat[i], D.S.lon[i]], { radius: 9, color: PAL.ink, weight: 1.6, fill: false, interactive: false }).addTo(highlight));

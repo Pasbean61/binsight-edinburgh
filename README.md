@@ -2,6 +2,8 @@
 
 **Empty the bins that are full. Skip the ones that aren’t.**
 
+### ▶ Live site: **https://zhancexu91.github.io/binsight-edinburgh/**
+
 BinSight forecasts how full each of Edinburgh’s general-waste communal bins will be tomorrow and plans the shortest truck routes that reach only the bins that need emptying. This repository holds the public website and the full forecasting and routing engine behind it.
 
 A project by **EMS Group 6, University of Edinburgh**.
@@ -14,7 +16,7 @@ One page, in this order:
 |---|---|
 | **Problem** | Edinburgh’s communal-bin problem in sourced numbers, plus an interactive “timetable vs BinSight” fortnight |
 | **How it works** | Sense → Predict → Optimise → Collect, with the real formulas and methods |
-| **Live map** | All 4,533 real stops in their real wards: tomorrow’s forecast, overflow risk, the council’s full 17,713-asset register, 18 truck routes on real streets, search by street, stop and ward panels, driver view, alerts, sensor health and real weather |
+| **Live map** | All 4,533 real stops in their real wards, plus a replay of tomorrow’s shift: 18 trucks leave Seafield at 06:00, drive their routes on real streets and empty each flagged bin while trails, counters and the clock run. Follow any truck, hover and open wards, search streets, switch to overflow risk or the council’s full 17,713-asset register; driver view, alerts, sensor health and real weather below the map |
 | **Results** | Four collection strategies over a 7-day × 2-seed replay, forecast accuracy, ablation and weight sensitivity, and a shift-time reality check |
 | **Planner** | Change the threshold, fleet, shift and lift time; distance is estimated with the Beardwood–Halton–Hammersley law calibrated to the optimised plan |
 | **Business** | Three-partner model, revenue models A–G, gain-share calculator, go-to-market, evidence and risks |

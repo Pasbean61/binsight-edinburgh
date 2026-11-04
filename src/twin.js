@@ -274,6 +274,12 @@ function local(q) {
     return { text: `The simulation uses Edinburgh’s **real hourly weather** (Open-Meteo) for ${F.weatherRange}: mean **${fmt(mean, 1)} °C** (${fmt(Math.min(...w.temp.slice(0, n)), 1)} to ${fmt(Math.max(...w.temp.slice(0, n)), 1)} °C), **${fmt(rain, 1)} mm** of rain over ${wet} wet hours. The forecast day: ${fmt(Math.min(...fT), 1)}–${fmt(Math.max(...fT), 1)} °C and ${fmt(fR, 1)} mm of rain. Rain slightly slows filling in the model.`, acts: [["Open the weather chart", () => { BS.openTab("weather"); document.getElementById("ctabs").scrollIntoView(); }]] };
   }
 
+  // shift replay on the live map
+  if (/\b(play|replay|animat\w*|watch|follow)\b|\bshift (replay|animation)\b|how does the (live )?map work|trucks? (move|moving|driving)/.test(ql)) {
+    const p = D.site.plan;
+    return { text: `The live map replays tomorrow’s shift. **${p.trucks_used} trucks** leave Seafield at **06:00**, drive their optimised routes along real streets (OSRM), and stop **10 minutes** at each flagged bin. Emptied bins turn pale with a green ring, each truck draws a trail of the road it has covered, and the counters show stops emptied, m³ collected and km driven.\n\nThe clock runs until about **${(() => { const m = Math.max(...D.trucks.map(t => t.trips.reduce((a, tr) => a + (tr.drive_min || 0) + tr.stops.length * 10, 0))); return String(6 + Math.floor(m / 60)).padStart(2, "0") + ":" + String(Math.round(m % 60)).padStart(2, "0"); })()}**, which is the shift-length problem in plain sight. Click a truck chip above the map to follow it; drag the slider to jump to any time.`, acts: [["Play the shift", () => { document.querySelector(".map-shell").scrollIntoView({ block: "center" }); BS.play?.(); }], ["Follow truck " + D.trucks[0].truck.replace("EDI-RCV-", ""), () => { document.querySelector(".map-shell").scrollIntoView({ block: "center" }); BS.follow?.(0); }]], f: ["Can the crews actually finish this?", "Which truck has the longest route?"] };
+  }
+
   // model accuracy
   if (/accura|mae|rmse|r2|r²|error|how good|f1|precision|recall|persistence|ridge/.test(ql)) {
     const res = D.site.model.results;
