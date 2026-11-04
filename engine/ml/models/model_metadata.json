@@ -1,0 +1,68 @@
+{
+    "features": [
+        "capacity",
+        "temperature",
+        "rainfall",
+        "holiday",
+        "population_density",
+        "hour",
+        "day_of_week",
+        "month",
+        "is_weekend",
+        "hours_since_collection",
+        "fill_lag_1h",
+        "fill_lag_2h",
+        "fill_lag_24h",
+        "fill_rolling_mean_6h",
+        "fill_rolling_std_6h",
+        "fill_rolling_mean_24h",
+        "fill_rolling_std_24h",
+        "temp_rain_interaction",
+        "area_City Centre",
+        "area_Inner Residential",
+        "area_Outer Residential"
+    ],
+    "area_cols": [
+        "area_City Centre",
+        "area_Inner Residential",
+        "area_Outer Residential"
+    ],
+    "model_name": "Histogram Gradient Boosting Regressor",
+    "model_version": "sklearn_hist_gradient_boosting_v1",
+    "rmse": 2.0408556489332965,
+    "results": {
+        "Baseline (Persistence)": {
+            "MAE": 23.834993829548385,
+            "RMSE": 25.374167824724513,
+            "MAPE": 47.417111423677255,
+            "R2": -1.2262485993884602,
+            "Precision": 0.0,
+            "Recall": 0.0,
+            "F1": 0.0,
+            "FP": 0,
+            "FN": 36025
+        },
+        "Ridge Regression": {
+            "MAE": 5.936908250275113,
+            "RMSE": 8.57615692097901,
+            "MAPE": 13.817726688965756,
+            "R2": 0.7456829477839018,
+            "Precision": 0.7988250057038558,
+            "Recall": 0.3887578070784178,
+            "F1": 0.5229941931026757,
+            "FP": 3527,
+            "FN": 22020
+        },
+        "Histogram Gradient Boosting Regressor": {
+            "MAE": 1.4028393709560554,
+            "RMSE": 2.0408556489332965,
+            "MAPE": 3.328492362863622,
+            "R2": 0.9855982715111232,
+            "Precision": 0.870041738834152,
+            "Recall": 0.8505759888965996,
+            "F1": 0.8601987535792488,
+            "FP": 4577,
+            "FN": 5383
+        }
+    }
+}

@@ -19,8 +19,10 @@ datasets/
 !data/raw/communal_bins.csv
 !data/edinburgh_stops.csv
 !experiments/results/*.csv
+!data/raw/weather_edinburgh_hourly.csv
 # ML models
-models/
+models/*
+!ml/models/model_metadata.json
 *.pkl
 *.joblib
 *.h5
