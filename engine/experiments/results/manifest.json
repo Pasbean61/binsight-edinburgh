@@ -1,0 +1,17 @@
+{
+    "timestamp": "2026-11-03T22:56:43.555904",
+    "environment": "development",
+    "configuration": {
+        "days": 7,
+        "seeds": 2
+    },
+    "city": "Edinburgh",
+    "n_bins": 4533,
+    "fleet_size": 24,
+    "trips_per_truck": 3,
+    "truck_capacity_l": 60000,
+    "solver_time_limit_s": 8,
+    "git_commit_sha": "c9a2de664251ac2837322410bb49f2b41dc44d29",
+    "python_version": "3.9.6 (default, May 22 2026, 11:13:45) \n[Clang 21.0.0 (clang-2100.1.1.101)]",
+    "model_rmse_used": 2.0408556489332965
+}

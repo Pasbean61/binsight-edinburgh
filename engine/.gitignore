@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+# Environment variables
+.env
+.env.local
+.env.*.local
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+# Generated data (the council export and the derived stop list are committed on purpose)
+datasets/
+*.csv
+*.parquet
+!data/raw/communal_bins.csv
+!data/edinburgh_stops.csv
+!experiments/results/*.csv
+# ML models
+models/
+*.pkl
+*.joblib
+*.h5
+# Node / React
+node_modules/
+frontend/node_modules/
+frontend/dist/
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+# Logs
+*.log
+logs/
+# Testing / Cache
+.pytest_cache/
+.coverage
+htmlcov/
+# Build artifacts
+dist/
+build/

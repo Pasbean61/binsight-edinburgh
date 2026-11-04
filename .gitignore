@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+.env
+engine/waste_management.db
+engine/data/raw/osm/osm.json
+engine/data/raw/weather_open_meteo.json

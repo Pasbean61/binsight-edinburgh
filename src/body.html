@@ -1,0 +1,324 @@
+<div class="shell">
+<header class="top" id="top">
+  <div class="wrap">
+    <a class="brand" href="#home" aria-label="BinSight home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="7" y="13" width="18" height="15" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M5 13h22" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M11 9.5a7 7 0 0 1 10 0M13.6 6.4a3.4 3.4 0 0 1 4.8 0" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"/><rect x="11" y="20" width="10" height="5" rx="1.5" fill="var(--accent)"/></svg>
+      BinSight
+    </a>
+    <nav class="sections" aria-label="Sections">
+      <a href="#problem">Problem</a>
+      <a href="#how">How it works</a>
+      <a href="#console">Live map</a>
+      <a href="#results">Results</a>
+      <a href="#planner">Planner</a>
+      <a href="#business">Business</a>
+      <a href="#sources">Sources</a>
+    </nav>
+    <button class="twin-btn" id="twinToggle" type="button" aria-controls="twin" aria-expanded="false"><span class="twin-dot"></span>Ask the twin</button>
+  </div>
+</header>
+
+<main id="home">
+<!-- ── HERO ───────────────────────────────────────────── -->
+<section class="hero wrap">
+  <div class="hero-grid">
+    <div>
+      <span class="eyebrow">Smarter bins, cleaner streets · Edinburgh</span>
+      <h1>Empty the bins that are full. <em>Skip the ones that aren’t.</em></h1>
+      <p class="lede">Edinburgh’s communal bins are emptied on fixed timetables, so some overflow while others are collected half-empty. BinSight forecasts how full each of the city’s <b class="num" data-k="stops">4,533</b> general-waste communal bin stops will be tomorrow, then plans the shortest truck routes that reach only the bins that need emptying.</p>
+      <div class="cta">
+        <a class="btn primary" href="#console">Explore tomorrow’s plan</a>
+        <button class="btn ghost" type="button" data-open-twin>Ask the AI twin</button>
+      </div>
+      <div class="provenance" aria-label="Data provenance">
+        <span class="prov real"><i></i>Real: council bin register, wards, streets, weather</span>
+        <span class="prov sim"><i></i>Simulated: sensor fill levels</span>
+        <span class="prov asm"><i></i>Assumed: fleet size and shift</span>
+      </div>
+    </div>
+    <div class="hero-map" id="heroMap" role="img" aria-label="Map of Edinburgh's 17 wards with every general-waste communal bin stop coloured by tomorrow's forecast fill level">
+      <canvas id="heroCanvas"></canvas>
+      <div class="chip-card c1"><div class="muted small">Forecast for</div><div class="big" data-k="forecastShort">3 Nov</div></div>
+      <div class="chip-card c2">
+        <div><b class="num" data-k="flagged">–</b> stops flagged for collection · <span class="num" data-k="wardsN">17</span> wards</div>
+        <div class="ramp" aria-hidden="true"><span style="background:var(--f0)"></span><span style="background:var(--f1)"></span><span style="background:var(--f2)"></span><span style="background:var(--f3)"></span><span style="background:var(--f4)"></span></div>
+        <div class="muted" style="display:flex;justify-content:space-between;font-size:11px;margin-top:3px"><span>empty</span><span>80 %</span><span>full</span></div>
+      </div>
+      <div class="hero-tip" id="heroTip"></div>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><b class="num" data-k="assets">17,713</b><span>communal bins and recycling banks in the council’s asset register</span><span class="tag real">Real</span></div>
+    <div class="kpi"><b class="num" data-k="stops">4,533</b><span>general-waste collection stops, merged from <span data-k="gwRecords">4,564</span> bin records</span><span class="tag real">Real</span></div>
+    <div class="kpi"><b class="num" data-k="flagged">–</b><span>stops forecast to need emptying tomorrow</span><span class="tag sim">Simulated</span></div>
+    <div class="kpi"><b class="num" data-k="planKm">–</b><span>of optimised routes for <span data-k="trucksUsed">–</span> trucks from Seafield depot</span><span class="tag sim">Simulated</span></div>
+    <div class="kpi"><b class="num" data-k="overflowCut">–</b><span>fewer overflow bin-hours than a fixed rota in the 7-day replay</span><span class="tag sim">Simulated</span></div>
+  </div>
+</section>
+
+<!-- ── PROBLEM ────────────────────────────────────────── -->
+<section class="chapter wrap" id="problem">
+  <div class="chapter-head">
+    <div><span class="eyebrow">The problem</span><h2>Fixed timetables meet waste that never arrives on schedule</h2></div>
+    <p>Edinburgh is a city of tenements and flats. Dozens of households share each on-street communal bin, and how much goes in changes every day. A timetable can’t see short-term lets, students moving out, the festivals or a busy Saturday, so it forces a bad choice: collect too often and waste money, or too rarely and live with overflow.</p>
+  </div>
+  <div class="stats">
+    <div class="card stat"><b>~60,000</b><p>flatted and multi-occupancy properties share on-street communal bins instead of having their own wheelie bins.</p><span class="src">City of Edinburgh Council, <a href="https://www.edinburgh.gov.uk/downloads/file/38128/statement-of-reasons" target="_blank" rel="noopener">Communal Bin Review</a></span></div>
+    <div class="card stat"><b>6,006</b><p>reports of full or overflowing bins in one summer quarter (Q2 2019/20), up 13 % on the year before. The council linked part of the rise to short-term lets.</p><span class="src">Edinburgh Evening News, <a href="https://www.edinburghnews.scotsman.com/news/politics/council/edinburgh-council-blames-increase-overflowing-bins-explosion-airbnb-style-short-term-lets-1331605" target="_blank" rel="noopener">2019</a></span></div>
+    <div class="card stat"><b>37.5 %</b><p>of Edinburgh’s household waste was recycled in 2024, 28th of Scotland’s 32 councils and below the Scottish average of 44.3 %.</p><span class="src"><a href="https://recycle.co.uk/councils/city-of-edinburgh/" target="_blank" rel="noopener">recycle.co.uk</a> (2026); <a href="https://beta.sepa.scot/news/2025/small-rise-in-scottish-household-recycling-rate-but-big-gains-are-still-go/" target="_blank" rel="noopener">SEPA</a> (2025)</span></div>
+    <div class="card stat"><b>52 %</b><p>of what goes into general household bins in Scotland could have been recycled, so general bins fill and overflow faster than they need to.</p><span class="src">Zero Waste Scotland via <a href="https://beta.sepa.scot/news/2025/small-rise-in-scottish-household-recycling-rate-but-big-gains-are-still-go/" target="_blank" rel="noopener">SEPA</a> (2025)</span></div>
+    <div class="card stat"><b>£1.35m</b><p>more a year spent on collection: the net cost rose £5.07 per premise in 2024/25 across 266,612 premises.</p><span class="src">City of Edinburgh Council, <a href="https://www.edinburgh.gov.uk/downloads/file/40593/environment-lgbf-2024-25" target="_blank" rel="noopener">Environment LGBF 2024/25</a></span></div>
+    <div class="card stat"><b>£20.2m</b><p>of recurring savings the council must find in 2026/27, rising to £94.2m over the four years to 2029/30.</p><span class="src">City of Edinburgh Council, <a href="https://www.edinburgh.gov.uk/downloads/file/38260/council-budget-key-facts-and-figures-2025--2026" target="_blank" rel="noopener">Budget key facts 2025–26</a></span></div>
+  </div>
+  <div class="policy">
+    <div class="card"><span class="when">2025→</span><div><h4>Packaging EPR pays for efficiency</h4><p>Edinburgh receives about £17.3m in 2026/27 from packaging producers, and up to 20 % can be withheld from services judged inefficient.</p></div></div>
+    <div class="card"><span class="when">1 Jan 2028</span><div><h4>Landfill ban, fully enforced</h4><p>Biodegradable municipal waste can no longer go to landfill. SEPA enforces the ban in full from 2028.</p></div></div>
+    <div class="card"><span class="when">2030→</span><div><h4>Circular Economy (Scotland) Act 2024</h4><p>A statutory recycling code, council-level targets and penalties for persistent contamination.</p></div></div>
+  </div>
+
+  <div class="card explainer" id="explainer">
+    <div class="ex-stage">
+      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center">
+        <div><h3 style="font-size:20px">Same fortnight, two ways to collect</h3><p class="muted small" style="margin-top:4px">Illustration: eight bins that fill at different speeds. Press play.</p></div>
+        <div class="seg" role="group" aria-label="Collection policy"><button type="button" class="on" data-mode="fixed">Fixed timetable</button><button type="button" data-mode="smart">BinSight</button></div>
+      </div>
+      <div class="ex-bins" id="exBins"></div>
+      <div class="ex-ctrl">
+        <button class="btn ghost" type="button" id="exPlay" style="padding:8px 16px">Play</button>
+        <input type="range" id="exDay" min="0" max="14" value="0" step="1" aria-label="Day">
+        <span class="ex-day" id="exDayLbl">Day 0</span>
+      </div>
+    </div>
+    <div class="ex-side">
+      <p class="small muted" id="exExplain">The timetable empties every bin on days 3, 6, 9 and 12, whether it is full or not.</p>
+      <div class="ex-score" id="exScore"></div>
+      <p class="small muted">Rule used by BinSight here: empty a bin today if tomorrow’s forecast is 80 % or more. The real engine applies the same rule to Edinburgh’s 4,533 stops, below.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ───────────────────────────────────── -->
+<div class="band">
+<section class="chapter wrap" id="how">
+  <div class="chapter-head">
+    <div><span class="eyebrow">How it works</span><h2>Sense, predict, optimise, collect</h2></div>
+    <p>BinSight adds sensors and software to the bins and trucks a city already owns. We don’t make bins or run trucks. Customers keep their vehicles and crews; we tell them where to go.</p>
+  </div>
+  <div class="steps" id="steps">
+    <button class="card step on" type="button" data-step="0"><span class="k">1 · Sense</span><h3>Measure</h3><p>A battery-powered ultrasonic sensor clips inside any existing bin lid and reports how full it is.</p></button>
+    <button class="card step" type="button" data-step="1"><span class="k">2 · Predict</span><h3>Forecast</h3><p>A gradient-boosted model forecasts each bin’s fill level 24 hours ahead, with an overflow probability.</p></button>
+    <button class="card step" type="button" data-step="2"><span class="k">3 · Optimise</span><h3>Route</h3><p>A vehicle-routing solver plans the shortest routes that cover only the bins that need emptying.</p></button>
+    <button class="card step" type="button" data-step="3"><span class="k">4 · Collect</span><h3>Act</h3><p>Crews follow the plan on a driver view; residents report problems in an app and earn local vouchers.</p></button>
+  </div>
+  <div class="card step-detail" id="stepDetail"></div>
+  <div class="products">
+    <div class="card"><span class="eyebrow">Product</span><h4 style="margin-top:8px">BinSight Sensor</h4><p>A small fill-level sensor that fits communal, trade and campus bins. No bin replacement needed.</p></div>
+    <div class="card"><span class="eyebrow">Product</span><h4 style="margin-top:8px">BinSight Platform</h4><p>Live fill map, fill-time forecasts, optimised daily routes, reports, and an API into the route-planning tools councils already use.</p></div>
+    <div class="card"><span class="eyebrow">Product</span><h4 style="margin-top:8px">BinSight Resident App</h4><p>Free for residents: report full or misused bins with a photo, earn points for verified reports, spend them at local businesses.</p></div>
+  </div>
+</section>
+</div>
+
+<!-- ── CONSOLE ────────────────────────────────────────── -->
+<section class="chapter wrap console" id="console">
+  <div class="chapter-head">
+    <div><span class="eyebrow">Live map</span><h2>Tomorrow’s plan, stop by stop</h2></div>
+    <p>Every dot is a real general-waste communal bin stop from the council’s register, placed in its real ward. Colour shows the simulated forecast. Click any stop, route or ward, or search a street.</p>
+  </div>
+  <div class="consolekpis" id="consoleKpis"></div>
+  <div class="toolbar">
+    <div class="grow">
+      <div class="field"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="search" type="search" placeholder="Search a street, e.g. Leith Walk, Easter Road, EDI-…" autocomplete="off" aria-label="Search stops by street or ID"></div>
+      <div class="suggest" id="suggest" hidden></div>
+    </div>
+    <div class="field"><label for="layerSel">Colour by</label><select id="layerSel"><option value="pred">Tomorrow’s forecast</option><option value="fill">Fill now</option><option value="prob">Overflow risk</option><option value="net">Council register: all streams</option></select></div>
+    <div class="field"><label for="wardSel">Ward</label><select id="wardSel"><option value="-1">All 17 wards</option></select></div>
+    <label class="toggle"><input type="checkbox" id="routesChk" checked> Routes</label>
+    <label class="toggle"><input type="checkbox" id="flagChk"> Flagged only</label>
+  </div>
+  <div class="map-shell">
+    <div id="map" aria-label="Interactive map of Edinburgh communal bin stops"></div>
+    <div class="map-note" id="mapNote">Loading Edinburgh…</div>
+    <div class="legend" id="legend"></div>
+    <div class="map-panel" id="panel" hidden></div>
+  </div>
+
+  <div class="tabs" role="tablist" id="ctabs">
+    <button role="tab" class="on" data-tab="bins">Stops</button>
+    <button role="tab" data-tab="routes">Routes &amp; drivers</button>
+    <button role="tab" data-tab="wards">Wards</button>
+    <button role="tab" data-tab="alerts">Alerts &amp; sensors</button>
+    <button role="tab" data-tab="weather">Weather</button>
+  </div>
+  <div class="tabpane" id="pane-bins"></div>
+  <div class="tabpane" id="pane-routes" hidden></div>
+  <div class="tabpane" id="pane-wards" hidden></div>
+  <div class="tabpane" id="pane-alerts" hidden></div>
+  <div class="tabpane" id="pane-weather" hidden></div>
+</section>
+
+<!-- ── RESULTS ────────────────────────────────────────── -->
+<div class="band">
+<section class="chapter wrap" id="results">
+  <div class="chapter-head">
+    <div><span class="eyebrow">Results</span><h2>Four ways to run a week of collections</h2></div>
+    <p>The engine replays test days from the simulated history. Each strategy picks its bins at midnight, the solver routes them, and the bins keep filling hour by hour. We count distance, overflow and wasted trips.</p>
+  </div>
+  <div class="results-grid">
+    <div class="card">
+      <div class="metric-pills" id="metricPills"></div>
+      <svg class="chart" id="stratChart" viewBox="0 0 640 250" role="img" aria-label="Strategy comparison chart"></svg>
+      <p class="note" id="stratNote"></p>
+    </div>
+    <div class="takeaways" id="takeaways"></div>
+  </div>
+  <div class="biz-grid" style="margin-top:14px">
+    <div class="card">
+      <h3 style="font-size:20px">How good is the forecast?</h3>
+      <p class="muted small" style="margin-top:6px">24-hour-ahead fill level, test period (last quarter of the history). F1 measures how well each model spots bins that will pass 80 %.</p>
+      <div class="tablewrap" style="margin-top:14px"><table id="modelTable"></table></div>
+      <p class="note" id="modelNote"></p>
+    </div>
+    <div class="card callout" style="border-radius:0 var(--r) var(--r) 0">
+      <h4>Reality check: the plan needs more crew hours than a shift has</h4>
+      <p id="realityText">Loading…</p>
+      <p class="note">Service time is EcoBin’s assumption of 10 minutes per stop. A real communal-bin lift is likely quicker, so try other values in the planner below.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3 style="font-size:20px">Does the priority score help?</h3>
+    <p class="muted small" style="margin-top:6px">Ablation and weight sensitivity: priority = fill weight × forecast + risk weight × overflow probability + area weight × location.</p>
+    <div class="tablewrap" style="margin-top:14px"><table id="ablationTable"></table></div>
+    <p class="note" id="ablationNote"></p>
+  </div>
+</section>
+</div>
+
+<!-- ── PLANNER ────────────────────────────────────────── -->
+<section class="chapter wrap" id="planner">
+  <div class="chapter-head">
+    <div><span class="eyebrow">Planner</span><h2>Plan tomorrow yourself</h2></div>
+    <p>Change the collection rule and the fleet. Stop counts and loads come straight from tomorrow’s 4,533 forecasts. Distance is estimated with the Beardwood–Halton–Hammersley law, calibrated to the optimised plan above.</p>
+  </div>
+  <div class="planner">
+    <div class="card">
+      <div class="slider"><div class="top"><label for="pThr">Collect when forecast reaches</label><output id="oThr">80 %</output></div><input type="range" id="pThr" min="50" max="95" step="1" value="80"><small>Lower means fewer overflows but more stops.</small></div>
+      <div class="slider"><div class="top"><label for="pFleet">Trucks available</label><output id="oFleet">24</output></div><input type="range" id="pFleet" min="6" max="40" step="1" value="24"></div>
+      <div class="slider"><div class="top"><label for="pShift">Shift length</label><output id="oShift">8.0 h</output></div><input type="range" id="pShift" min="6" max="12" step="0.5" value="8"></div>
+      <div class="slider"><div class="top"><label for="pSvc">Minutes per stop</label><output id="oSvc">10 min</output></div><input type="range" id="pSvc" min="2" max="15" step="1" value="10"><small>EcoBin’s default is 10. Try 3–5 for a mechanised lift.</small></div>
+      <div class="slider"><div class="top"><label for="pSpeed">Average truck speed</label><output id="oSpeed">30 km/h</output></div><input type="range" id="pSpeed" min="12" max="40" step="1" value="30"></div>
+      <label class="toggle" style="height:auto;padding:10px 12px"><input type="checkbox" id="pPrio" checked> Also collect when priority score ≥ 75</label>
+    </div>
+    <div class="card">
+      <div class="plan-out" id="planOut"></div>
+      <div class="hours" id="planHours"></div>
+      <div class="feas" id="planFeas"></div>
+      <p class="note" id="planNote"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ── BUSINESS ───────────────────────────────────────── -->
+<div class="band">
+<section class="chapter wrap" id="business">
+  <div class="chapter-head">
+    <div><span class="eyebrow">Business model</span><h2>Three partners, one service</h2></div>
+    <p>We sell sensors that fit onto existing bins and a platform that turns their data into better collection decisions. The council pays for the sensors and platform, residents add reports, and recycling facilities buy the forecasts. Each partner makes the service more valuable to the others.</p>
+  </div>
+  <div class="card partners" id="partners"></div>
+  <div class="biz-grid" style="margin-top:14px">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="font-size:20px">Revenue models</h3><div class="model-tabs" id="modelTabs"></div></div>
+      <div class="model-body" id="modelBody"></div>
+    </div>
+    <div class="card calc">
+      <h3 style="font-size:20px">Model B: pay from savings</h3>
+      <p class="muted small" style="margin-top:6px">We fit sensors at no upfront cost. The council pays a share of verified savings. Defaults are from our plan.</p>
+      <div style="margin-top:16px">
+        <div class="row"><label for="cProps">Properties covered</label><input id="cProps" type="number" min="0" step="1000" value="100000"></div>
+        <div class="row"><label for="cCost">Collection cost per property per year (£)</label><input id="cCost" type="number" min="0" step="0.01" value="72.35"></div>
+        <div class="row"><label for="cSave">Saving achieved (%)</label><input id="cSave" type="number" min="0" max="100" step="1" value="20"></div>
+        <div class="row"><label for="cShare">BinSight share of savings (%)</label><input id="cShare" type="number" min="0" max="100" step="1" value="25"></div>
+      </div>
+      <div class="res" id="calcRes"></div>
+      <p class="note">£72.35 is Scotland’s average household collection cost per property in 2020/21 (Local Government Benchmarking Framework). 20 % is conservative: Hannan et al. (2020) model 44 %.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+      <h3 style="font-size:20px">Who buys it</h3>
+      <div class="tablewrap" style="margin-top:14px"><table>
+        <thead><tr><th>Customer</th><th>Their problem</th><th>What they buy</th></tr></thead>
+        <tbody style="cursor:default">
+          <tr><td><b>Local councils</b><br><span class="muted small">primary customer</span></td><td style="white-space:normal">Rising costs, overflowing communal bins, complaints, recycling targets, the 2028 landfill ban</td><td style="white-space:normal">Sensors for communal bins and a platform subscription, or gain-share (Model B)</td></tr>
+          <tr><td><b>Private contractors</b></td><td style="white-space:normal">Fuel and labour wasted on fixed rounds</td><td style="white-space:normal">Sensors for the bins they service and a platform licence</td></tr>
+          <tr><td><b>Universities, student housing</b></td><td style="white-space:normal">Waste peaks at move-in and move-out; campus cleanliness</td><td style="white-space:normal">Sensors and platform access, annually or seasonally</td></tr>
+          <tr><td><b>Businesses, landlords</b></td><td style="white-space:normal">Paying for collections of half-empty trade bins</td><td style="white-space:normal">A sensor subscription that alerts their contractor only when the bin is nearly full</td></tr>
+          <tr><td><b>Event organisers</b></td><td style="white-space:normal">Short, intense peaks, such as the August festivals</td><td style="white-space:normal">Short-term sensor rental and platform access</td></tr>
+        </tbody></table></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3 style="font-size:20px;margin-bottom:22px">Go-to-market</h3>
+    <div class="roadmap">
+      <div class="phase"><span class="when">0–6 months</span><h4>Campus pilot</h4><p>Sensors on 50–100 existing bins at a university or student residence. Prove the savings and build a data set.</p></div>
+      <div class="phase"><span class="when">6–18 months</span><h4>Council pilot</h4><p>Communal bins in one Edinburgh area, funded through CivTech, Zero Waste Scotland or Innovate UK. Launch the resident app there.</p></div>
+      <div class="phase"><span class="when">18 months +</span><h4>Scale</h4><p>Other Scottish councils (32 in total) and private contractors, then the rest of the UK.</p></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3 style="font-size:20px">Evidence that smarter collection works</h3>
+    <div class="evidence" style="margin-top:16px">
+      <div class="stat"><b>44 %</b><p>lower collection cost, 18 % lower emissions and 26 % higher efficiency with real-time-fill routing at a 70 % threshold.</p><span class="src">Hannan et al. (2020), Sustainable Cities and Society 62</span></div>
+      <div class="stat"><b>53 %</b><p>fewer bin visits in Derby’s 200-bin sensor trial, with fewer overflow complaints.</p><span class="src"><a href="https://www.derby.gov.uk/news/2023/june/waste-tech-trial-roll-out" target="_blank" rel="noopener">Derby City Council</a> (2023)</span></div>
+      <div class="stat"><b>11,000</b><p>sensors already installed in Edinburgh’s communal and litter bins (£6.4m programme). The data exists; turning it into routes is the gap.</p><span class="src"><a href="https://www.edinburgh.gov.uk/bins-recycling/smart-bin-sensors/1" target="_blank" rel="noopener">City of Edinburgh Council</a></span></div>
+      <div class="stat"><b>2,700</b><p>of about 3,400 communal glass bins carried sensors by late 2024, ahead of a move to fully dynamic collection.</p><span class="src"><a href="https://theedinburghreporter.co.uk/2024/12/glass-recycling-bins-to-be-fitted-with-sensors/" target="_blank" rel="noopener">Edinburgh Reporter</a> (2024)</span></div>
+    </div>
+    <p class="note">Manchester’s 2017 sensor trial worked technically but was not financially viable without route optimisation (European Cleaning Journal). That is the step BinSight provides.</p>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3 style="font-size:20px">Risks and how we handle them</h3>
+    <div class="risks" style="margin-top:8px" id="risks"></div>
+  </div>
+</section>
+</div>
+
+<!-- ── SOURCES ────────────────────────────────────────── -->
+<section class="chapter wrap" id="sources">
+  <div class="chapter-head">
+    <div><span class="eyebrow">Sources and method</span><h2>What is real, what is simulated</h2></div>
+    <p>Everything about places is real and traceable to an open source. The council does not publish live sensor readings, so fill levels come from a simulation driven by real Edinburgh weather and holidays. We label every simulated number on this site.</p>
+  </div>
+  <div class="tablewrap"><table class="prov-table">
+    <thead><tr><th>Data</th><th>Status</th><th>Source</th></tr></thead>
+    <tbody style="cursor:default" id="provRows"></tbody>
+  </table></div>
+  <h3 style="font-size:20px;margin:40px 0 16px">References</h3>
+  <ul class="refs" id="refs"></ul>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div><b style="color:var(--ink)">BinSight</b> · EMS Group 6, University of Edinburgh · <span data-k="generated"></span></div>
+    <div>Engine adapted from <a href="https://github.com/mizj1213wcz/binsight" target="_blank" rel="noopener">BinSight</a> and <a href="https://github.com/RishvinReddy/EcoBin-Smart-Waste-Management-System" target="_blank" rel="noopener">EcoBin</a> (MIT). Contains public sector information licensed under the Open Government Licence v3.0 and OS data © Crown copyright and database right 2026. Map data © OpenStreetMap contributors.</div>
+  </div>
+</footer>
+</div>
+
+<!-- ── TWIN ───────────────────────────────────────────── -->
+<aside class="twin" id="twin" aria-label="BinSight AI twin" aria-hidden="true">
+  <div class="twin-head">
+    <span class="twin-dot" style="width:28px;height:28px"></span>
+    <div><h3>BinSight Twin</h3><div class="mode" id="twinMode"><i></i><span>Built-in engine</span></div></div>
+    <button class="close" type="button" id="twinClose" aria-label="Close twin">×</button>
+  </div>
+  <div class="twin-log" id="twinLog" aria-live="polite"></div>
+  <div class="twin-foot">
+    <form class="twin-form" id="twinForm">
+      <textarea id="twinInput" rows="1" placeholder="Ask about any street, ward, truck or number…" aria-label="Ask the twin"></textarea>
+      <button type="submit" id="twinSend" aria-label="Send"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </form>
+    <div class="fine" id="twinFine">Answers come from this site’s data. Fill levels are simulated.</div>
+  </div>
+</aside>
+<button class="twin-fab" type="button" data-open-twin><span class="twin-dot"></span>Ask BinSight</button>
