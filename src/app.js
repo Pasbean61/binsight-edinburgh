@@ -666,7 +666,10 @@ function setT(t) {
   let litres = 0; for (let k = 0; k < SIM.ptr; k++) { const i = ev[k][1]; litres += S.cap[i] * Math.min(S.pred[i], 100) / 100; }
   const pctDone = SIM.ptr / ev.length * 100;
   $("#pbClock").textContent = clock(SIM.t);
-  $("#pbDay").textContent = SIM.t <= 0 ? "Shift starts" : SIM.t >= SIM.end ? "All trucks back" : fmtDate(D.site.forecast_for, { weekday: "short", day: "numeric", month: "short" }) + " · simulated";
+  // the shift starts at 06:00 on the forecast day; past midnight the label moves to the next day
+  const day = new Date(D.site.forecast_for.slice(0, 10) + "T06:00:00"); day.setMinutes(day.getMinutes() + SIM.t);
+  const dayLbl = day.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+  $("#pbDay").textContent = SIM.t <= 0 ? "Shift starts" : SIM.t >= SIM.end ? `${dayLbl} · all trucks back` : `${dayLbl} · simulated`;
   $("#pbRange").value = Math.round(SIM.t / SIM.end * 1000);
   $("#pbStats").innerHTML = `<span><b>${fmt(SIM.ptr)}</b> / ${fmt(ev.length)} stops emptied</span><span><b>${fmt(litres / 1000)}</b> m³ collected</span><span><b>${fmt(km)}</b> km driven</span><span><b>${onRoad}</b> trucks on the road</span><span class="bar"><span style="width:${pctDone}%"></span></span>`;
 }

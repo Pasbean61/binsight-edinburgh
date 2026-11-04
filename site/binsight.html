@@ -1524,7 +1524,10 @@ function setT(t) {
   let litres = 0; for (let k = 0; k < SIM.ptr; k++) { const i = ev[k][1]; litres += S.cap[i] * Math.min(S.pred[i], 100) / 100; }
   const pctDone = SIM.ptr / ev.length * 100;
   $("#pbClock").textContent = clock(SIM.t);
-  $("#pbDay").textContent = SIM.t <= 0 ? "Shift starts" : SIM.t >= SIM.end ? "All trucks back" : fmtDate(D.site.forecast_for, { weekday: "short", day: "numeric", month: "short" }) + " · simulated";
+  // the shift starts at 06:00 on the forecast day; past midnight the label moves to the next day
+  const day = new Date(D.site.forecast_for.slice(0, 10) + "T06:00:00"); day.setMinutes(day.getMinutes() + SIM.t);
+  const dayLbl = day.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+  $("#pbDay").textContent = SIM.t <= 0 ? "Shift starts" : SIM.t >= SIM.end ? `${dayLbl} · all trucks back` : `${dayLbl} · simulated`;
   $("#pbRange").value = Math.round(SIM.t / SIM.end * 1000);
   $("#pbStats").innerHTML = `<span><b>${fmt(SIM.ptr)}</b> / ${fmt(ev.length)} stops emptied</span><span><b>${fmt(litres / 1000)}</b> m³ collected</span><span><b>${fmt(km)}</b> km driven</span><span><b>${onRoad}</b> trucks on the road</span><span class="bar"><span style="width:${pctDone}%"></span></span>`;
 }
@@ -2203,7 +2206,7 @@ function local(q) {
   // shift replay on the live map
   if (/\b(play|replay|animat\w*|watch|follow)\b|\bshift (replay|animation)\b|how does the (live )?map work|trucks? (move|moving|driving)/.test(ql)) {
     const p = D.site.plan;
-    return { text: `The live map replays tomorrow’s shift. **${p.trucks_used} trucks** leave Seafield at **06:00**, drive their optimised routes along real streets (OSRM), and stop **10 minutes** at each flagged bin. Emptied bins turn pale with a green ring, each truck draws a trail of the road it has covered, and the counters show stops emptied, m³ collected and km driven.\n\nThe clock runs until about **${(() => { const m = Math.max(...D.trucks.map(t => t.trips.reduce((a, tr) => a + (tr.drive_min || 0) + tr.stops.length * 10, 0))); return String(6 + Math.floor(m / 60)).padStart(2, "0") + ":" + String(Math.round(m % 60)).padStart(2, "0"); })()}**, which is the shift-length problem in plain sight. Click a truck chip above the map to follow it; drag the slider to jump to any time.`, acts: [["Play the shift", () => { document.querySelector(".map-shell").scrollIntoView({ block: "center" }); BS.play?.(); }], ["Follow truck " + D.trucks[0].truck.replace("EDI-RCV-", ""), () => { document.querySelector(".map-shell").scrollIntoView({ block: "center" }); BS.follow?.(0); }]], f: ["Can the crews actually finish this?", "Which truck has the longest route?"] };
+    return { text: `The live map replays tomorrow’s shift. **${p.trucks_used} trucks** leave Seafield at **06:00**, drive their optimised routes along real streets (OSRM), and stop **10 minutes** at each flagged bin. Emptied bins turn pale with a green ring, each truck draws a trail of the road it has covered, and the counters show stops emptied, m³ collected and km driven.\n\nThe clock runs until about **${(() => { const m = Math.max(...D.trucks.map(t => t.trips.reduce((a, tr) => a + (tr.drive_min || 0) + tr.stops.length * 10, 0))); const h = 6 + Math.floor(m / 60); return String(h % 24).padStart(2, "0") + ":" + String(Math.round(m % 60)).padStart(2, "0") + (h >= 24 ? " the next morning" : ""); })()}** for the longest route, which is the shift-length problem in plain sight. Click a truck chip above the map to follow it; drag the slider to jump to any time.`, acts: [["Play the shift", () => { document.querySelector(".map-shell").scrollIntoView({ block: "center" }); BS.play?.(); }], ["Follow truck " + D.trucks[0].truck.replace("EDI-RCV-", ""), () => { document.querySelector(".map-shell").scrollIntoView({ block: "center" }); BS.follow?.(0); }]], f: ["Can the crews actually finish this?", "Which truck has the longest route?"] };
   }
 
   // model accuracy
