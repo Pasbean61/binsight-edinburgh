@@ -16,7 +16,7 @@ One page, in this order:
 |---|---|
 | **Problem** | Edinburgh’s communal-bin problem in sourced numbers, plus an interactive “timetable vs BinSight” fortnight |
 | **How it works** | Sense → Predict → Optimise → Collect, with the real formulas and methods |
-| **Live map** | All 4,533 real stops in their real wards, plus a replay of tomorrow’s shift: 18 trucks leave Seafield at 06:00, drive their routes on real streets and empty each flagged bin while trails, counters and the clock run. Follow any truck, hover and open wards, search streets, switch to overflow risk or the council’s full 17,713-asset register; driver view, alerts, sensor health and real weather below the map |
+| **Live map** | A real street map of Edinburgh you can zoom from the whole city down to single buildings and house numbers, with all 4,533 real stops in their real wards, plus a replay of tomorrow’s shift: 18 trucks leave Seafield at 06:00, drive their routes on real streets and empty each flagged bin while trails, counters and the clock run. Follow any truck, hover and open wards, search streets, switch to overflow risk or the council’s full 17,713-asset register; driver view, alerts, sensor health and real weather below the map |
 | **Results** | Four collection strategies over a 7-day × 2-seed replay, forecast accuracy, ablation and weight sensitivity, and a shift-time reality check |
 | **Planner** | Change the threshold, fleet, shift and lift time; distance is estimated with the Beardwood–Halton–Hammersley law calibrated to the optimised plan |
 | **Business** | Three-partner model, revenue models A–G, gain-share calculator, go-to-market, evidence and risks |
@@ -38,7 +38,7 @@ Open the browser console and run `__twinTest("your question")` to test the built
 |---|---|---|
 | Bin locations, sizes, counts, street descriptions | Real | City of Edinburgh Council *Communal Bins* register (17,713 records, OGL v3.0) |
 | Ward of every stop | Real | ONS Wards (December 2024) boundaries, point-in-polygon |
-| Streets, rivers, parks | Real | OpenStreetMap via Overpass |
+| Street map: buildings, street names, house numbers, stations, parks | Real | OpenStreetMap vector tiles from [OpenFreeMap](https://openfreemap.org), drawn with MapLibre GL (a light Overpass-based map is the offline fallback) |
 | Route geometry | Real streets | OSRM over OpenStreetMap |
 | Hourly temperature and rain (4 Oct – 3 Nov 2026) | Real | Open-Meteo |
 | Scottish bank holidays | Real | gov.scot |
@@ -87,5 +87,5 @@ The engine is adapted from the team’s [BinSight](https://github.com/mizj1213wc
 - Code: MIT (see `LICENSE` and `engine/LICENSE`).
 - Bin data: City of Edinburgh Council, *Communal Bins*, Open Government Licence v3.0. Contains OS data © Crown copyright and database right 2026.
 - Ward boundaries: Office for National Statistics, Open Government Licence v3.0.
-- Map data: © OpenStreetMap contributors, ODbL.
+- Map data: © OpenStreetMap contributors, ODbL. Map tiles: OpenFreeMap. Rendering: MapLibre GL JS (BSD-3) with maplibre-gl-leaflet.
 - Weather: Open-Meteo, CC BY 4.0.

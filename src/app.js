@@ -293,7 +293,7 @@ function initMap() {
   map.on("click focus", () => map.scrollWheelZoom.enable());
   map.on("mouseout blur", () => map.scrollWheelZoom.disable());
   $("#map").addEventListener("pointerdown", () => map.scrollWheelZoom.enable());
-  map.attributionControl.addAttribution("Wards: ONS (OGL) · Streets © OpenStreetMap · Bins: City of Edinburgh Council (OGL)");
+  map.attributionControl.addAttribution("Wards: ONS (OGL) · Routes: OSRM · Bins: City of Edinburgh Council (OGL)");
   const B = D.base;
   // land / wards
   map.createPane("hi"); map.getPane("hi").style.zIndex = 450; map.getPane("hi").style.pointerEvents = "none";
@@ -359,11 +359,98 @@ function initMap() {
   ["pointerdown", "wheel", "touchstart"].forEach(ev => $("#map").addEventListener(ev, () => { fitted = true; }, { passive: true }));
   $("#mapNote").textContent = `Snapshot ${fmtDate(D.site.snapshot, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })} · forecast for ${fmtDate(D.site.forecast_for, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`;
   initHeroHover();
+  initStreetMap();
+}
+
+/* ── street-level map ────────────────────────────────
+   Every building, street name, house number, tram and rail stop and park in Edinburgh,
+   from OpenStreetMap vector tiles (OpenFreeMap, no key) drawn by MapLibre under the
+   Leaflet layers and restyled to the platinum palette. If the tiles can't be reached
+   (offline, or inside a Claude artifact), the light vector map above stays. */
+const OFM_STYLE = "https://tiles.openfreemap.org/styles/positron";
+const ML_JS = "https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.24.0/maplibre-gl.js";
+const ML_CSS = "https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css";
+const MLL_JS = "https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js";
+const loadScript = src => new Promise((ok, no) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+async function initStreetMap() {
+  try {
+    const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 8000);
+    const style = await fetch(OFM_STYLE, { signal: ctl.signal }).then(r => { if (!r.ok) throw new Error("style"); return r.json(); });
+    clearTimeout(tm);
+    const css = document.createElement("link"); css.rel = "stylesheet"; css.href = ML_CSS; document.head.appendChild(css);
+    if (!window.maplibregl) await loadScript(ML_JS);
+    if (!L.maplibreGL) await loadScript(MLL_JS);
+    if (!window.maplibregl || !L.maplibreGL) return;
+    platinumStyle(style);
+    const gl = L.maplibreGL({ style, interactive: false, attributionControl: false,
+      attribution: '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors' }).addTo(map);
+    const glm = gl.getMaplibreMap();
+    let on = false;
+    const swap = () => {   // swap only once the first street tiles are drawn, so the map is never blank
+      if (on) return; on = true; UI.street = true;
+      baseLayers.forEach(([lay]) => wardLayer.removeLayer(lay));
+      $("#map").style.background = PAL.land; map.setMaxZoom(19);
+      $("#map").classList.add("street");
+      map.attributionControl.addAttribution(gl.options.attribution);
+      restyleStops();
+    };
+    glm.once("idle", swap);
+    setTimeout(() => { if (!on && glm.loaded()) swap(); }, 9000);
+  } catch (e) { /* keep the built-in vector map */ }
+}
+function platinumStyle(s) {
+  const lay = id => s.layers.find(l => l.id === id);
+  const P = (ids, k, v) => [].concat(ids).forEach(id => { const l = lay(id); if (l) (l.paint ||= {})[k] = v; });
+  const land = "#eef0f2", bld = "#d8dce1", ink = "#2a3038", txt = "#59616a", halo = "#f5f6f7";
+  P("background", "background-color", land);
+  P("landuse_residential", "fill-color", "#eaecef");
+  P("park", "fill-color", "#dbe5de"); P("landcover_wood", "fill-color", "#d5e0d8");
+  P("water", "fill-color", "#ccd5dd"); P("waterway", "line-color", "#bfc9d2");
+  P("building", "fill-color", bld); P("building", "fill-outline-color", "#c9ced4");
+  P(["highway_minor", "highway_major_inner", "highway_motorway_inner", "highway_motorway_bridge_inner", "tunnel_motorway_inner", "road_pier"], "line-color", "#ffffff");
+  P("highway_path", "line-color", "#fbfbfc");
+  P(["highway_major_casing", "highway_motorway_casing", "highway_motorway_bridge_casing", "tunnel_motorway_casing"], "line-color", "#d0d5db");
+  P(["railway", "railway_transit", "railway_service"], "line-color", "#c6ccd3");
+  P(["highway-name-path", "highway-name-minor", "highway-name-major"], "text-color", txt);
+  P(["highway-name-path", "highway-name-minor", "highway-name-major"], "text-halo-color", halo);
+  P(["highway-name-path", "highway-name-minor", "highway-name-major"], "text-halo-width", 1.4);
+  s.layers.filter(l => /^label_/.test(l.id)).forEach(l => { l.paint = { ...l.paint, "text-color": ink, "text-halo-color": land, "text-halo-width": 1.4, "text-halo-blur": 0 }; });
+  P(["water_name_point_label", "water_name_line_label", "waterway_line_label"], "text-color", "#61778a");
+  // the building layer starts a little earlier, and street names one zoom earlier, than stock positron
+  if (lay("building")) lay("building").minzoom = 13;
+  if (lay("highway-name-minor")) lay("highway-name-minor").minzoom = 14.5;
+  // extra detail positron leaves out: house numbers, tram and rail stops, parks and places
+  const name = ["coalesce", ["get", "name_en"], ["get", "name"]];
+  const extra = [
+    { id: "bs-housenumber", type: "symbol", source: "openmaptiles", "source-layer": "housenumber", minzoom: 17,
+      layout: { "text-field": ["get", "housenumber"], "text-font": ["Noto Sans Regular"], "text-size": 10 },
+      paint: { "text-color": "#98a0a8", "text-halo-color": bld, "text-halo-width": 1 } },
+    { id: "bs-poi", type: "symbol", source: "openmaptiles", "source-layer": "poi", minzoom: 16.5,
+      filter: ["!", ["match", ["get", "class"], ["railway", "bus", "park"], true, false]],
+      layout: { "text-field": name, "text-font": ["Noto Sans Regular"], "text-size": 10.5, "text-max-width": 8 },
+      paint: { "text-color": "#80878f", "text-halo-color": halo, "text-halo-width": 1.2 } },
+    { id: "bs-park", type: "symbol", source: "openmaptiles", "source-layer": "poi", minzoom: 14,
+      filter: ["==", ["get", "class"], "park"],
+      layout: { "text-field": name, "text-font": ["Noto Sans Italic"], "text-size": 11, "text-max-width": 8 },
+      paint: { "text-color": "#5f7d68", "text-halo-color": halo, "text-halo-width": 1.2 } },
+    { id: "bs-station", type: "symbol", source: "openmaptiles", "source-layer": "poi", minzoom: 13.5,
+      filter: ["==", ["get", "class"], "railway"],
+      layout: { "text-field": name, "text-font": ["Noto Sans Bold"], "text-size": 10.5, "text-max-width": 9, "text-anchor": "top", "text-offset": [0, .5] },
+      paint: { "text-color": "#3e5568", "text-halo-color": halo, "text-halo-width": 1.4 } },
+    { id: "bs-station-dot", type: "circle", source: "openmaptiles", "source-layer": "poi", minzoom: 13.5,
+      filter: ["==", ["get", "class"], "railway"],
+      paint: { "circle-radius": 3, "circle-color": "#ffffff", "circle-stroke-color": "#3e5568", "circle-stroke-width": 1.4 } },
+  ];
+  const at = s.layers.findIndex(l => l.id === "highway-name-path");
+  s.layers.splice(at < 0 ? s.layers.length : at, 0, ...extra);
+  return s;
 }
 function wardStyle(wi) {
   const sh = wardShapes[wi]; if (!sh) return;
   const sel = UI.ward === wi, hov = UI.hoverWard === wi, dim = UI.ward >= 0 && !sel;
-  sh.setStyle({ fillColor: hov && !sel ? PAL.accentSoft : PAL.land, fillOpacity: dim ? .55 : 1, color: PAL.line2, weight: 1 });
+  const zz = map ? map.getZoom() : 11;
+  if (UI.street) sh.setStyle({ fillColor: hov && !sel ? PAL.accent : PAL.paper, fillOpacity: dim ? .55 : hov && !sel && zz < 14 ? .07 : 0, color: PAL.ink3, weight: 1, opacity: zz >= 15 ? .25 : .45 });
+  else sh.setStyle({ fillColor: hov && !sel ? PAL.accentSoft : PAL.land, fillOpacity: dim ? .55 : 1, color: PAL.line2, weight: 1 });
   // outlines live in their own pane above the canvas, so they never hide the stops
   if (wardHi) {
     const rings = wi => D.base.wards[wi].rings.map(r => decode(r));
@@ -379,9 +466,9 @@ function stopVisible(i) {
 }
 function restyleStops() {
   if (!map) return;
-  const z = map.getZoom(), r = z < 11.5 ? 2.6 : z < 13 ? 3.6 : z < 15 ? 5 : 7;
+  const z = map.getZoom(), r = z < 11.5 ? 2.6 : z < 13 ? 3.6 : z < 15 ? 5 : z < 17 ? 7 : 8.5;
   const S = D.S, net = UI.layer === "net";
-  if (basePal !== PAL.land) { basePal = PAL.land; baseLayers.forEach(([l, st]) => l.setStyle(st())); $("#map").style.background = PAL.sea; }
+  if (basePal !== PAL.land) { basePal = PAL.land; baseLayers.forEach(([l, st]) => l.setStyle(st())); $("#map").style.background = UI.street ? PAL.land : PAL.sea; }
   for (let i = 0; i < D.n; i++) {
     const m = markers[i], vis = !net && stopVisible(i);
     if (!vis) { if (stopLayer.hasLayer(m)) stopLayer.removeLayer(m); continue; }
@@ -394,10 +481,13 @@ function restyleStops() {
   }
   D.wards.forEach((w, wi) => wardStyle(wi));
   routeLines.forEach((pl, ti) => {
-    const sel = UI.selTruck, show = !net && (UI.routes || sel === ti);
+    // at street zoom every truck's path shows on its own: few enough routes are on screen to read
+    const sel = UI.selTruck, show = !net && (UI.routes || sel === ti || z >= 14);
     if (!show) { routeLayer.removeLayer(pl); return; }
     if (!routeLayer.hasLayer(pl)) routeLayer.addLayer(pl);
-    pl.setStyle({ opacity: sel < 0 ? .45 : sel === ti ? .95 : .1, weight: sel === ti ? 4 : 1.8 });
+    // routes get bolder as you zoom to street level, so each truck's path reads street by street
+    const w = z < 13 ? 1.8 : z < 15 ? 2.6 : z < 17 ? 3.6 : 4.6, op = z < 13 ? .45 : z < 15 ? .62 : .85;
+    pl.setStyle({ opacity: sel < 0 ? op : sel === ti ? .95 : .1, weight: sel === ti ? w + 2 : w, lineCap: "round", lineJoin: "round" });
     if (sel === ti) pl.bringToFront();
   });
   SIM.trails?.forEach((tl, ti) => tl.setStyle({ opacity: UI.selTruck < 0 || UI.selTruck === ti ? .9 : .15 }));
@@ -1033,7 +1123,7 @@ function initSources() {
   const rows = [
     ["Bin locations, bin sizes, bin counts, street descriptions", "real", `City of Edinburgh Council, <i>Communal Bins</i> asset register, ${fmt(t.assets)} records (Open Government Licence v3.0; contains OS data © Crown copyright 2026)`],
     ["Ward of every stop", "real", "ONS Open Geography Portal, Wards (December 2024) Boundaries UK BGC; point-in-polygon for each stop"],
-    ["Streets, rivers and parks on the map", "real", "© OpenStreetMap contributors (ODbL), via the Overpass API"],
+    ["Street map: every building, street name, house number, station and park", "real", "© OpenStreetMap contributors (ODbL), vector tiles from OpenFreeMap drawn with MapLibre; a light fallback map from the Overpass API"],
     ["Route geometry on real streets", "real", "OSRM public routing service over OpenStreetMap"],
     ["Hourly temperature and rain", "real", `Open-Meteo, Edinburgh, ${fmtDate(D.site.weather.start, { day: "numeric", month: "short" })} to ${fmtDate(D.site.forecast_for, { day: "numeric", month: "short", year: "numeric" })}`],
     ["Bank holidays", "real", "Scottish bank holidays 2026, gov.scot"],
