@@ -1155,9 +1155,13 @@ let map, stopLayer, routeLayer, netLayer, wardLayer, markers = [], routeLines = 
 function initMap() {
   if (!window.L) { $("#mapNote").textContent = "The map library did not load. Check your connection."; return; }
   const canvas = L.canvas({ padding: 0.3, tolerance: 4 });
-  map = L.map("map", { preferCanvas: true, renderer: canvas, zoomControl: true, attributionControl: true, minZoom: 10, maxZoom: 18, zoomSnap: 0.25 })
+  map = L.map("map", { preferCanvas: true, renderer: canvas, zoomControl: true, attributionControl: true, minZoom: 10, maxZoom: 18, zoomSnap: 0.25, scrollWheelZoom: false })
     .setView([55.94, -3.2], 11.5);
   map.attributionControl.setPrefix(false);
+  // the wheel scrolls the page until someone clicks the map; then it zooms, until the pointer leaves
+  map.on("click focus", () => map.scrollWheelZoom.enable());
+  map.on("mouseout blur", () => map.scrollWheelZoom.disable());
+  $("#map").addEventListener("pointerdown", () => map.scrollWheelZoom.enable());
   map.attributionControl.addAttribution("Wards: ONS (OGL) · Streets © OpenStreetMap · Bins: City of Edinburgh Council (OGL)");
   const B = D.base;
   // land / wards
