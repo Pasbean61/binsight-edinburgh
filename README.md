@@ -3,21 +3,21 @@
 **Empty the bins that are full. Skip the ones that aren’t.**
 
 <p align="center">
-  <a href="https://zhancexu91.github.io/binsight-edinburgh/"><img src="docs/preview.jpg" alt="BinSight Edinburgh website: homepage with the forecast map and the AI twin" width="100%"></a>
+  <a href="https://pasbean61.github.io/binsight-edinburgh/"><img src="docs/preview.jpg" alt="BinSight Edinburgh website: homepage with the forecast map and the AI twin" width="100%"></a>
 </p>
 
 <p align="center">
-  <a href="https://zhancexu91.github.io/binsight-edinburgh/"><img src="https://img.shields.io/badge/%E2%96%B6%20Open%20the%20live%20website-zhancexu91.github.io%2Fbinsight--edinburgh-0d6b55?style=for-the-badge" alt="Open the live website"></a>
+  <a href="https://pasbean61.github.io/binsight-edinburgh/"><img src="https://img.shields.io/badge/%E2%96%B6%20Open%20the%20live%20website-pasbean61.github.io%2Fbinsight--edinburgh-0d6b55?style=for-the-badge" alt="Open the live website"></a>
 </p>
 
-<p align="center"><b><a href="https://zhancexu91.github.io/binsight-edinburgh/">zhancexu91.github.io/binsight-edinburgh</a></b> · click the picture or the button to open the site</p>
+<p align="center"><b><a href="https://pasbean61.github.io/binsight-edinburgh/">pasbean61.github.io/binsight-edinburgh</a></b> · click the picture or the button to open the site</p>
 
 ### Tomorrow’s shift, replayed
 
-18 trucks leave Seafield at 06:00 and drive real Edinburgh streets to the 1,305 bins forecast to need emptying. The last one is back at 01:50 the next morning. [Watch it live on the site →](https://zhancexu91.github.io/binsight-edinburgh/#console)
+18 trucks leave Seafield at 06:00 and drive real Edinburgh streets to the 1,305 bins forecast to need emptying. The last one is back at 01:50 the next morning. [Watch it live on the site →](https://pasbean61.github.io/binsight-edinburgh/#console)
 
 <p align="center">
-  <a href="https://zhancexu91.github.io/binsight-edinburgh/#console"><img src="docs/replay.gif" alt="Replay of tomorrow's collection shift on the Edinburgh street map, 06:00 to 01:50" width="100%"></a>
+  <a href="https://pasbean61.github.io/binsight-edinburgh/#console"><img src="docs/replay.gif" alt="Replay of tomorrow's collection shift on the Edinburgh street map, 06:00 to 01:50" width="100%"></a>
 </p>
 
 ### Zoom to street level
@@ -25,7 +25,7 @@
 The map is a real street map of Edinburgh. Zoom in to see every building, street name and house number, with each truck’s route in its own colour (here: Haymarket, the West End and Dalry).
 
 <p align="center">
-  <a href="https://zhancexu91.github.io/binsight-edinburgh/#console"><img src="docs/street.jpg" alt="Street-level view around Haymarket and the West End with truck routes and bin stops" width="100%"></a>
+  <a href="https://pasbean61.github.io/binsight-edinburgh/#console"><img src="docs/street.jpg" alt="Street-level view around Haymarket and the West End with truck routes and bin stops" width="100%"></a>
 </p>
 
 ## About
