@@ -512,3 +512,39 @@ body.rail-open .twin-fab { display: none; }
 .leaflet-control-attribution a { color: var(--ink-2); }
 .leaflet-tooltip { position: absolute; padding: 6px 9px; background: var(--ink); color: var(--paper); border-radius: 8px; white-space: nowrap; pointer-events: none; font-size: 12px; box-shadow: var(--shadow); }
 .leaflet-tooltip-top::before, .leaflet-tooltip-bottom::before, .leaflet-tooltip-left::before, .leaflet-tooltip-right::before { display: none; }
+
+/* the maths */
+.m-tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+@media (max-width: 760px) { .m-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 440px) { .m-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.m-tabs button { font: 600 16px/1.2 var(--display); text-align: left; border: 1px solid var(--line); background: var(--paper); border-radius: 12px; padding: 12px 14px; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; gap: 3px; transition: border-color .2s, box-shadow .2s; }
+.m-tabs button .k { font: 600 11px var(--mono); color: var(--accent); }
+.m-tabs button small { font: 400 12px var(--body); color: var(--ink-3); }
+.m-tabs button.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: var(--raised); }
+.m-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; }
+@media (max-width: 960px) { .m-grid { grid-template-columns: minmax(0, 1fr); } }
+.m-text { min-width: 0; }
+.m-text h3 { font-size: 24px; margin-bottom: 12px; }
+.m-text p { color: var(--ink-2); margin: 10px 0; max-width: 68ch; }
+.m-list { color: var(--ink-2); padding-left: 20px; margin: 8px 0; }
+.m-list li { margin: 7px 0; }
+.eq { font: 400 17px/1.55 "Source Serif 4", "STIX Two Text", Cambria, Georgia, serif; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin: 10px 0; overflow-x: auto; color: var(--ink); text-align: center; }
+.eq.left { text-align: left; }
+.eq.big { font-size: 19px; padding: 16px; border-color: var(--accent); background: var(--accent-soft); }
+.eq.inline { display: inline; padding: 1px 6px; margin: 0; font-size: 15.5px; border-radius: 6px; }
+.eq var, .m-text var, .m-widget var { font-style: italic; }
+.eq sub, .eq sup { font-size: .72em; }
+.m-widget { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.m-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.m-head b { font: 650 17px var(--display); }
+.m-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.btn.sm { padding: 6px 14px; font-size: 14px; }
+.m-counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 6px; }
+.m-counts div { background: var(--paper); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+.m-counts b { display: block; font: 700 20px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+.m-counts span { font-size: 12px; color: var(--ink-3); }
+.m-two { display: grid; grid-template-columns: minmax(0, 250px) minmax(0, 1fr); gap: 14px; align-items: center; }
+@media (max-width: 560px) { .m-two { grid-template-columns: 1fr; } }
+table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
+.chart .ax { stroke: var(--line-2); }
+.chart .acc { fill: var(--accent); }

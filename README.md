@@ -30,7 +30,7 @@ The map is a real street map of Edinburgh. Zoom in to see every building, street
 
 ## About
 
-BinSight forecasts how full each of Edinburgh’s general-waste communal bins will be tomorrow and plans the shortest truck routes that reach only the bins that need emptying. This repository holds the public website and the full forecasting and routing engine behind it.
+BinSight forecasts how full each of Edinburgh’s general-waste communal bins will be tomorrow and plans the shortest truck routes that reach only the bins that need emptying. This repository holds the public website and the model behind it, written from scratch by the team: a stochastic fill model, a probabilistic forecast, a chance-constrained decision rule, a routing heuristic, and checks against exact optima. The maths is explained on the site and in [`model/README.md`](model/README.md).
 
 A project by **EMS Group 6, University of Edinburgh**.
 
@@ -65,52 +65,48 @@ Open the browser console and run `__twinTest("your question")` to test the built
 | Bin locations, sizes, counts, street descriptions | Real | City of Edinburgh Council *Communal Bins* register (17,713 records, OGL v3.0) |
 | Ward of every stop | Real | ONS Wards (December 2024) boundaries, point-in-polygon |
 | Street map: buildings, street names, house numbers, stations, parks | Real | OpenStreetMap vector tiles from [OpenFreeMap](https://openfreemap.org), drawn with MapLibre GL (a light Overpass-based map is the offline fallback) |
-| Route geometry | Real streets | OSRM over OpenStreetMap |
+| Road network, distances, times, route geometry | Real streets | OpenStreetMap via Overpass (ODbL), our Dijkstra shortest paths |
 | Hourly temperature and rain (4 Oct – 3 Nov 2026) | Real | Open-Meteo |
-| Scottish bank holidays | Real | gov.scot |
 | Problem, market and policy statistics | Real, cited | See the Sources section |
 | Fill levels, collections, sensor battery and signal | **Simulated** | The council does not publish its sensor feed |
-| Fleet (24 trucks × 60,000 L, 3 trips, 10 min/stop, 30 km/h) | Assumed | Modelling choices |
+| Fleet and costs (24 trucks × 60 m³, 8-hour shift, 2 min a stop + 1 min a bin, £1.45/km, £75/truck-hour, £60 per overflow) | Assumed | `model/config.py` |
 
 ## Repository layout
 
 ```
-index.html                  the website (built)
-site/binsight.html          the same page without the document skeleton, for a Claude artifact
-src/                        page source: style.css, body.html, app.js, twin.js
-data/                       site data exported from the engine
-scripts/build_site_data.py  engine database → data/*.json (OSRM street routes are cached)
+index.html                  the website (GitHub Pages), built from src/
+src/                        page source: body.html, style.css, app.js, maths.js, twin.js
+data/                       site data written by the model
+model/                      the BinSight model (Python: numpy, scipy, pyproj)
+  network.py                real stops, wards and the OpenStreetMap road graph
+  simulate.py               compound-Poisson fill simulator
+  forecast.py               probabilistic forecast
+  decide.py                 chance-constrained, capacity-priced decision rule
+  route.py                  Clarke–Wright, local search, simulated annealing, shift packing
+  exact.py                  exact MILP (HiGHS) and lower bounds
+  experiment.py             rolling-horizon experiment with common random numbers
+  export.py, run.py         site data and the entry point
 scripts/build_page.py       src/ → index.html and site/binsight.html
-engine/                     the forecasting and routing engine (Python)
+docs/                       README images
 ```
 
 ## Rebuild everything
 
-Requirements: Python 3.9+, `curl`.
-
 ```bash
-cd engine
-pip install -r requirements.txt
-python run_pipeline.py --force-data --retrain --experiments development   # about 25 minutes
-cd ..
-python scripts/build_site_data.py
+pip install numpy scipy pyproj
+python -m model.run --experiments   # about 25 minutes on 10 cores; omit the flag to reuse cached experiments
 python scripts/build_page.py
-python -m http.server 8000      # open http://localhost:8000
 ```
 
-### Changes to the engine for this site
+The road network (`model/data/cache/osm_roads.json`) and its distance matrix are cached and not committed; see `model/README.md` to fetch them.
 
-The engine is adapted from the team’s [BinSight](https://github.com/mizj1213wcz/binsight) repository, itself an adaptation of [EcoBin](https://github.com/RishvinReddy/EcoBin-Smart-Waste-Management-System) by Rishvin Reddy (MIT). For this site:
+## Acknowledgement
 
-- **Real wards** replace the k-means “zones”: every stop is placed in its ONS ward (`engine/ml/data_generator/edinburgh_stops.py`).
-- **Real weather** replaces the synthetic weather: the simulation reads hourly Open-Meteo data for Edinburgh (`engine/ml/data_generator/generator.py`, `engine/data/raw/weather_edinburgh_hourly.csv`).
-- **Fixed history window** ending 3 November 2026 (`HISTORY_END` in `engine/config/city.py`), so the snapshot is reproducible.
-- Experiments run at the `development` size (7 days × 2 seeds) instead of the 2-day smoke run.
-- The React frontend is replaced by this website; the FastAPI backend, driver and maintenance portals, QR identity and the ESP32 sketch are unchanged in `engine/`.
+The team’s first prototype built on the open-source [EcoBin](https://github.com/RishvinReddy/EcoBin-Smart-Waste-Management-System) project by Rishvin Reddy (MIT licence). We thank its author. None of its code is used now: the model in `model/` is our own.
 
 ## Licences and attribution
 
-- Code: MIT (see `LICENSE` and `engine/LICENSE`).
+- Code: MIT (see `LICENSE`).
 - Bin data: City of Edinburgh Council, *Communal Bins*, Open Government Licence v3.0. Contains OS data © Crown copyright and database right 2026.
 - Ward boundaries: Office for National Statistics, Open Government Licence v3.0.
 - Map data: © OpenStreetMap contributors, ODbL. Map tiles: OpenFreeMap. Rendering: MapLibre GL JS (BSD-3) with maplibre-gl-leaflet.

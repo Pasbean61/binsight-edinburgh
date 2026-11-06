@@ -12,7 +12,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: a civic operations brief. Narrative chapters run down a 1120px column and open into a
    full-width live console; the AI twin is a quiet rail docked to the right edge. */
@@ -529,6 +529,42 @@ body.rail-open .twin-fab { display: none; }
 .leaflet-tooltip { position: absolute; padding: 6px 9px; background: var(--ink); color: var(--paper); border-radius: 8px; white-space: nowrap; pointer-events: none; font-size: 12px; box-shadow: var(--shadow); }
 .leaflet-tooltip-top::before, .leaflet-tooltip-bottom::before, .leaflet-tooltip-left::before, .leaflet-tooltip-right::before { display: none; }
 
+/* the maths */
+.m-tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+@media (max-width: 760px) { .m-tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 440px) { .m-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.m-tabs button { font: 600 16px/1.2 var(--display); text-align: left; border: 1px solid var(--line); background: var(--paper); border-radius: 12px; padding: 12px 14px; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; gap: 3px; transition: border-color .2s, box-shadow .2s; }
+.m-tabs button .k { font: 600 11px var(--mono); color: var(--accent); }
+.m-tabs button small { font: 400 12px var(--body); color: var(--ink-3); }
+.m-tabs button.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: var(--raised); }
+.m-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; }
+@media (max-width: 960px) { .m-grid { grid-template-columns: minmax(0, 1fr); } }
+.m-text { min-width: 0; }
+.m-text h3 { font-size: 24px; margin-bottom: 12px; }
+.m-text p { color: var(--ink-2); margin: 10px 0; max-width: 68ch; }
+.m-list { color: var(--ink-2); padding-left: 20px; margin: 8px 0; }
+.m-list li { margin: 7px 0; }
+.eq { font: 400 17px/1.55 "Source Serif 4", "STIX Two Text", Cambria, Georgia, serif; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin: 10px 0; overflow-x: auto; color: var(--ink); text-align: center; }
+.eq.left { text-align: left; }
+.eq.big { font-size: 19px; padding: 16px; border-color: var(--accent); background: var(--accent-soft); }
+.eq.inline { display: inline; padding: 1px 6px; margin: 0; font-size: 15.5px; border-radius: 6px; }
+.eq var, .m-text var, .m-widget var { font-style: italic; }
+.eq sub, .eq sup { font-size: .72em; }
+.m-widget { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.m-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.m-head b { font: 650 17px var(--display); }
+.m-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.btn.sm { padding: 6px 14px; font-size: 14px; }
+.m-counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 6px; }
+.m-counts div { background: var(--paper); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+.m-counts b { display: block; font: 700 20px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+.m-counts span { font-size: 12px; color: var(--ink-3); }
+.m-two { display: grid; grid-template-columns: minmax(0, 250px) minmax(0, 1fr); gap: 14px; align-items: center; }
+@media (max-width: 560px) { .m-two { grid-template-columns: 1fr; } }
+table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
+.chart .ax { stroke: var(--line-2); }
+.chart .acc { fill: var(--accent); }
+
 </style>
 </head>
 <body>
@@ -543,6 +579,7 @@ body.rail-open .twin-fab { display: none; }
       <a href="#problem">Problem</a>
       <a href="#how">How it works</a>
       <a href="#console">Live map</a>
+      <a href="#maths">The maths</a>
       <a href="#results">Results</a>
       <a href="#planner">Planner</a>
       <a href="#business">Business</a>
@@ -700,12 +737,168 @@ body.rail-open .twin-fab { display: none; }
   <div class="tabpane" id="pane-weather" hidden></div>
 </section>
 
-<!-- ── RESULTS ────────────────────────────────────────── -->
+<!-- ── THE MATHS ──────────────────────────────────────── -->
 <div class="band">
+<section class="chapter wrap" id="maths">
+  <div class="chapter-head">
+    <div><span class="eyebrow">The maths</span><h2>Five models behind one plan</h2></div>
+    <p>Each step of BinSight is a piece of mathematics we wrote and tested ourselves: a stochastic model of how bins fill, a statistical forecast, a decision rule, a routing algorithm, and checks against exact answers. Every widget below runs on tomorrow’s real stops and today’s model output.</p>
+  </div>
+  <div class="m-tabs" role="tablist" id="mTabs">
+    <button type="button" role="tab" data-m="0" class="on"><span class="k">1</span>Model<small>stochastic process</small></button>
+    <button type="button" role="tab" data-m="1"><span class="k">2</span>Predict<small>statistics</small></button>
+    <button type="button" role="tab" data-m="2"><span class="k">3</span>Decide<small>chance constraint</small></button>
+    <button type="button" role="tab" data-m="3"><span class="k">4</span>Route<small>optimisation</small></button>
+    <button type="button" role="tab" data-m="4"><span class="k">5</span>Check<small>validation</small></button>
+  </div>
+
+  <!-- 1 · MODEL -->
+  <div class="card m-pane" data-m="0">
+    <div class="m-grid">
+      <div class="m-text">
+        <h3>How a bin fills: a compound Poisson process</h3>
+        <p>Households drop bags at random moments. In hour <var>t</var>, stop <var>i</var> receives <var>N</var> bags, and each bag has a random volume <var>V</var>. The litres added are</p>
+        <div class="eq"><var>X<sub>it</sub></var> = <var>V</var><sub>1</sub> + … + <var>V<sub>N</sub></var>, &nbsp; <var>N</var> ~ Poisson(<var>λ<sub>it</sub></var>), &nbsp; <var>V</var> ~ Gamma(<var>k</var> = 2, mean <span data-mk="bag">35</span> L)</div>
+        <div class="eq"><var>λ<sub>it</sub></var> = (<var>D<sub>i</sub></var> / <var>v̄</var>) · <var>a</var>(hour, weekday) · <var>w<sub>t</sub></var> · <var>c<sub>it</sub></var> / 24</div>
+        <ul class="m-list">
+          <li><var>D<sub>i</sub></var> = cap<sub><var>i</var></sub> · <var>ρ<sub>i</sub></var>: litres a day. Each stop’s fill share <var>ρ<sub>i</sub></var> is log-normal, median <span data-mk="median">0.20</span> a day.</li>
+          <li><var>a</var>: the hour-of-week profile, mean 1, with morning and evening peaks and busier weekends.</li>
+          <li><var>w<sub>t</sub></var> = e<sup>−0.15·1[rain ≥ 0.5 mm]</sup> (1 + 0.01 (<var>T</var> − 10 °C)), from <b>real hourly Edinburgh weather</b>.</li>
+          <li><var>c<sub>it</sub></var> = 1.25 on Friday to Sunday in the City Centre ward, for visitors and short lets.</li>
+        </ul>
+        <p>Because a sum of <var>n</var> Gamma(<var>k</var>, <var>θ</var>) volumes is Gamma(<var>nk</var>, <var>θ</var>), a whole hour for all 4,533 stops is one exact vectorised draw. The mean and variance follow from the law of total variance:</p>
+        <div class="eq">E[<var>X</var>] = <var>λ v̄</var>, &nbsp; Var[<var>X</var>] = <var>λ</var> E[<var>V</var><sup>2</sup>] = <var>λ v̄</var><sup>2</sup>(1 + 1/<var>k</var>) &nbsp;⇒&nbsp; <var>φ</var> = Var/E = <var>v̄</var>(1 + 1/<var>k</var>) = <span data-mk="phiTrue">52.5</span> L</div>
+        <p class="note">The forecaster never sees these settings. It estimates <var>φ</var> = <b data-mk="phiHat">–</b> L from sensor readings alone, close to the true 52.5 L. The fill process is simulated because the council does not publish sensor data; the weather, places and bins are real.</p>
+      </div>
+      <div class="m-widget">
+        <div class="slider"><div class="top"><label for="mRho">Daily fill share <var>ρ</var></label><output id="oRho">0.20</output></div><input type="range" id="mRho" min="0.07" max="0.6" step="0.01" value="0.2"><small>Share of the stop’s capacity filled on an average day.</small></div>
+        <svg class="chart" id="mPaths" viewBox="0 0 520 260" role="img" aria-label="Simulated fill paths over one week"></svg>
+        <div class="m-row"><button class="btn ghost sm" type="button" id="mRedraw">Draw three new weeks</button><span class="muted small" id="mPathNote"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 · PREDICT -->
+  <div class="card m-pane" data-m="1" hidden>
+    <div class="m-grid">
+      <div class="m-text">
+        <h3>A forecast with honest uncertainty</h3>
+        <p>The forecast learns only from sensor readings, in three steps.</p>
+        <ol class="m-list">
+          <li><b>City-wide shape.</b> Least squares on the log of the mean hourly increase across all stops:
+            <div class="eq">log <var>g<sub>t</sub></var> = <var>β</var><sub>0</sub> + <var>h</var>(hour) + <var>d</var>(weekday) + <var>β</var><sub>rain</sub> 1[rain] + <var>β</var><sub>temp</sub>(<var>T</var> − 10)</div>
+            This gives <var>m<sub>t</sub></var>, the share of a day’s waste expected in hour <var>t</var>. Fitted rain effect: <b data-mk="rainFx">–</b>.</li>
+          <li><b>Each stop’s rate.</b> Each day gives one observation <var>o</var> of litres per average day, and
+            <div class="eq"><var>r<sub>i</sub></var> ← (1 − <var>β</var>) <var>r<sub>i</sub></var> + <var>β o</var>, &nbsp; <var>β</var> = 0.3</div>
+            Exponential smoothing tracks each stop and forgets old days geometrically.</li>
+          <li><b>Variance from three sources.</b> With <var>μ<sub>L</sub></var> = <var>r<sub>i</sub></var> Σ <var>m<sub>t</sub></var> the litres expected before the next truck:
+            <div class="eq"><var>σ<sub>i</sub></var><sup>2</sup> = (100/cap<sub><var>i</var></sub>)<sup>2</sup> ( <var>φ μ<sub>L</sub></var> + <span class="frac"><var>β</var>/(2 − <var>β</var>)</span> <var>e<sub>i</sub></var><sup>2</sup> <var>μ<sub>L</sub></var><sup>2</sup> ) + <var>σ<sub>s</sub></var><sup>2</sup></div>
+            These are Poisson arrival noise, the error of the smoothed rate (the variance of an EWMA), and sensor noise.</li>
+        </ol>
+        <p>Fill only rises between collections, so the risk of overflowing before the next truck (by 14:00 the day after) is</p>
+        <div class="eq"><var>p<sub>i</sub></var> = 1 − Φ( (100 − <var>μ<sub>i</sub></var>) / <var>σ<sub>i</sub></var> )</div>
+      </div>
+      <div class="m-widget">
+        <div class="m-head"><b id="fanTitle">–</b><span class="muted small" id="fanSub"></span></div>
+        <svg class="chart" id="mFan" viewBox="0 0 520 250" role="img" aria-label="Fill history and forecast fan for one stop"></svg>
+        <div class="slider" style="margin-top:8px"><div class="top"><label for="mSig">Scale the uncertainty <var>σ</var></label><output id="oSig">× 1.0</output></div><input type="range" id="mSig" min="0.3" max="2.5" step="0.05" value="1"><small id="fanP"></small></div>
+        <div class="tablewrap"><table id="fcTable" class="tight"></table></div>
+        <div class="m-two">
+          <svg class="chart" id="mRel" viewBox="0 0 250 200" role="img" aria-label="Reliability diagram"></svg>
+          <p class="note" id="fcNote"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 · DECIDE -->
+  <div class="card m-pane" data-m="2" hidden>
+    <div class="m-grid">
+      <div class="m-text">
+        <h3>Who gets a truck: a chance-constrained cost rule</h3>
+        <p>Skipping stop <var>i</var> tomorrow risks an overflow with probability <var>p<sub>i</sub></var>, at cost <var>c<sub>o</sub></var> = £<span data-mk="co">60</span> (complaint, side waste, street cleaning). Collecting it costs the extra driving and lifting it adds to the routes, <var>Δ<sub>i</sub></var>.</p>
+        <p>Going early is cheaper than it looks. A stop emptied today will not need emptying later. Over a renewal cycle of <var>τ<sub>i</sub></var> days from empty to full, emptying it <var>k<sub>i</sub></var> days before it would otherwise have to go wastes <var>k<sub>i</sub></var>/<var>τ<sub>i</sub></var> of a cycle. So the net value of collecting it tomorrow is</p>
+        <div class="eq"><var>v<sub>i</sub></var> = <var>p<sub>i</sub> c<sub>o</sub></var> − <var>Δ<sub>i</sub> k<sub>i</sub></var> / <var>τ<sub>i</sub></var>, &nbsp; <var>k<sub>i</sub></var> = 1 + max(0, (100 − <var>μ<sub>i</sub></var>) / <var>g<sub>i</sub></var>)</div>
+        <p>where <var>g<sub>i</sub></var> = 100/<var>τ<sub>i</sub></var> is the fill rate in % a day. The fleet has 24 × 480 truck-minutes, and stop <var>i</var> uses <var>t<sub>i</sub></var> of them, so tomorrow is a knapsack problem. Relaxing the time limit with a Lagrange multiplier <var>λ</var> (a price per truck-minute) gives the rule</p>
+        <div class="eq big">collect <var>i</var> &nbsp;⇔&nbsp; <var>p<sub>i</sub></var> &gt; <var>α</var> &nbsp; or &nbsp; <var>v<sub>i</sub></var> &gt; <var>λ t<sub>i</sub></var></div>
+        <ul class="m-list">
+          <li><var>α</var> = <span data-mk="alpha">0.20</span> is a service standard: no stop is skipped with more than a 20 % chance of overflowing (a chance constraint).</li>
+          <li><var>λ</var> = 0 when the trucks have room; otherwise bisection finds the smallest <var>λ</var> whose choice fits the shift. Tomorrow: <b data-mk="lambda">–</b>.</li>
+          <li><var>Δ<sub>i</sub></var> and <var>t<sub>i</sub></var> depend on which other stops are chosen. We start from the cheapest insertion between nearby urgent stops, route, then use the exact insertion cost into the routed trips and the exact removal saving, correct the time estimate by what routing really used, and choose again.</li>
+          <li>Costs: £<span data-mk="ckm">1.45</span> per km (diesel and wear) and £<span data-mk="chr">75</span> per truck-hour (driver, two loaders, vehicle).</li>
+        </ul>
+        <p class="note" id="decNote"></p>
+      </div>
+      <div class="m-widget">
+        <svg class="chart" id="mDec" viewBox="0 0 520 330" role="img" aria-label="Stops placed by overflow risk and cost of going early"></svg>
+        <p class="note" style="margin-top:0">With λ = 0, as here, a stop goes if it is right of the dashed line or above the green one (p·c<sub>o</sub> &gt; Δk/τ). The router then trims to the fleet.</p>
+        <div class="slider"><div class="top"><label for="mCo">Overflow cost <var>c<sub>o</sub></var></label><output id="oCo">£60</output></div><input type="range" id="mCo" min="5" max="400" step="5" value="60"></div>
+        <div class="slider"><div class="top"><label for="mAl">Service standard <var>α</var></label><output id="oAl">0.20</output></div><input type="range" id="mAl" min="0.02" max="1" step="0.01" value="0.2"><small>Set α to 1 to turn the chance constraint off.</small></div>
+        <div class="m-counts" id="decCounts"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 · ROUTE -->
+  <div class="card m-pane" data-m="3" hidden>
+    <div class="m-grid">
+      <div class="m-text">
+        <h3>Routing: a multi-trip vehicle-routing problem</h3>
+        <p>On the road graph (<span data-mk="roadKm">–</span> km of Edinburgh streets from OpenStreetMap, shortest paths by Dijkstra), with cost <var>c<sub>ij</sub></var> = £1.45·km + £75·hours:</p>
+        <div class="eq left">min &nbsp; Σ<sub><var>k</var></sub> Σ<sub><var>i</var>≠<var>j</var></sub> <var>c<sub>ij</sub> x<sub>ijk</sub></var><br>
+          s.t. &nbsp; every chosen stop is visited exactly once<br>
+          &emsp;&emsp; Σ<sub><var>i</var> ∈ trip</sub> <var>q<sub>i</sub></var> ≤ <var>Q</var> = 60 m³ per load, then tip at the depot<br>
+          &emsp;&emsp; Σ (drive + lift + tip) ≤ 480 min per truck, 24 trucks<br>
+          &emsp;&emsp; <var>u<sub>j</sub></var> ≥ <var>u<sub>i</sub></var> + <var>q<sub>j</sub></var> − <var>Q</var>(1 − <var>x<sub>ij</sub></var>) &nbsp; (no subtours), &nbsp; <var>x</var> ∈ {0, 1}</div>
+        <p>This is NP-hard, and tomorrow has <b data-mk="nStops">–</b> stops. We solve it with our own heuristic in four stages:</p>
+        <ol class="m-list">
+          <li><b>Clarke–Wright savings</b>: <var>s<sub>ij</sub></var> = <var>c</var><sub>0<var>i</var></sub> + <var>c</var><sub>0<var>j</var></sub> − <var>c<sub>ij</sub></var>, merging trips in order of saving while load and time allow.</li>
+          <li><b>Local search</b>: 2-opt and Or-opt inside trips; relocate and swap between trips, over each stop’s 20 nearest neighbours.</li>
+          <li><b>Simulated annealing</b>: accept a worse move with probability e<sup>−Δ/<var>T</var></sup>, cooling <var>T</var> geometrically, then local search again.</li>
+          <li><b>Pack trips into shifts</b> by first-fit decreasing; if the fleet is short, drop the stops of least net value.</li>
+        </ol>
+        <p class="note" id="routeNote"></p>
+      </div>
+      <div class="m-widget">
+        <div class="m-head"><b>Try it on 12 real stops</b><span class="muted small" id="toySub"></span></div>
+        <div class="seg" id="toyBtns" style="margin:8px 0 10px">
+          <button type="button" data-a="nn" class="on">Nearest neighbour</button><button type="button" data-a="cw">Savings</button><button type="button" data-a="opt2">+ 2-opt</button><button type="button" data-a="hk">Exact (Held–Karp)</button>
+        </div>
+        <svg class="chart" id="mToy" viewBox="0 0 520 330" role="img" aria-label="One truck trip through 12 real stops"></svg>
+        <div class="m-counts" id="toyOut"></div>
+        <p class="note">Held–Karp dynamic programming, <var>C</var>(<var>S</var>, <var>j</var>) = min<sub><var>i</var>∈<var>S</var></sub> <var>C</var>(<var>S</var> ∖ {<var>j</var>}, <var>i</var>) + <var>c<sub>ij</sub></var>, solves the tour exactly over 2<sup>12</sup> × 12 states, in your browser. Lines are straight; costs are road costs.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5 · CHECK -->
+  <div class="card m-pane" data-m="4" hidden>
+    <div class="m-grid">
+      <div class="m-text">
+        <h3>How do we know it works?</h3>
+        <p><b>Against exact optima.</b> On 30 small real instances (12 stops in one ward, loads from 50 to 100 % full, capacity forcing several trips), the MILP above is solved to proven optimality with HiGHS and compared with each stage of the heuristic.</p>
+        <div class="tablewrap"><table id="valTable" class="tight"></table></div>
+        <p><b>Against a lower bound.</b> No plan can cost less than <span class="eq inline">max(Held–Karp 1-tree bound, 2 Σ <var>q<sub>i</sub> c</var><sub>0<var>i</var></sub> / <var>Q</var>)</span>. The 1-tree bound is improved by subgradient optimisation; the radial bound counts the trips each litre forces to and from the depot.</p>
+        <p id="lbText" class="small"></p>
+        <p><b>The fleet.</b> <span id="fleetText"></span></p>
+      </div>
+      <div class="m-widget">
+        <div class="m-head"><b>The cost of fewer overflows</b><span class="muted small">7 test days, mean per day</span></div>
+        <svg class="chart" id="mPareto" viewBox="0 0 520 300" role="img" aria-label="Route cost against overflow events"></svg>
+        <p class="note" id="paretoNote"></p>
+        <div class="m-head" style="margin-top:14px"><b>Sensitivity of tomorrow’s plan</b></div>
+        <div class="tablewrap"><table id="sensTable" class="tight"></table></div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- ── RESULTS ────────────────────────────────────────── -->
 <section class="chapter wrap" id="results">
   <div class="chapter-head">
-    <div><span class="eyebrow">Results</span><h2>Four ways to run a week of collections</h2></div>
-    <p>The engine replays test days from the simulated history. Each strategy picks its bins at midnight, the solver routes them, and the bins keep filling hour by hour. We count distance, overflow and wasted trips.</p>
+    <div><span class="eyebrow">Results</span><h2>Three ways to run a week of collections</h2></div>
+    <p>The same simulated city, the same deposits and the same sensor noise are fed to three policies (common random numbers). Each picks its stops at 05:00, our solver routes them inside 8-hour shifts, and trucks empty each stop in the hour they reach it. We score 7 days, 26 October to 1 November, for 2 random seeds.</p>
   </div>
   <div class="results-grid">
     <div class="card">
@@ -718,39 +911,38 @@ body.rail-open .twin-fab { display: none; }
   <div class="biz-grid" style="margin-top:14px">
     <div class="card">
       <h3 style="font-size:20px">How good is the forecast?</h3>
-      <p class="muted small" style="margin-top:6px">24-hour-ahead fill level, test period (last quarter of the history). F1 measures how well each model spots bins that will pass 80 %.</p>
+      <p class="muted small" style="margin-top:6px">Fill level forecast at 05:00 for 14:00 the next day (33 hours ahead), on the 7 test days, for stops no truck emptied in between. Errors in percentage points.</p>
       <div class="tablewrap" style="margin-top:14px"><table id="modelTable"></table></div>
       <p class="note" id="modelNote"></p>
     </div>
     <div class="card callout" style="border-radius:0 var(--r) var(--r) 0">
-      <h4>Reality check: the plan needs more crew hours than a shift has</h4>
+      <h4>What these results do not show</h4>
       <p id="realityText">Loading…</p>
-      <p class="note">Service time is EcoBin’s assumption of 10 minutes per stop. A real communal-bin lift is likely quicker, so try other values in the planner below.</p>
     </div>
   </div>
   <div class="card" style="margin-top:14px">
-    <h3 style="font-size:20px">Does the priority score help?</h3>
-    <p class="muted small" style="margin-top:6px">Ablation and weight sensitivity: priority = fill weight × forecast + risk weight × overflow probability + area weight × location.</p>
+    <h3 style="font-size:20px">Where the money goes</h3>
+    <p class="muted small" style="margin-top:6px">Cost per day = £1.45 per km + £75 per truck-hour + £60 per overflow. The cost assumptions are ours; change them in <span class="mono">model/config.py</span> and rerun.</p>
     <div class="tablewrap" style="margin-top:14px"><table id="ablationTable"></table></div>
     <p class="note" id="ablationNote"></p>
   </div>
 </section>
-</div>
 
 <!-- ── PLANNER ────────────────────────────────────────── -->
+<div class="band">
 <section class="chapter wrap" id="planner">
   <div class="chapter-head">
     <div><span class="eyebrow">Planner</span><h2>Plan tomorrow yourself</h2></div>
-    <p>Change the collection rule and the fleet. Stop counts and loads come straight from tomorrow’s 4,533 forecasts. Distance is estimated with the Beardwood–Halton–Hammersley law, calibrated to the optimised plan above.</p>
+    <p>Change the decision rule and the fleet. The choice of stops uses tomorrow’s real forecasts, risks and insertion costs for all 4,533 stops. Distance is estimated with the Beardwood–Halton–Hammersley law, calibrated to the optimised plan, so this is a quick estimate, not a new routing run.</p>
   </div>
   <div class="planner">
     <div class="card">
-      <div class="slider"><div class="top"><label for="pThr">Collect when forecast reaches</label><output id="oThr">80 %</output></div><input type="range" id="pThr" min="50" max="95" step="1" value="80"><small>Lower means fewer overflows but more stops.</small></div>
+      <div class="slider"><div class="top"><label for="pThr">Service standard α</label><output id="oThr">0.20</output></div><input type="range" id="pThr" min="0.02" max="1" step="0.01" value="0.2"><small>Collect every stop whose overflow risk is above α. 1 turns it off.</small></div>
+      <div class="slider"><div class="top"><label for="pCo">Overflow cost c<sub>o</sub></label><output id="oCo2">£60</output></div><input type="range" id="pCo" min="0" max="400" step="5" value="60"><small>Also collect when p · c<sub>o</sub> beats the cost of going early, Δk/τ.</small></div>
       <div class="slider"><div class="top"><label for="pFleet">Trucks available</label><output id="oFleet">24</output></div><input type="range" id="pFleet" min="6" max="40" step="1" value="24"></div>
       <div class="slider"><div class="top"><label for="pShift">Shift length</label><output id="oShift">8.0 h</output></div><input type="range" id="pShift" min="6" max="12" step="0.5" value="8"></div>
-      <div class="slider"><div class="top"><label for="pSvc">Minutes per stop</label><output id="oSvc">10 min</output></div><input type="range" id="pSvc" min="2" max="15" step="1" value="10"><small>EcoBin’s default is 10. Try 3–5 for a mechanised lift.</small></div>
-      <div class="slider"><div class="top"><label for="pSpeed">Average truck speed</label><output id="oSpeed">30 km/h</output></div><input type="range" id="pSpeed" min="12" max="40" step="1" value="30"></div>
-      <label class="toggle" style="height:auto;padding:10px 12px"><input type="checkbox" id="pPrio" checked> Also collect when priority score ≥ 75</label>
+      <div class="slider"><div class="top"><label for="pSvc">Minutes per container</label><output id="oSvc">1.0 min</output></div><input type="range" id="pSvc" min="0.5" max="4" step="0.1" value="1"><small>Plus 2 minutes per stop to pull up and walk to the bin store.</small></div>
+      <div class="slider"><div class="top"><label for="pSpeed">Traffic</label><output id="oSpeed">× 1.00</output></div><input type="range" id="pSpeed" min="0.6" max="1.4" step="0.05" value="1"><small>Scales the road speeds (OpenStreetMap road classes).</small></div>
     </div>
     <div class="card">
       <div class="plan-out" id="planOut"></div>
@@ -760,9 +952,9 @@ body.rail-open .twin-fab { display: none; }
     </div>
   </div>
 </section>
+</div>
 
 <!-- ── BUSINESS ───────────────────────────────────────── -->
-<div class="band">
 <section class="chapter wrap" id="business">
   <div class="chapter-head">
     <div><span class="eyebrow">Business model</span><h2>Three partners, one service</h2></div>
@@ -822,9 +1014,9 @@ body.rail-open .twin-fab { display: none; }
     <div class="risks" style="margin-top:8px" id="risks"></div>
   </div>
 </section>
-</div>
 
 <!-- ── SOURCES ────────────────────────────────────────── -->
+<div class="band">
 <section class="chapter wrap" id="sources">
   <div class="chapter-head">
     <div><span class="eyebrow">Sources and method</span><h2>What is real, what is simulated</h2></div>
@@ -837,12 +1029,13 @@ body.rail-open .twin-fab { display: none; }
   <h3 style="font-size:20px;margin:40px 0 16px">References</h3>
   <ul class="refs" id="refs"></ul>
 </section>
+</div>
 </main>
 
 <footer>
   <div class="wrap">
     <div><b style="color:var(--ink)">BinSight</b> · EMS Group 6, University of Edinburgh · <span data-k="generated"></span></div>
-    <div>Engine adapted from <a href="https://github.com/mizj1213wcz/binsight" target="_blank" rel="noopener">BinSight</a> and <a href="https://github.com/RishvinReddy/EcoBin-Smart-Waste-Management-System" target="_blank" rel="noopener">EcoBin</a> (MIT). Contains public sector information licensed under the Open Government Licence v3.0 and OS data © Crown copyright and database right 2026. Map data © OpenStreetMap contributors.</div>
+    <div>Model, forecast, decision rule and routing written by us (<span class="mono">model/</span>). The first prototype built on the open-source <a href="https://github.com/RishvinReddy/EcoBin-Smart-Waste-Management-System" target="_blank" rel="noopener">EcoBin</a> project (MIT), which we acknowledge with thanks; none of its code is used now. Contains public sector information licensed under the Open Government Licence v3.0 and OS data © Crown copyright and database right 2026. Map data © OpenStreetMap contributors.</div>
   </div>
 </footer>
 </div>
@@ -909,7 +1102,8 @@ const D = {};
 const UI = { layer: "pred", ward: -1, flagOnly: false, routes: false, selTruck: -1, selStop: -1, follow: -1, hoverWard: -1 };
 window.BS = { D, UI };
 
-async function getJSON(p) { const r = await fetch(p); if (!r.ok) throw new Error(p + " " + r.status); return r.json(); }
+const DATA_VER = "ac2ec8bc9e";
+async function getJSON(p) { const r = await fetch(p.startsWith("data/") ? p + "?v=" + DATA_VER : p); if (!r.ok) throw new Error(p + " " + r.status); return r.json(); }
 
 async function boot() {
   readPalette();
@@ -922,6 +1116,7 @@ async function boot() {
   initSteps();
   initMap();
   initConsole();
+  initMaths();
   initResults();
   initPlanner();
   initBusiness();
@@ -955,7 +1150,8 @@ function derive() {
   const served = []; for (let i = 0; i < n; i++) if (S.truck[i] >= 0) served.push(i);
   const plan = D.site.plan;
   const g = geomOf(served);
-  D.bhh = { k: (plan.solver_km - 2 * plan.trips * g.rbar) / Math.sqrt(served.length * g.area), util: plan.load_l / (plan.trips * D.R.capacity_l) };
+  const driveH = D.trucks.reduce((a, t) => a + t.drive, 0) / 60;
+  D.bhh = { k: (plan.road_km - 2 * plan.trips * g.rbar) / Math.sqrt(served.length * g.area), util: plan.load_l / (plan.trips * D.R.capacity_l), kmh: plan.road_km / driveH };
 }
 function geomOf(ids) {
   const dep = [D.site.depot.latitude, D.site.depot.longitude];
@@ -978,16 +1174,20 @@ function hullArea(p) {
 }
 const fmtDate = (iso, opts) => new Date(iso.replace(" ", "T")).toLocaleString("en-GB", opts);
 
-function strat(name) { return D.site.experiments.aggregate.find(r => r.Strategy === name); }
+function strat(name) { return D.site.experiments.aggregate.find(r => r.policy === name); }
+const kEarly = i => 1 + Math.max(0, (100 - D.S.pred[i]) / (100 / D.S.tau[i]));
+const earlyCost = i => D.S.dcost[i] * kEarly(i) / D.S.tau[i];
+const svcMin = i => D.site.fleet.service_base_min + D.site.fleet.service_per_bin_min * D.S.nb[i];
+const hhmm = m => { const h = D.site.fleet.start_h + Math.floor(m / 60), mm = Math.floor(m % 60); return String(h % 24).padStart(2, "0") + ":" + String(mm).padStart(2, "0"); };
 
 function fillKeys() {
   const s = D.site, t = s.totals, p = s.plan;
-  const fixed = strat("Fixed"), pred = strat("Predictive");
+  const fixed = strat("timetable"), bs = strat("binsight");
   const vals = {
     stops: fmt(t.stops), assets: fmt(t.assets), gwRecords: fmt(t.general_waste_records), flagged: fmt(p.flagged),
-    planKm: fmt(p.solver_km) + " km", trucksUsed: fmt(p.trucks_used), wardsN: String(s.wards.length),
-    overflowCut: fixed && pred ? "−" + fmt(100 * (1 - pred.Overflow_Bin_Hours_mean / fixed.Overflow_Bin_Hours_mean)) + " %" : "–",
-    forecastShort: fmtDate(s.forecast_for, { day: "numeric", month: "short" }),
+    planKm: fmt(p.road_km) + " km", trucksUsed: fmt(p.trucks_used), wardsN: String(s.wards.length),
+    overflowCut: fixed && bs ? "−" + fmt(100 * (1 - bs.overflow_events_day / fixed.overflow_events_day)) + " %" : "–",
+    forecastShort: fmtDate(s.plan_day + "T06:00", { day: "numeric", month: "short" }),
     generated: "Data built " + fmtDate(s.generated, { day: "numeric", month: "long", year: "numeric" }),
   };
   $$("[data-k]").forEach(el => { const v = vals[el.dataset.k]; if (v != null) el.textContent = v; });
@@ -1100,7 +1300,7 @@ function initExplainer() {
       <span>Emptied under 40 % full</span>${cell(a.waste, s.waste)}`;
     $("#exExplain").textContent = mode === "fixed"
       ? "The timetable empties every bin on days 3, 6, 9 and 12, whether it is full or not. Fast bins overflow in between."
-      : "BinSight empties a bin only when tomorrow’s forecast reaches 80 %. Slow bins are skipped, fast bins are visited sooner.";
+      : "BinSight empties a bin only when it would pass 80 % before the next chance of a truck. Slow bins are skipped, fast bins are visited sooner.";
   }
   $$(".seg button[data-mode]").forEach(b => b.onclick = () => { mode = b.dataset.mode; $$(".seg button[data-mode]").forEach(x => x.classList.toggle("on", x === b)); render(); });
   $("#exDay").oninput = e => { day = +e.target.value; render(); };
@@ -1115,33 +1315,29 @@ function initExplainer() {
 
 /* ── steps ───────────────────────────────────────── */
 function initSteps() {
-  const m = D.site.model, f = D.site.fleet;
-  const best = m.results[m.name] || {};
+  const m = D.site.model.metrics, f = D.site.fleet, p = D.site.plan, R = D.site.maths.route;
+  const toMaths = k => `<button class="linkbtn" type="button" onclick="BS.mathsTab(${k});document.getElementById('maths').scrollIntoView()">See the maths</button>`;
   const content = [
-    `<div><h4>A sensor that fits the bins Edinburgh already has</h4><p class="muted">An ultrasonic sensor in the lid measures the distance to the waste and converts it to a fill level. The prototype runs on an ESP32 in the Wokwi simulator and posts readings to the platform’s <span class="mono">/api/bin/update</span> endpoint.</p>
-      <ul><li>Universal mount for communal, trade and campus bins</li><li>Bin-level data only, no personal data (UK GDPR)</li><li>Fitted first where fill levels vary most</li><li>Works with sensors councils already own: Edinburgh has 11,000 installed</li></ul></div>
+    `<div><h4>A sensor that fits the bins Edinburgh already has</h4><p class="muted">An ultrasonic sensor in the lid measures the distance to the waste and converts it to a fill level, then reports it every hour.</p>
+      <ul><li>Universal mount for communal, trade and campus bins</li><li>Bin-level data only, no personal data (UK GDPR)</li><li>Fitted first where fill levels vary most</li><li>Works with sensors councils already own</li></ul></div>
      <div><div class="formula">fill % = 100 × (1 − distance / bin depth)
-reading → POST /api/bin/update
-  { bin_id: "EDI-600024560",
-    fill: 72.4, battery: 91 }</div><p class="note">Example stop EDI-600024560 is the real communal bin at High Street (Bell’s Wynd).</p></div>`,
-    `<div><h4>Forecast each bin 24 hours ahead</h4><p class="muted">The model learns how each stop fills from ${m.features.length} features: recent fill (1, 2 and 24 hours ago), 6- and 24-hour rolling averages, hours since the last collection, hour, weekday, Scottish bank holidays, and real Edinburgh temperature and rain.</p>
-      <ul><li>${esc(m.name)}, trained on the first 75 % of the history and tested on the rest</li><li>Test error: MAE ${fmt(best.MAE, 2)} points, R² ${fmt(best.R2, 3)}, F1 at 80 % ${fmt(best.F1, 3)}</li><li>Beats “tomorrow = today” (R² ${fmt(m.results["Baseline (Persistence)"]?.R2, 2)}) by a wide margin</li></ul></div>
-     <div><div class="formula">P(overflow) = 1 − Φ((80 − forecast) / RMSE)
-RMSE = ${fmt(m.rmse, 2)} points
+reading = true fill + noise,  noise ~ N(0, ${D.site.maths.params.SENSOR_NOISE}²)
+reported hourly, capped at 100 %</div><p class="note">On this site the readings are simulated by our compound-Poisson fill model (step 1 of the maths).</p></div>`,
+    `<div><h4>Forecast every stop until the next chance of a truck</h4><p class="muted">The forecast learns a city-wide hour, weekday and weather pattern by least squares, and each stop’s own fill rate by exponential smoothing. Its variance combines random bag arrivals, the error in the learned rate and sensor noise.</p>
+      <ul><li>Error ${fmt(m.binsight.mae, 1)} points (MAE) against ${fmt(m.persistence.mae, 1)} for “fill stays the same”</li><li>Risks are calibrated: the 80 % interval holds the truth ${fmt(100 * m.coverage80)} % of the time</li><li>${toMaths(1)}</li></ul></div>
+     <div><div class="formula">μᵢ = yᵢ + 100 · rᵢ Σ mₜ / capᵢ
+σᵢ² = (100/capᵢ)² (φ μ_L + β/(2−β) eᵢ² μ_L²) + σₛ²
+pᵢ = 1 − Φ((100 − μᵢ) / σᵢ)
 
-priority = 0.6 × forecast
-         + 0.2 × 100 × P(overflow)
-         + 0.2 × 100 × area weight
-
-collect if forecast ≥ 80 or priority ≥ 75</div></div>`,
-    `<div><h4>A capacitated vehicle-routing problem</h4><p class="muted">Google OR-Tools plans routes from Seafield depot. Each truck carries ${fmt(f.capacity_l)} L of bin volume per load and can tip and go out again up to ${f.trips_per_truck} times a shift. The solver starts from the cheapest-arc solution and improves it with guided local search.</p>
-      <ul><li>${fmt(D.site.plan.served)} stops in ${D.site.plan.trips} trips by ${D.site.plan.trucks_used} trucks, ${fmt(D.site.plan.solver_km)} km</li><li>Stops the fleet cannot reach are reported, never silently dropped</li><li>Routes are then snapped to real streets with OSRM: ${fmt(D.site.plan.road_km)} km by road</li></ul></div>
-     <div><div class="formula">minimise   Σ distance(i → j)
-subject to  each flagged stop visited once
+collect i  ⇔  pᵢ > α   or   pᵢ c_o − Δᵢ kᵢ/τᵢ > λ tᵢ</div></div>`,
+    `<div><h4>A multi-trip vehicle-routing problem, solved by our own heuristic</h4><p class="muted">Costs come from shortest paths on Edinburgh’s street graph. Each truck carries ${fmt(f.capacity_l / 1000)} m³ per load, tips at Seafield and goes out again, inside an ${fmt(f.shift_min / 60)}-hour shift. Clarke–Wright savings builds the trips, local search and simulated annealing improve them, and first-fit decreasing packs them into shifts.</p>
+      <ul><li>${fmt(p.served)} stops in ${p.trips} trips by ${p.trucks_used} trucks, ${fmt(p.road_km)} km on real streets</li><li>Proven optimal on ${D.site.maths.route.validation.summary.ours.optimal} of 30 small real instances</li><li>Stops the fleet cannot fit are reported, never silently dropped</li><li>${toMaths(3)}</li></ul></div>
+     <div><div class="formula">minimise   Σ cᵢⱼ xᵢⱼ ,  cᵢⱼ = £${f.cost_km}/km + £${fmt(f.cost_hour)}/h
+subject to  each chosen stop visited once
             load per trip ≤ ${fmt(f.capacity_l)} L
-            trips per truck ≤ ${f.trips_per_truck}
-distance   = great-circle × 1.3 road factor</div></div>`,
-    `<div><h4>Crews follow the plan; residents fill the gaps</h4><p class="muted">Each driver sees an ordered stop list and map for their truck, and marks stops as collected or reports a problem (blocked access, damaged bin). Residents report full or misused bins in the app with a photo; verified reports earn points for vouchers at local businesses.</p>
+            drive + lift + tip ≤ ${f.shift_min} min per truck
+            ${f.trucks} trucks from Seafield depot</div></div>`,
+    `<div><h4>Crews follow the plan; residents fill the gaps</h4><p class="muted">Each driver sees an ordered stop list with arrival times and a map for their truck, and marks stops as collected or reports a problem (blocked access, damaged bin). Residents report full or misused bins in the app with a photo; verified reports earn points for vouchers at local businesses.</p>
       <ul><li>Only verified reports earn points, with a daily limit per person</li><li>Only the first report on a bin is rewarded</li><li>Reports act as human sensors for bins without one</li></ul></div>
      <div><p class="muted small" style="margin-bottom:10px">Try it: open any truck’s driver view.</p><button class="btn ghost" type="button" onclick="BS.openTab('routes');document.getElementById('console').scrollIntoView()">Open the driver view</button></div>`,
   ];
@@ -1162,7 +1358,7 @@ function initMap() {
   map.on("click focus", () => map.scrollWheelZoom.enable());
   map.on("mouseout blur", () => map.scrollWheelZoom.disable());
   $("#map").addEventListener("pointerdown", () => map.scrollWheelZoom.enable());
-  map.attributionControl.addAttribution("Wards: ONS (OGL) · Routes: OSRM · Bins: City of Edinburgh Council (OGL)");
+  map.attributionControl.addAttribution("Wards: ONS (OGL) · Routes: our shortest paths on OpenStreetMap · Bins: City of Edinburgh Council (OGL)");
   const B = D.base;
   // land / wards
   map.createPane("hi"); map.getPane("hi").style.zIndex = 450; map.getPane("hi").style.pointerEvents = "none";
@@ -1226,7 +1422,7 @@ function initMap() {
   setTimeout(() => { fitted = true; }, 4000);   // after the first layout settles, never move the camera on resize
   new ResizeObserver(() => { map.invalidateSize(); if (!fitted && performance.now() - born < 4000 && UI.selStop < 0 && UI.selTruck < 0 && UI.ward < 0 && UI.follow < 0) map.fitBounds(all, { padding: [20, 20] }); }).observe($(".map-shell"));
   ["pointerdown", "wheel", "touchstart"].forEach(ev => $("#map").addEventListener(ev, () => { fitted = true; }, { passive: true }));
-  $("#mapNote").textContent = `Snapshot ${fmtDate(D.site.snapshot, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })} · forecast for ${fmtDate(D.site.forecast_for, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`;
+  $("#mapNote").textContent = `Snapshot ${fmtDate(D.site.snapshot, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })} · plan for ${fmtDate(D.site.plan_day + "T06:00", { weekday: "short", day: "numeric", month: "short" })}`;
   initHeroHover();
   initStreetMap();
 }
@@ -1395,38 +1591,38 @@ async function showNetwork(on) {
 
 /* detail panel */
 function panel(html) { const p = $("#panel"); p.innerHTML = `<button class="x" type="button" aria-label="Close panel">×</button>` + html; p.hidden = false; $(".x", p).onclick = () => { p.hidden = true; UI.selStop = -1; UI.selTruck = -1; UI.follow = -1; $$("#fleet button").forEach(b => b.classList.remove("on")); highlight.clearLayers(); restyleStops(); }; p.scrollTop = 0; }
-const riskPill = p => p >= .5 ? `<span class="pill hi">High risk</span>` : p >= .1 ? `<span class="pill md">Watch</span>` : `<span class="pill lo">Low risk</span>`;
+const riskPill = p => p >= .5 ? `<span class="pill hi">High risk</span>` : p >= D.site.maths.params.ALPHA ? `<span class="pill md">Watch</span>` : `<span class="pill lo">Low risk</span>`;
 BS.focusStop = async (i, opts = {}) => {
   if (!map) return;
   UI.selStop = i; UI.selTruck = D.S.truck[i] >= 0 && opts.keepTruck ? D.S.truck[i] : UI.selTruck;
-  const S = D.S, w = D.wards[S.ward[i]], area = D.site.areas[S.area[i]];
-  const areaW = { "City Centre": .9, "Inner Residential": .6, "Outer Residential": .4 }[area];
-  const parts = [S.pred[i] * .6, S.prob[i] * 100 * .2, areaW * 100 * .2];
+  const S = D.S, w = D.wards[S.ward[i]], area = D.site.areas[S.area[i]], P = D.site.maths.params;
   const ti = S.truck[i];
   map.flyTo([S.lat[i], S.lon[i]], Math.max(map.getZoom(), 15.5), { duration: .6 });
   highlight.clearLayers();
   L.circleMarker([S.lat[i], S.lon[i]], { radius: 14, color: PAL.ink, weight: 2, fill: false, interactive: false }).addTo(highlight);
   restyleStops();
+  const ec = earlyCost(i), pc = S.prob[i] * P.COST_OVERFLOW;
+  const why = S.mand[i] ? `Risk ${fmt(100 * S.prob[i], 1)} % is above α = ${P.ALPHA}: it must go.` : S.flag[i] ? `Risk is below α, but p · c<sub>o</sub> = £${fmt(pc, 2)} beats the cost of going ${fmt(kEarly(i), 1)} days early, Δk/τ = £${fmt(ec, 2)}.` : pc > ec ? `p · c<sub>o</sub> = £${fmt(pc, 2)} beats Δk/τ = £${fmt(ec, 2)}, but not by enough for its truck time tomorrow: skip.` : `p · c<sub>o</sub> = £${fmt(pc, 2)} is less than the cost of going ${fmt(kEarly(i), 1)} days early, Δk/τ = £${fmt(ec, 2)}: skip.`;
   panel(`<div class="dp">
     <span class="eyebrow">${esc(w.name)} ward · ${esc(area)}</span>
     <h3 style="margin-top:8px">${esc(S.site[i])}</h3>
     <div class="sub">${esc(S.loc[i] || "Communal bin stop")} · <span class="mono">${S.id[i]}</span></div>
-    <div style="margin-top:10px">${riskPill(S.prob[i])} ${S.flag[i] ? `<span class="pill md">Flagged</span>` : ""}</div>
-    <div class="gauge"><div><b>${fmt(S.fill[i])}%</b><span>Fill now · sim</span></div><div><b style="color:${S.pred[i] >= 80 ? "var(--bad)" : "inherit"}">${fmt(S.pred[i])}%</b><span>Forecast in 24 h · sim</span></div></div>
-    <h4>Last 72 hours and the forecast</h4><svg class="spark" id="spark" viewBox="0 0 320 110" role="img" aria-label="Fill history"></svg>
-    <h4>Priority score ${fmt(S.prio[i], 1)} <span class="muted small">/ 100, collect at 75</span></h4>
-    <div class="prio-bar"><span style="width:${parts[0]}%;background:var(--ink)"></span><span style="width:${parts[1]}%;background:var(--f3)"></span><span style="width:${parts[2]}%;background:var(--accent)"></span></div>
-    <div class="muted small" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px"><span>Forecast ${fmt(parts[0], 1)}</span><span>Risk ${fmt(parts[1], 1)}</span><span>Location ${fmt(parts[2], 1)}</span></div>
+    <div style="margin-top:10px">${riskPill(S.prob[i])} ${S.flag[i] ? `<span class="pill md">${S.mand[i] ? "Must go" : "Worth going"}</span>` : ""}</div>
+    <div class="gauge"><div><b>${fmt(S.fill[i])}%</b><span>Fill now · sim</span></div><div><b style="color:${S.pred[i] >= 100 ? "var(--bad)" : "inherit"}">${fmt(Math.min(S.pred[i], 100))}%${S.pred[i] > 100 ? "+" : ""}</b><span>Forecast if skipped, ± ${fmt(S.sd[i])} · sim</span></div></div>
+    <h4>Last 72 hours and the forecast</h4><svg class="spark" id="spark" viewBox="0 0 320 110" role="img" aria-label="Fill history and forecast"></svg>
+    <h4>Decision</h4><p class="small" style="margin-top:6px">${why}</p>
     <dl class="kv">
       <dt>Bins at this stop</dt><dd>${S.nb[i]} · ${fmt(S.cap[i])} L total <span class="tag real">Real</span></dd>
       <dt>Council asset records</dt><dd>${S.rec[i]}</dd>
-      <dt>Chance of passing 80 %</dt><dd>${fmt(S.prob[i] * 100, 1)} %</dd>
+      <dt>Risk of overflowing if skipped</dt><dd>${fmt(S.prob[i] * 100, 1)} %</dd>
+      <dt>Days from empty to full, τ</dt><dd>${fmt(S.tau[i], 1)}</dd>
+      <dt>Cost to add it to a route, Δ</dt><dd>£${fmt(S.dcost[i], 2)}</dd>
       <dt>Last emptied</dt><dd>${S.since[i] == null ? "–" : S.since[i] + " h ago"}</dd>
       <dt>Sensor battery · signal</dt><dd>${fmt(S.bat[i])} % · ${S.sig[i]} <span class="tag sim">Sim</span></dd>
       <dt>Coordinates</dt><dd class="mono">${S.lat[i].toFixed(5)}, ${S.lon[i].toFixed(5)}</dd>
     </dl>
     <h4>Tomorrow’s collection</h4>
-    <p class="small" style="margin-top:6px">${ti >= 0 ? `Stop <b>${S.ord[i]}</b> of ${D.trucks[ti].stops.length} on <button class="linkbtn" data-truck="${ti}">${D.trucks[ti].truck}</button>.` : S.flag[i] ? "Flagged, but not reached by the fleet." : "Not needed tomorrow. The truck skips this stop."}</p>
+    <p class="small" style="margin-top:6px">${ti >= 0 ? `Stop <b>${S.ord[i]}</b> of ${D.trucks[ti].stops.length} on <button class="linkbtn" data-truck="${ti}">${D.trucks[ti].truck}</button>, arriving about <b>${hhmm(S.eta[i])}</b>.` : S.flag[i] ? "Chosen, but the fleet could not fit it tomorrow." : "Not needed tomorrow. The truck skips this stop."}</p>
     <p class="small" style="margin-top:12px"><button class="linkbtn" data-ask="${esc(S.site[i])}">Ask the twin about ${esc(S.site[i])}</button></p>
   </div>`);
   $$("#panel [data-truck]").forEach(b => b.onclick = () => BS.focusTruck(+b.dataset.truck));
@@ -1436,19 +1632,20 @@ BS.focusStop = async (i, opts = {}) => {
 async function drawSpark(i) {
   if (!D.hist) { try { D.hist = await getJSON("data/history.json"); } catch { return; } }
   const svg = $("#spark"); if (!svg) return;
-  const h = D.hist.fill[i] || [], W = 320, H = 110, n = h.length + 24;
-  const x = k => 4 + k / (n - 1) * (W - 8), y = v => H - 16 - v / 100 * (H - 26);
+  const h = D.hist.fill[i] || [], W = 320, H = 110, ahead = 39, n = h.length + ahead, top = 130;
+  const x = k => 4 + k / (n - 1) * (W - 8), y = v => H - 16 - Math.min(v, top) / top * (H - 26);
   const line = h.map((v, k) => `${k ? "L" : "M"}${x(k).toFixed(1)},${y(v).toFixed(1)}`).join("");
-  const last = h.length - 1;
+  const last = h.length - 1, mu = D.S.pred[i], sd = D.S.sd[i];
   svg.innerHTML = `
-    <line class="grid" x1="4" x2="${W - 4}" y1="${y(80)}" y2="${y(80)}" stroke="${PAL.f[3]}" stroke-dasharray="3 3"/>
-    <text x="6" y="${y(80) - 4}" style="fill:${PAL.f[3]};font-size:10px">80 % collection line</text>
+    <line class="grid" x1="4" x2="${W - 4}" y1="${y(100)}" y2="${y(100)}" stroke="${PAL.f[4]}" stroke-dasharray="3 3"/>
+    <text x="6" y="${y(100) - 4}" style="fill:${PAL.f[4]};font-size:10px">100 %: overflow</text>
     <path d="${line} L${x(last)},${y(0)} L${x(0)},${y(0)} Z" fill="${PAL.accent}" opacity=".10"/>
     <path d="${line}" fill="none" stroke="${PAL.ink}" stroke-width="1.6"/>
-    <line x1="${x(last)}" y1="${y(h[last])}" x2="${x(n - 1)}" y2="${y(D.S.pred[i])}" stroke="${PAL.accent}" stroke-width="1.8" stroke-dasharray="4 3"/>
-    <circle cx="${x(n - 1)}" cy="${y(D.S.pred[i])}" r="3.5" fill="${PAL.accent}"/>
+    <path d="M${x(last)},${y(h[last])} L${x(n - 1)},${y(mu + 1.28 * sd)} L${x(n - 1)},${y(Math.max(0, mu - 1.28 * sd))} Z" fill="${PAL.accent}" opacity=".18"/>
+    <line x1="${x(last)}" y1="${y(h[last])}" x2="${x(n - 1)}" y2="${y(mu)}" stroke="${PAL.accent}" stroke-width="1.8" stroke-dasharray="4 3"/>
+    <circle cx="${x(n - 1)}" cy="${y(mu)}" r="3.5" fill="${PAL.accent}"/>
     <circle cx="${x(last)}" cy="${y(h[last])}" r="3" fill="${PAL.ink}"/>
-    <text x="4" y="${H - 2}">−72 h</text><text x="${x(last)}" y="${H - 2}" text-anchor="middle">now</text><text x="${W - 4}" y="${H - 2}" text-anchor="end">+24 h</text>`;
+    <text x="4" y="${H - 2}">−72 h</text><text x="${x(last)}" y="${H - 2}" text-anchor="middle">now</text><text x="${W - 4}" y="${H - 2}" text-anchor="end">14:00 next day</text>`;
 }
 BS.focusTruck = (ti, opts = {}) => {
   if (!map) return;
@@ -1470,8 +1667,8 @@ BS.focusTruck = (ti, opts = {}) => {
     <div class="sub">${esc(t.driver)} · plate ${esc(t.plate)} · from Seafield depot</div>
     <p class="small" id="followLive" style="margin-top:10px;padding:8px 10px;background:var(--paper);border-radius:10px">${truckStatus(ti)}</p>
     <div style="margin-top:8px"><button class="linkbtn" id="followBtn">${UI.follow === ti ? "Stop following" : "Follow this truck through the shift"}</button></div>
-    <div class="gauge"><div><b>${fmt(t.stops.length)}</b><span>stops</span></div><div><b>${t.trips.length}</b><span>trips (tip between)</span></div><div><b>${fmt(t.km, 1)}</b><span>km planned</span></div><div><b>${fmt(t.road, 1)}</b><span>km by road (OSRM)</span></div></div>
-    <dl class="kv"><dt>Waste collected</dt><dd>${fmt(t.load)} L</dd><dt>Load per trip</dt><dd>${t.trips.map(x => fmt(x.load / 1000, 1) + "k").join(" · ")} L</dd><dt>Driving time</dt><dd>${fmt(t.drive / 60, 1)} h</dd><dt>Service time (10 min/stop)</dt><dd>${fmt(t.stops.length * 10 / 60, 1)} h</dd></dl>
+    <div class="gauge"><div><b>${fmt(t.stops.length)}</b><span>stops</span></div><div><b>${t.trips.length}</b><span>trips (tip between)</span></div><div><b>${fmt(t.km, 1)}</b><span>km on real streets</span></div><div><b>${hhmm(t.trips[t.trips.length - 1].end)}</b><span>back at the depot</span></div></div>
+    <dl class="kv"><dt>Waste collected</dt><dd>${fmt(t.load)} L</dd><dt>Load per trip</dt><dd>${t.trips.map(x => fmt(x.load / 1000, 1) + "k").join(" · ")} L</dd><dt>Driving time</dt><dd>${fmt(t.drive / 60, 1)} h</dd><dt>Lifting time</dt><dd>${fmt(t.stops.reduce((a, i) => a + svcMin(i), 0) / 60, 1)} h</dd><dt>Tipping</dt><dd>${t.trips.length} × ${D.site.fleet.tip_min} min</dd></dl>
     <h4>Wards on this route</h4><p class="small" style="margin-top:6px">${wards.map(([w, c]) => `${esc(w)} (${c})`).join(", ")}</p>
     <p class="small" style="margin-top:14px"><button class="linkbtn" id="openDriver">Open driver view with every stop in order</button></p>
   </div>`);
@@ -1493,32 +1690,31 @@ BS.focusWard = wi => {
 /* ── shift replay: trucks drive their real street routes, bins empty as they are reached ── */
 const SIM = { t: 0, end: 0, playing: false, speed: 15, trucks: [], events: [], ptr: 0, emptied: null, layer: null, marks: [], started: false };
 function initPlayback() {
-  const svc = D.site.fleet.service_min, S = D.S;
+  const S = D.S;
   SIM.emptied = new Uint8Array(D.n);
   const kx = 111.32 * Math.cos(55.95 * Math.PI / 180), ky = 110.57;
   const dist = (a, b) => Math.hypot((a[1] - b[1]) * kx, (a[0] - b[0]) * ky);
   SIM.trucks = D.trucks.map(t => {
-    let t0 = 0; const trips = [];
+    const trips = [];
     for (const tr of t.trips) {
       const pts = decode(tr.line), cum = [0];
       for (let k = 1; k < pts.length; k++) cum.push(cum[k - 1] + dist(pts[k - 1], pts[k]));
       const total = cum[cum.length - 1] || 1;
-      const driveMin = tr.drive_min ?? (tr.straight_km / D.site.fleet.speed_kmh * 60);
-      // place each stop on the street line (nearest vertex, never going backwards)
+      // place each stop on the street line (nearest vertex, never going backwards); times come from the schedule
       let j0 = 0; const stops = [];
       tr.stops.forEach((i, k) => {
         const p = [S.lat[i], S.lon[i]]; let best = j0, bd = Infinity;
         for (let j = j0; j < pts.length; j++) { const d = dist(p, pts[j]); if (d < bd) { bd = d; best = j; } }
         j0 = best;
-        const tArr = t0 + cum[best] / total * driveMin + k * svc;
-        stops.push({ i, d: cum[best], tArr, tDep: tArr + svc });
+        const tArr = tr.eta[k];
+        stops.push({ i, d: cum[best], tArr, tDep: tArr + svcMin(i) });
         SIM.events.push([tArr, i]);
       });
-      const dur = driveMin + tr.stops.length * svc;
-      trips.push({ pts, cum, total, t0, t1: t0 + dur, driveMin, stops, road: tr.road_km || 0 });
-      t0 += dur;
+      // the truck reaches the depot before tipping
+      const back = tr.end - D.site.fleet.tip_min;
+      trips.push({ pts, cum, total, t0: tr.start, t1: back, tEnd: tr.end, stops, road: tr.road_km || 0 });
     }
-    return { trips, end: t0, color: t.color, id: t.truck };
+    return { trips, end: t.trips.length ? t.trips[t.trips.length - 1].end : 0, color: t.color, id: t.truck };
   });
   SIM.events.sort((a, b) => a[0] - b[0]);
   SIM.end = Math.ceil(Math.max(...SIM.trucks.map(t => t.end)) / 10) * 10 + 10;
@@ -1561,6 +1757,7 @@ function truckPos(tk, t) {
     }
     return { at: along(tr, prevD + (tr.total - prevD) * (t - prevT) / Math.max(1e-6, tr.t1 - prevT)), state: "to depot", next: k, tr };
   }
+  for (const tr of tk.trips) if (t > tr.t1 && t <= tr.tEnd) return { at: [D.site.depot.latitude, D.site.depot.longitude], state: "tipping at Seafield", next: 0 };
   return { at: [D.site.depot.latitude, D.site.depot.longitude], state: t <= 0 ? "at depot" : "done", next: 0 };
 }
 function along(tr, d) {
@@ -1588,7 +1785,7 @@ function truckStatus(ti) {
   const st = p.state === "emptying" ? `emptying ${esc(D.S.site[p.tr.stops[p.next].i])}` : p.state === "driving" ? `driving to ${esc(D.S.site[p.tr.stops[p.next].i])}` : p.state;
   return `<b>${tk.id}</b> · ${done}/${n} stops<br>${st}`;
 }
-const clock = m => { const h = 6 + Math.floor(m / 60), mm = Math.floor(m % 60); return String(h % 24).padStart(2, "0") + ":" + String(mm).padStart(2, "0"); };
+const clock = m => hhmm(m);
 function setT(t) {
   SIM.t = clamp(t, 0, SIM.end);
   const S = D.S, z = map.getZoom(), r = z < 11.5 ? 2.6 : z < 13 ? 3.6 : z < 15 ? 5 : 7;
@@ -1600,7 +1797,7 @@ function setT(t) {
   const drawTrails = Math.abs(SIM.t - (SIM.lastTrail ?? -99)) >= 1.5 || !SIM.playing;
   SIM.trucks.forEach((tk, ti) => {
     const p = truckPos(tk, SIM.t); SIM.marks[ti].setLatLng(p.at);
-    if (p.state !== "done" && p.state !== "at depot") onRoad++;
+    if (p.state === "driving" || p.state === "emptying" || p.state === "to depot") onRoad++;
     for (const tr of tk.trips) km += tr.road * clamp((SIM.t - tr.t0) / (tr.t1 - tr.t0), 0, 1);
     if (drawTrails) {
       const lines = [];
@@ -1626,7 +1823,7 @@ function setT(t) {
   const pctDone = SIM.ptr / ev.length * 100;
   $("#pbClock").textContent = clock(SIM.t);
   // the shift starts at 06:00 on the forecast day; past midnight the label moves to the next day
-  const day = new Date(D.site.forecast_for.slice(0, 10) + "T06:00:00"); day.setMinutes(day.getMinutes() + SIM.t);
+  const day = new Date(D.site.plan_day + "T06:00:00"); day.setMinutes(day.getMinutes() + SIM.t);
   const dayLbl = day.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
   $("#pbDay").textContent = SIM.t <= 0 ? "Shift starts" : SIM.t >= SIM.end ? `${dayLbl} · all trucks back` : `${dayLbl} · simulated`;
   $("#pbRange").value = Math.round(SIM.t / SIM.end * 1000);
@@ -1810,105 +2007,323 @@ function drawWeather() {
   host.dataset.done = 1;
 }
 
+/* ── the maths: five interactive explainers on the live model output ── */
+const Phi = x => { const t = 1 / (1 + .3275911 * Math.abs(x) / Math.SQRT2), y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - .284496736) * t + .254829592) * t * Math.exp(-x * x / 2); return x >= 0 ? .5 * (1 + y) : .5 * (1 - y); };
+function rng32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function poisson(l, u) { if (l > 30) { const z = Math.sqrt(-2 * Math.log(u() || 1e-12)) * Math.cos(2 * Math.PI * u()); return Math.max(0, Math.round(l + Math.sqrt(l) * z)); } let k = 0, p = 1; const L = Math.exp(-l); do { k++; p *= u(); } while (p > L); return k - 1; }
+function gammaDraw(k, th, u) { const d = k - 1 / 3, c = 1 / Math.sqrt(9 * d); for (;;) { let x, v; do { x = Math.sqrt(-2 * Math.log(u() || 1e-12)) * Math.cos(2 * Math.PI * u()); v = 1 + c * x; } while (v <= 0); v = v * v * v; const w = u(); if (w < 1 - .0331 * x ** 4 || Math.log(w) < .5 * x * x + d * (1 - v + Math.log(v))) return d * v * th; } }
+const svgAxisY = (x0, x1, y, vals, f) => vals.map(v => `<line class="grid" x1="${x0}" x2="${x1}" y1="${y(v)}" y2="${y(v)}"/><text x="${x0 - 6}" y="${y(v) + 4}" text-anchor="end">${f(v)}</text>`).join("");
+
+function initMaths() {
+  const M = D.site.maths; if (!M) return;
+  const P = M.params, F = M.forecast;
+  // tabs
+  const show = k => { $$("#mTabs button").forEach(b => b.classList.toggle("on", +b.dataset.m === k)); $$(".m-pane").forEach(p => p.hidden = +p.dataset.m !== k); };
+  $$("#mTabs button").forEach(b => b.onclick = () => show(+b.dataset.m));
+  BS.mathsTab = show;
+  // numbers in the text
+  const lamT = M.decide.rounds?.at(-1)?.lambda;
+  const rainCut = 100 * (1 - F.rain), rainTrue = 100 * (1 - Math.exp(P.RAIN_EFFECT));
+  const vals = {
+    bag: fmt(P.BAG_L), median: P.DAILY_FILL_MEDIAN.toFixed(2), phiTrue: fmt(P.BAG_L * (1 + 1 / P.BAG_SHAPE), 1), phiHat: fmt(F.phi, 1),
+    rainFx: `${fmt(rainCut, 1)} % fewer deposits in a wet hour (true value ${fmt(rainTrue, 1)} %)`,
+    co: fmt(P.COST_OVERFLOW), alpha: P.ALPHA.toFixed(2), ckm: P.COST_KM.toFixed(2), chr: fmt(P.COST_HOUR),
+    roadKm: fmt(D.site.totals.road_km), nStops: fmt(M.route.stops),
+    lambda: lamT == null ? "–" : lamT > 0 ? `λ = £${fmt(lamT, 2)} per truck-minute: the fleet is the bottleneck` : "λ = 0, the fleet has room",
+  };
+  $$("[data-mk]").forEach(el => { const v = vals[el.dataset.mk]; if (v != null) el.textContent = v; });
+  mathsModel(M); mathsPredict(M); mathsDecide(M); mathsRoute(M); mathsCheck(M);
+}
+
+/* 1 · compound Poisson paths */
+function mathsModel(M) {
+  const hw = M.fill.hour_w, dw = M.fill.day_w, P = M.params, cap = M.forecast.example.cap;
+  const a = []; for (let d = 0; d < 7; d++) for (let h = 0; h < 24; h++) a.push(dw[d] * hw[h]);
+  const am = a.reduce((s, v) => s + v, 0) / a.length; for (let k = 0; k < a.length; k++) a[k] /= am;
+  let seed = 11;
+  const draw = () => {
+    const rho = +$("#mRho").value; $("#oRho").textContent = rho.toFixed(2);
+    const W = 520, H = 260, l = 34, r = 10, t = 14, b = 28, x = h => l + h / 168 * (W - l - r), y = v => t + (1 - v / 100) * (H - t - b);
+    const lamDay = cap * rho / P.BAG_L;
+    const paths = [], full = [];
+    for (let s = 0; s < 3; s++) {
+      const u = rng32(seed * 97 + s * 13 + 1); let L = 0, hit = null; const pts = [[0, 0]];
+      for (let h = 0; h < 168; h++) {
+        const n = poisson(lamDay * a[h] / 24, u);
+        if (n) L += gammaDraw(n * P.BAG_SHAPE, P.BAG_L / P.BAG_SHAPE, u);
+        const v = Math.min(100, 100 * L / cap); pts.push([h + 1, v]);
+        if (v >= 100 && hit == null) hit = h + 1;
+      }
+      paths.push(pts); full.push(hit);
+    }
+    let E = 0; const mean = [[0, 0]]; for (let h = 0; h < 168; h++) { E += lamDay * a[h] / 24 * P.BAG_L; mean.push([h + 1, Math.min(100, 100 * E / cap)]); }
+    const line = pts => pts.map(([h, v], k) => `${k ? "L" : "M"}${x(h).toFixed(1)},${y(v).toFixed(1)}`).join("");
+    const cols = [PAL.accent, PAL.f[3], PAL.ink];
+    $("#mPaths").innerHTML = svgAxisY(l, W - r, y, [0, 50, 100], v => v + "%") +
+      ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d, k) => `<text x="${x(k * 24 + 12)}" y="${H - 8}" text-anchor="middle">${d}</text><line class="ax" x1="${x(k * 24)}" x2="${x(k * 24)}" y1="${y(0)}" y2="${y(0) + 4}"/>`).join("") +
+      `<path d="${line(mean)}" fill="none" stroke="${PAL.ink3}" stroke-width="1.4" stroke-dasharray="4 4"/>` +
+      paths.map((p, s) => `<path d="${line(p)}" fill="none" stroke="${cols[s]}" stroke-width="1.7" opacity=".9"/>` + (full[s] ? `<circle cx="${x(full[s])}" cy="${y(100)}" r="4" fill="${PAL.bad}"/>` : "")).join("") +
+      `<text x="${W - r}" y="${y(100) - 5}" text-anchor="end" style="fill:${PAL.bad}">full: overflow from here</text><text x="${x(150)}" y="${y(Math.min(100, mean[150][1])) + 16}" text-anchor="end">expected</text>`;
+    const days = full.map(f => f ? fmt(f / 24, 1) + " d" : "not this week");
+    $("#mPathNote").textContent = `A ${fmt(cap)} L stop is expected to fill in ${fmt(1 / rho, 1)} days. These three weeks: ${days.join(", ")}. Bags arrive in bursts, so two weeks with the same rate fill at different times.`;
+  };
+  $("#mRho").oninput = draw; $("#mRedraw").onclick = () => { seed++; draw(); };
+  draw();
+}
+
+/* 2 · forecast fan, reliability, accuracy */
+function mathsPredict(M) {
+  const F = M.forecast, ex = F.example, m = F.metrics;
+  $("#fanTitle").textContent = ex.site; $("#fanSub").textContent = `${ex.id} · ${fmt(ex.cap)} L · learned rate ${fmt(ex.rate_l_day)} L a day`;
+  const draw = () => {
+    const k = +$("#mSig").value; $("#oSig").textContent = "× " + k.toFixed(2);
+    const W = 520, H = 250, l = 34, r = 12, t = 12, b = 28, n0 = ex.past.length, n1 = ex.mu.length;
+    const x = h => l + (h + n0) / (n0 + n1 - 1) * (W - l - r), ymax = 130, y = v => t + (1 - clamp(v, 0, ymax) / ymax) * (H - t - b);
+    const band = z => { const up = ex.mu.map((v, j) => [j, v + z * k * ex.sd[j]]), lo = ex.mu.map((v, j) => [j, v - z * k * ex.sd[j]]).reverse(); return up.concat(lo).map(([j, v], q) => `${q ? "L" : "M"}${x(j).toFixed(1)},${y(v).toFixed(1)}`).join("") + "Z"; };
+    const past = ex.past.map((v, j) => `${j ? "L" : "M"}${x(j - n0).toFixed(1)},${y(v).toFixed(1)}`).join("");
+    const fut = ex.mu.map((v, j) => `${j ? "L" : "M"}${x(j).toFixed(1)},${y(v).toFixed(1)}`).join("");
+    const muE = ex.mu[n1 - 1], sdE = ex.sd[n1 - 1] * k, p = 1 - Phi((100 - muE) / sdE);
+    $("#mFan").innerHTML = svgAxisY(l, W - r, y, [0, 50, 100], v => v + "%") +
+      `<line x1="${l}" x2="${W - r}" y1="${y(100)}" y2="${y(100)}" stroke="${PAL.bad}" stroke-dasharray="4 3"/><text x="${l + 4}" y="${y(100) - 5}" style="fill:${PAL.bad}">100 %: overflow</text>` +
+      `<path d="${band(1.96)}" fill="${PAL.accent}" opacity=".12"/><path d="${band(1.2816)}" fill="${PAL.accent}" opacity=".2"/>` +
+      `<path d="${past}" fill="none" stroke="${PAL.ink}" stroke-width="1.6"/><path d="${fut}" fill="none" stroke="${PAL.accent}" stroke-width="2"/>` +
+      `<line class="ax" x1="${x(0)}" x2="${x(0)}" y1="${t}" y2="${y(0)}"/><text x="${x(0)}" y="${H - 8}" text-anchor="middle">now (23:00)</text><text x="${x(-n0)}" y="${H - 8}">−72 h</text><text x="${W - r}" y="${H - 8}" text-anchor="end">14:00 the day after</text>` +
+      `<circle cx="${x(n1 - 1)}" cy="${y(muE)}" r="3.5" fill="${PAL.accent}"/>`;
+    $("#fanP").innerHTML = `Bands: 80 % and 95 % intervals. <b>p = ${fmt(100 * p, 1)} %</b> chance of overflowing before the next truck${k === 1 ? " (the model’s value)" : ""}: ${p > M.params.ALPHA ? "above α, so it must be collected" : "below α, so the cost rule decides"}.`;
+  };
+  $("#mSig").oninput = draw; draw();
+  const rows = [["BinSight forecast", m.binsight], ["Persistence (fill stays the same)", m.persistence], ["Last-day trend", m.trend]];
+  $("#fcTable").innerHTML = `<thead><tr><th>Forecast of fill by the next truck</th><th class="n">MAE</th><th class="n">RMSE</th></tr></thead><tbody style="cursor:default">` +
+    rows.map(([lbl, v], q) => `<tr><td>${q ? esc(lbl) : "<b>" + lbl + "</b>"}</td><td class="n">${fmt(v.mae, 1)}</td><td class="n">${fmt(v.rmse, 1)}</td></tr>`).join("") + "</tbody>";
+  // reliability
+  const W = 250, H = 200, l = 34, r = 8, t = 8, b = 30, x = v => l + v * (W - l - r), y = v => t + (1 - v) * (H - t - b);
+  $("#mRel").innerHTML = svgAxisY(l, W - r, y, [0, .5, 1], v => v) + `<line x1="${x(0)}" y1="${y(0)}" x2="${x(1)}" y2="${y(1)}" stroke="${PAL.ink3}" stroke-dasharray="3 3"/>` +
+    m.reliability.map(q => `<circle cx="${x(q.p)}" cy="${y(q.obs)}" r="${clamp(Math.sqrt(q.n) / 6, 2.5, 7)}" fill="${PAL.accent}" opacity=".85"><title>${fmt(q.n)} forecasts: predicted ${fmt(100 * q.p)} %, happened ${fmt(100 * q.obs)} %</title></circle>`).join("") +
+    `<text x="${x(.5)}" y="${H - 6}" text-anchor="middle">forecast risk p</text><text x="${l}" y="${t + 10}" dx="4">share that overflowed</text>`;
+  const hi = m.reliability.filter(q => q.p > .05 && q.n > 0), hp = hi.reduce((a, q) => a + q.p * q.n, 0), ho = hi.reduce((a, q) => a + q.obs * q.n, 0), hn = hi.reduce((a, q) => a + q.n, 0);
+  const relNote = hn ? `for the ${fmt(hn)} forecasts of 10 % or more the model predicted ${fmt(100 * hp / hn, 1)} % on average and ${fmt(100 * ho / hn, 1)} % overflowed, so it ${hp > ho ? "overstates risk in the tail, which errs on the side of collecting." : "understates risk in the tail."}` : "";
+  $("#fcNote").innerHTML = `Scored on ${fmt(m.n)} forecasts over the 7 test days and 2 seeds, for stops no truck emptied in between, against the true simulated fill. Brier score <b>${fmt(m.brier, 4)}</b> against ${fmt(m.brier_climatology, 4)} for always predicting the average rate (skill ${fmt(100 * (1 - m.brier / m.brier_climatology))} %). The 80 % interval holds the truth <b>${fmt(100 * m.coverage80)} %</b> of the time and the 95 % interval ${fmt(100 * m.coverage95)} %. Dots near the diagonal would mean perfectly calibrated risks; ${relNote} The test data come from the same simulator, so real sensors would score worse.`;
+}
+
+/* 3 · decision rule scatter */
+function mathsDecide(M) {
+  const S = D.S, n = D.n, pick = []; for (let i = 0; i < n; i += 5) pick.push(i);
+  const s = { p: pick.map(i => S.prob[i]), ratio: pick.map(i => earlyCost(i)) }, scale = n / s.p.length;
+  const W = 520, H = 330, l = 46, r = 12, t = 12, b = 34;
+  const lx = p => Math.log10(clamp(p, 1e-4, 1)), X = p => l + (lx(p) + 4) / 4 * (W - l - r);
+  const ys = s.ratio.filter(v => v > 0), lo = Math.floor(Math.log10(Math.max(.05, Math.min(...ys)))), hi = Math.ceil(Math.log10(Math.max(...ys)));
+  const Y = v => t + (1 - (Math.log10(clamp(v, 10 ** lo, 10 ** hi)) - lo) / (hi - lo)) * (H - t - b);
+  const draw = () => {
+    const co = +$("#mCo").value, al = +$("#mAl").value;
+    $("#oCo").textContent = "£" + co; $("#oAl").textContent = al >= 1 ? "off" : al.toFixed(2);
+    let mand = 0, opt = 0, skip = 0, risk = 0;
+    const dots = s.p.map((p, k) => {
+      const m = p > al, o = !m && p * co > s.ratio[k];
+      if (m) mand++; else if (o) opt++; else { skip++; risk += p; }
+      return `<circle cx="${X(p).toFixed(1)}" cy="${Y(s.ratio[k]).toFixed(1)}" r="2.6" fill="${m ? PAL.ink : o ? PAL.accent : PAL.line2}" opacity="${m || o ? .85 : .7}"/>`;
+    }).join("");
+    const bx0 = -4, bx1 = 0, line = [bx0, bx1].map(e => [X(10 ** e), Y(co * 10 ** e)]);
+    $("#mDec").innerHTML = [-4, -3, -2, -1, 0].map(e => `<line class="grid" x1="${X(10 ** e)}" x2="${X(10 ** e)}" y1="${t}" y2="${H - b}"/><text x="${X(10 ** e)}" y="${H - b + 14}" text-anchor="middle">${e === 0 ? "1" : "10" + "⁻" + "¹²³⁴"[-e - 1]}</text>`).join("") +
+      Array.from({ length: hi - lo + 1 }, (_, q) => lo + q).map(e => `<line class="grid" x1="${l}" x2="${W - r}" y1="${Y(10 ** e)}" y2="${Y(10 ** e)}"/><text x="${l - 6}" y="${Y(10 ** e) + 4}" text-anchor="end">£${10 ** e >= 1 ? fmt(10 ** e) : (10 ** e).toFixed(1)}</text>`).join("") +
+      dots +
+      `<line x1="${line[0][0]}" y1="${line[0][1]}" x2="${line[1][0]}" y2="${line[1][1]}" stroke="${PAL.accent}" stroke-width="2"/>` +
+      (al < 1 ? `<line x1="${X(al)}" x2="${X(al)}" y1="${t}" y2="${H - b}" stroke="${PAL.ink}" stroke-width="1.6" stroke-dasharray="5 3"/><text x="${X(al) - 4}" y="${t + 10}" text-anchor="end" style="fill:${PAL.ink}">p = α</text>` : "") +
+      `<text x="${(l + W - r) / 2}" y="${H - 4}" text-anchor="middle">overflow risk if skipped, p (log scale)</text><text transform="translate(12 ${(t + H - b) / 2}) rotate(-90)" text-anchor="middle">cost of going early, Δ/τ</text>`;
+    $("#decCounts").innerHTML = [[mand * scale, "must go (p > α)"], [opt * scale, "worth going (p·c_o > Δk/τ)"], [skip * scale, "skipped"]].map(([v, l_]) => `<div><b>${fmt(Math.round(v / 10) * 10)}</b><span>${l_}</span></div>`).join("") +
+      `<div style="grid-column:1/-1"><span>Expected overflows among skipped stops: <b style="display:inline;font-size:15px">${fmt(risk * scale, 1)}</b> · each dot is one of ${s.p.length} stops (every 5th), counts scaled to all ${fmt(n)}</span></div>`;
+  };
+  $("#mCo").oninput = draw; $("#mAl").oninput = draw; draw();
+  const dm = M.decide, rd = dm.rounds;
+  $("#decNote").textContent = `Tomorrow: ${fmt(dm.mand)} stops are above α and must go; the cost rule adds ${fmt(dm.optional)} more, ${fmt(dm.chosen)} in all. ` +
+    `Over ${rd.length} rounds of choosing and routing: ${rd.map(r => fmt(r.chosen) + " stops, " + fmt(r.minutes / 60) + " truck-hours" + (r.lambda > 0 ? ` at λ = £${fmt(r.lambda, 2)}/min` : "")).join(" → ")}.`;
+}
+
+/* 4 · toy routing demo */
+function mathsRoute(M) {
+  const toy = M.route.toy, C = toy.cost, K = toy.km, Tm = toy.min, n = toy.stops.length;
+  const pts = [[toy.depot.latitude, toy.depot.longitude], ...toy.stops.map(s => [s.lat, s.lon])];
+  const kx = Math.cos(55.95 * Math.PI / 180);
+  const xs = pts.map(p => p[1] * kx), ys = pts.map(p => p[0]);
+  const W = 520, H = 330, pad = 26, sx = (W - 2 * pad) / (Math.max(...xs) - Math.min(...xs)), sy = (H - 2 * pad) / (Math.max(...ys) - Math.min(...ys)), sc = Math.min(sx, sy);
+  const ox = (W - (Math.max(...xs) - Math.min(...xs)) * sc) / 2, oy = (H - (Math.max(...ys) - Math.min(...ys)) * sc) / 2;
+  const PX = k => ox + (xs[k] - Math.min(...xs)) * sc, PY = k => oy + (Math.max(...ys) - ys[k]) * sc;
+  const cost = tour => tour.slice(1).reduce((a, v, k) => a + C[tour[k]][v], 0), km = tour => tour.slice(1).reduce((a, v, k) => a + K[tour[k]][v], 0), mins = tour => tour.slice(1).reduce((a, v, k) => a + Tm[tour[k]][v], 0);
+  const nn = () => { const left = new Set(Array.from({ length: n }, (_, k) => k + 1)), t = [0]; let cur = 0; while (left.size) { let best = -1, bc = Infinity; for (const j of left) if (C[cur][j] < bc) { bc = C[cur][j]; best = j; } t.push(best); left.delete(best); cur = best; } t.push(0); return t; };
+  const cw = () => {
+    const route = new Map(), of = []; for (let i = 1; i <= n; i++) { route.set(i, [i]); of[i] = i; }
+    const sv = []; for (let i = 1; i <= n; i++) for (let j = i + 1; j <= n; j++) sv.push([C[0][i] + C[0][j] - C[i][j], i, j]);
+    sv.sort((a, b) => b[0] - a[0]);
+    for (const [, i, j] of sv) {
+      const ri = of[i], rj = of[j]; if (ri === rj) continue;
+      let A = route.get(ri), B = route.get(rj);
+      if ((A[0] !== i && A[A.length - 1] !== i) || (B[0] !== j && B[B.length - 1] !== j)) continue;
+      if (A[A.length - 1] !== i) A = A.reverse(); if (B[0] !== j) B = B.reverse();
+      const m = A.concat(B); route.set(ri, m); route.delete(rj); B.forEach(v => of[v] = ri);
+    }
+    return [0, ...[...route.values()][0], 0];
+  };
+  const opt2 = t => { t = t.slice(); let imp = true; while (imp) { imp = false; for (let a = 0; a < t.length - 3; a++) for (let b = a + 2; b < t.length - 1; b++) { const d = C[t[a]][t[b]] + C[t[a + 1]][t[b + 1]] - C[t[a]][t[a + 1]] - C[t[b]][t[b + 1]]; if (d < -1e-9) { const seg = t.slice(a + 1, b + 1).reverse(); t.splice(a + 1, seg.length, ...seg); imp = true; } } } return t; };
+  const hk = () => {
+    const S = 1 << n, dp = new Float64Array(S * n).fill(Infinity), par = new Int8Array(S * n).fill(-1);
+    for (let j = 0; j < n; j++) dp[(1 << j) * n + j] = C[0][j + 1];
+    for (let m = 1; m < S; m++) for (let j = 0; j < n; j++) {
+      if (!(m & (1 << j))) continue; const cur = dp[m * n + j]; if (cur === Infinity) continue;
+      for (let k = 0; k < n; k++) { if (m & (1 << k)) continue; const nm = m | (1 << k), v = cur + C[j + 1][k + 1]; if (v < dp[nm * n + k]) { dp[nm * n + k] = v; par[nm * n + k] = j; } }
+    }
+    let best = Infinity, end = -1; for (let j = 0; j < n; j++) { const v = dp[(S - 1) * n + j] + C[j + 1][0]; if (v < best) { best = v; end = j; } }
+    const t = []; let m = S - 1, j = end; while (j >= 0) { t.push(j + 1); const pj = par[m * n + j]; m &= ~(1 << j); j = pj; }
+    return [0, ...t.reverse(), 0];
+  };
+  const t0 = performance.now(), opt = hk(), hkMs = performance.now() - t0;
+  const tours = { nn: nn(), cw: cw() }; tours.opt2 = opt2(tours.cw); tours.hk = opt;
+  const best = cost(opt);
+  $("#toySub").textContent = `${esc(toy.stops[0].site)} and nearby, from one of tomorrow’s trips`;
+  const draw = a => {
+    $$("#toyBtns button").forEach(b => b.classList.toggle("on", b.dataset.a === a));
+    const t = tours[a];
+    const path = t.map((v, k) => `${k ? "L" : "M"}${PX(v).toFixed(1)},${PY(v).toFixed(1)}`).join("");
+    $("#mToy").innerHTML = `<path d="${path}" fill="none" stroke="${a === "hk" ? PAL.accent : PAL.ink}" stroke-width="2" stroke-linejoin="round" opacity=".85"/>` +
+      t.slice(1, -1).map((v, k) => `<circle cx="${PX(v)}" cy="${PY(v)}" r="9" fill="${PAL.surface}" stroke="${PAL.ink}" stroke-width="1.4"><title>${esc(toy.stops[v - 1].site)} · ${toy.stops[v - 1].id}</title></circle><text x="${PX(v)}" y="${PY(v) + 4}" text-anchor="middle" style="fill:${PAL.ink};font-weight:600;font-size:10px">${k + 1}</text>`).join("") +
+      `<rect x="${PX(0) - 8}" y="${PY(0) - 8}" width="16" height="16" rx="3" fill="${PAL.ink}"/><text x="${PX(0) + 13}" y="${PY(0) + 4}" style="fill:${PAL.ink};font-weight:600">Seafield depot</text>`;
+    const c = cost(t), gap = 100 * (c / best - 1);
+    $("#toyOut").innerHTML = [[`£${fmt(c, 2)}`, "route cost"], [`${fmt(km(t), 1)} km · ${fmt(mins(t))} min`, "driving"], [gap < 1e-6 ? "optimal" : `+${fmt(gap, 1)} %`, "above the optimum"]].map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join("") +
+      (a === "hk" ? `<div style="grid-column:1/-1"><span>Exact optimum found in ${fmt(hkMs, 0)} ms over ${fmt((1 << n) * n)} states. Brute force would check ${fmt(479001600 / 2)} tours.</span></div>` : "");
+  };
+  $$("#toyBtns button").forEach(b => b.onclick = () => draw(b.dataset.a));
+  draw("nn");
+  const R = M.route;
+  $("#routeNote").textContent = `Tomorrow’s ${fmt(R.stops)} stops: savings £${fmt(R.cw)} → local search £${fmt(R.ls)} → annealing £${fmt(R.sa)}, in ${R.trips} trips on ${R.trucks} trucks, solved in ${fmt(R.seconds, 1)} s.`;
+}
+
+/* 5 · validation, bound, fleet, Pareto, sensitivity */
+function mathsCheck(M) {
+  const V = M.route.validation, S = V.summary, K = M.check;
+  const lbl = { nn: "Nearest neighbour", cw: "Clarke–Wright savings", ls: "Savings + local search", ours: "Full heuristic (+ annealing)" };
+  $("#valTable").innerHTML = `<thead><tr><th>Method</th><th class="n">Mean gap</th><th class="n">Worst gap</th><th class="n">Optimal</th></tr></thead><tbody style="cursor:default">` +
+    ["nn", "cw", "ls", "ours"].map(k => `<tr><td>${k === "ours" ? "<b>" + lbl[k] + "</b>" : lbl[k]}</td><td class="n">${fmt(S[k].mean_gap, 2)} %</td><td class="n">${fmt(S[k].max_gap, 1)} %</td><td class="n">${S[k].optimal} / ${V.instances.length}</td></tr>`).join("") + "</tbody>";
+  const lb = K.lower_bound, base = K.base;
+  $("#lbText").innerHTML = `Tomorrow’s routes cost <b>£${fmt(base.cost)}</b> in driving: the routing objective, £${D.site.fleet.cost_km}/km plus £${D.site.fleet.cost_hour} per hour at the wheel. (Lifting and tipping take the same time whatever the order, so they sit outside the objective; with them the day costs £${fmt(D.site.fleet.cost_km * D.site.plan.road_km + D.site.fleet.cost_hour * D.site.plan.hours)}.) The best bound is £${fmt(lb.bound)} (radial £${fmt(lb.radial)}, Held–Karp £${fmt(lb.held_karp)}), so the plan is <b>at most ${fmt(100 * K.gap_max, 1)} %</b> above the true optimum. That is a proof, not an estimate, and a loose one: the gap is mostly the bound’s weakness, as the exact tests suggest. HiGHS proved ${V.proven} of ${V.instances.length} small optima in ${fmt(V.t_exact_mean, 1)} s on average; the heuristic takes ${fmt(V.t_ours_mean, 2)} s.`;
+  const fl = K.fleet;
+  $("#fleetText").textContent = `With unlimited trucks, tomorrow’s ${fmt(fl.chosen)} chosen stops need ${fl.needed} trucks. No plan can manage with fewer than ${fl.lower_bound}: lifting time, plus the shortest way out of every stop, plus tipping, divided by an 8-hour shift. We assume ${fl.fleet}; the plan uses ${fl.used_in_plan}.`;
+  // Pareto
+  const pts = K.pareto.slice().sort((a, b) => a.c_o - b.c_o);
+  const ag = D.site.experiments.aggregate, pol = { timetable: "Timetable", reactive: "Reactive", binsight: "BinSight" };
+  const all = pts.map(p => [p.route_cost_day, p.overflow_events_day]).concat(ag.map(a => [a.route_cost_day, a.overflow_events_day]));
+  const W = 520, H = 300, l = 52, r = 14, t = 14, b = 36;
+  const x0 = Math.min(...all.map(p => p[0])) * .92, x1 = Math.max(...all.map(p => p[0])) * 1.04, y1 = Math.max(...all.map(p => p[1])) * 1.1;
+  const X = v => l + (v - x0) / (x1 - x0) * (W - l - r), Y = v => t + (1 - v / y1) * (H - t - b);
+  const yt = [0, y1 / 3, 2 * y1 / 3].map(v => Math.round(v / 10) * 10), xt = [x0, (x0 + x1) / 2, x1].map(v => Math.round(v / 1000) * 1000);
+  $("#mPareto").innerHTML = svgAxisY(l, W - r, Y, yt, v => fmt(v)) + xt.map(v => `<text x="${X(v)}" y="${H - b + 15}" text-anchor="middle">£${fmt(v / 1000)}k</text>`).join("") +
+    `<path d="${pts.map((p, k) => `${k ? "L" : "M"}${X(p.route_cost_day)},${Y(p.overflow_events_day)}`).join("")}" fill="none" stroke="${PAL.accent}" stroke-width="1.8"/>` +
+    pts.map(p => `<circle cx="${X(p.route_cost_day)}" cy="${Y(p.overflow_events_day)}" r="4" fill="${PAL.accent}"/><text x="${X(p.route_cost_day) + 6}" y="${Y(p.overflow_events_day) - 6}">£${p.c_o}</text>`).join("") +
+    ag.map(a => `<rect x="${X(a.route_cost_day) - 5}" y="${Y(a.overflow_events_day) - 5}" width="10" height="10" rx="2" fill="${a.policy === "binsight" ? PAL.ink : PAL.f[3]}"/><text class="lbl" x="${X(a.route_cost_day) + 9}" y="${Y(a.overflow_events_day) + 4}">${pol[a.policy]}${a.policy === "binsight" ? " (α 0.2, £60)" : ""}</text>`).join("") +
+    `<text x="${(l + W - r) / 2}" y="${H - 4}" text-anchor="middle">route cost per day (driving + crew time)</text><text transform="translate(12 ${(t + H - b) / 2}) rotate(-90)" text-anchor="middle">overflows per day</text>`;
+  const best = pts.reduce((a, q) => q.overflow_events_day < a.overflow_events_day ? q : a, pts[0]);
+  $("#paretoNote").textContent = `Green: the cost rule alone (α off) for overflow costs from £${pts[0].c_o} to £${pts[pts.length - 1].c_o}. Raising c_o from £${pts[0].c_o} buys fewer overflows for more driving, down to ${fmt(best.overflow_events_day, 1)} a day at £${best.c_o}. Beyond that the curve turns back: the rule only looks one day ahead, so a high c_o makes every small risk today worth a detour, and the fleet’s hours go on stops that could have waited while tomorrow’s urgent ones are pushed out. That is why BinSight pairs a moderate c_o with the hard α rule. Squares: the three policies in the main experiment.`;
+  // sensitivity
+  const rows = [{ variant: "Tomorrow’s plan (base)", ...base }].concat(K.sensitivity);
+  $("#sensTable").innerHTML = `<thead><tr><th>Change</th><th class="n">Stops</th><th class="n">Trucks</th><th class="n">km</th><th class="n">£ driving</th><th class="n">E[overflow]</th></tr></thead><tbody style="cursor:default">` +
+    rows.map((r_, q) => `<tr><td>${q ? esc(r_.variant) : "<b>" + r_.variant + "</b>"}</td><td class="n">${fmt(r_.served)}</td><td class="n">${r_.trucks}</td><td class="n">${fmt(r_.km)}</td><td class="n">${fmt(r_.cost)}</td><td class="n">${fmt(r_.exp_overflow, 1)}</td></tr>`).join("") + "</tbody>";
+}
+
+
 /* ── results ─────────────────────────────────────── */
 const METRICS = [
-  ["Overflow_Bin_Hours", "Overflow bin-hours", "Hours that bins spent at 80 % or more, per day", true],
-  ["Overflow_Events", "Overflow events", "Times a bin crossed 80 %, per day", true],
-  ["Distance_km", "Distance (km)", "Kilometres driven per day", true],
-  ["Bins_Collected", "Stops emptied", "Stops emptied per day", null],
-  ["Unnecessary_Collections", "Emptied under 40 %", "Stops emptied while under 40 % full, per day", true],
-  ["Mean_Fill_at_Collection", "Fill when emptied (%)", "Average fill level when a stop is emptied", null],
-  ["CO2_kg", "CO₂ (kg)", "Diesel CO₂ per day", true],
+  ["overflow_events_day", "Overflows", "Stops reaching 100 % (an overflow begins), per day", 0],
+  ["overflow_bin_hours_day", "Overflow bin-hours", "Hours stops spent overflowing, per day", 0],
+  ["km_day", "Distance (km)", "Kilometres driven per day, on real streets", 0],
+  ["truck_hours_day", "Truck-hours", "Crew hours per day: driving, lifting, tipping", 0],
+  ["collections_day", "Stops emptied", "Stops emptied per day", 0],
+  ["share_under_40", "Emptied under 40 %", "Share of collections made while the stop was under 40 % full", 1, 100],
+  ["fill_at_collection", "Fill when emptied (%)", "Mean true fill when a stop is emptied", 1],
+  ["cost_day", "Total cost (£)", "£1.45/km + £75/truck-hour + £60 per overflow, per day", 0],
 ];
-const STRAT_LABEL = { Fixed: "Fixed rota (every 3rd day)", Reactive: "Reactive (fill now ≥ 80 %)", Predictive: "Predictive (forecast ≥ 80 %)", "Full EcoBin": "Predictive + priority score" };
+const STRAT_LABEL = { timetable: "Timetable (every 3rd day)", reactive: "Reactive (reads ≥ 80 % at 05:00)", binsight: "BinSight (forecast + rule + routing)" };
+const POLICIES = ["timetable", "reactive", "binsight"];
 function initResults() {
-  const ex = D.site.experiments, mf = ex.manifest;
+  const ex = D.site.experiments, P = D.site.maths.params;
   let metric = 0;
   $("#metricPills").innerHTML = METRICS.map((m, k) => `<button type="button" data-k="${k}" class="${k ? "" : "on"}">${m[1]}</button>`).join("");
   const draw = () => {
-    const [key, label, desc] = METRICS[metric];
-    const rows = ["Fixed", "Reactive", "Predictive", "Full EcoBin"].map(s => ex.aggregate.find(r => r.Strategy === s)).filter(Boolean);
-    const vals = rows.map(r => r[key + "_mean"]), sds = rows.map(r => r[key + "_std"] || 0);
-    const max = Math.max(...vals.map((v, k) => v + sds[k])) * 1.08;
-    const W = 640, x0 = 200, bw = W - x0 - 70;
+    const [key, label, desc, dec, mul = 1] = METRICS[metric];
+    const rows = POLICIES.map(strat).filter(Boolean);
+    const vals = rows.map(r => r[key] * mul), sds = rows.map(r => (r[key + "_sd"] || 0) * mul);
+    const max = Math.max(...vals.map((v, k) => v + sds[k])) * 1.08 || 1;
+    const W = 640, x0 = 230, bw = W - x0 - 80;
     $("#stratChart").innerHTML = `<text x="${x0}" y="14">${esc(desc)}</text>` + rows.map((r, k) => {
-      const y = 34 + k * 52, w = vals[k] / max * bw, sw = sds[k] / max * bw;
-      const best = r.Strategy === "Predictive" || r.Strategy === "Full EcoBin";
-      return `<text class="lbl" x="${x0 - 12}" y="${y + 19}" text-anchor="end">${esc(STRAT_LABEL[r.Strategy])}</text>
-        <rect x="${x0}" y="${y + 4}" width="${Math.max(2, w)}" height="24" rx="4" fill="${best ? PAL.accent : PAL.ink3}" opacity="${best ? 1 : .55}"/>
-        ${sw > 1 ? `<line x1="${x0 + w - sw}" x2="${x0 + w + sw}" y1="${y + 16}" y2="${y + 16}" stroke="${PAL.ink}" stroke-width="1.2"/><line x1="${x0 + w + sw}" x2="${x0 + w + sw}" y1="${y + 11}" y2="${y + 21}" stroke="${PAL.ink}" stroke-width="1.2"/>` : ""}
-        <text class="val" x="${x0 + w + Math.max(sw, 0) + 8}" y="${y + 21}">${fmt(vals[k], key.includes("Fill") ? 1 : 0)}</text>`;
+      const y = 40 + k * 64, w = vals[k] / max * bw, sw = sds[k] / max * bw, best = r.policy === "binsight";
+      return `<text class="lbl" x="${x0 - 12}" y="${y + 19}" text-anchor="end">${esc(STRAT_LABEL[r.policy])}</text>
+        <rect x="${x0}" y="${y + 4}" width="${Math.max(2, w)}" height="26" rx="4" fill="${best ? PAL.accent : PAL.ink3}" opacity="${best ? 1 : .55}"/>
+        ${sw > 1 ? `<line x1="${x0 + w - sw}" x2="${x0 + w + sw}" y1="${y + 17}" y2="${y + 17}" stroke="${PAL.ink}" stroke-width="1.2"/><line x1="${x0 + w + sw}" x2="${x0 + w + sw}" y1="${y + 12}" y2="${y + 22}" stroke="${PAL.ink}" stroke-width="1.2"/>` : ""}
+        <text class="val" x="${x0 + w + Math.max(sw, 0) + 8}" y="${y + 22}">${fmt(vals[k], dec)}${mul === 100 ? " %" : ""}</text>`;
     }).join("");
-    $("#stratNote").textContent = `Mean per day over ${mf.configuration.days} replayed test days × ${mf.configuration.seeds} random seeds (“${mf.environment}” run), with ±1 standard deviation. Same 4,533 stops, same 24 trucks, simulated fill.`;
+    $("#stratNote").textContent = `Mean per day over ${ex.eval_days} test days (from ${fmtDate(ex.eval_start + "T00:00", { day: "numeric", month: "short" })}) × ${ex.seeds.length} random seeds, ±1 standard deviation across seeds. Same ${fmt(D.n)} stops, the same deposits, ${P.FLEET} trucks for reactive and BinSight; the timetable uses the trucks its rounds need. Fill is simulated.`;
     $$("#metricPills button").forEach(b => b.classList.toggle("on", +b.dataset.k === metric));
   };
   $$("#metricPills button").forEach(b => b.onclick = () => { metric = +b.dataset.k; draw(); });
   draw();
-  const F = strat("Fixed"), P = strat("Predictive"), R = strat("Reactive");
+  const F = strat("timetable"), B = strat("binsight"), R = strat("reactive");
+  const ch = (a, b) => `${b <= a ? "−" : "+"}${fmt(Math.abs(100 * (b / a - 1)))} %`;
   $("#takeaways").innerHTML = [
-    [`−${fmt(100 * (1 - P.Overflow_Bin_Hours_mean / F.Overflow_Bin_Hours_mean))} %`, `overflow bin-hours with forecast-driven collection compared with the fixed rota (${fmt(P.Overflow_Bin_Hours_mean)} vs ${fmt(F.Overflow_Bin_Hours_mean)} a day).`],
-    [`${P.Distance_km_mean >= F.Distance_km_mean ? "+" : "−"}${fmt(Math.abs(100 * (P.Distance_km_mean / F.Distance_km_mean - 1)))} %`, `distance driven. The predictive plan drives ${fmt(P.Distance_km_mean)} km a day against ${fmt(F.Distance_km_mean)} km, but visits the stops that need it.`],
-    [`${fmt(F.Unnecessary_Collections_mean)} → ${fmt(P.Unnecessary_Collections_mean, 1)}`, `stops a day emptied while under 40 % full. Reacting to current fill alone waits until bins average ${fmt(R.Mean_Fill_at_Collection_mean)} % and overflows ${fmt(R.Overflow_Events_mean)} times a day.`],
+    [ch(F.overflow_events_day, B.overflow_events_day), `overflows against the timetable: ${fmt(B.overflow_events_day)} a day instead of ${fmt(F.overflow_events_day)}. Reacting to today’s reading alone gives ${fmt(R.overflow_events_day)}, because by the time a bin reads 80 % it is often too late.`],
+    [ch(F.cost_day, B.cost_day), `total daily cost, £${fmt(B.cost_day)} against £${fmt(F.cost_day)}, counting driving, crew time and overflows at £${P.COST_OVERFLOW} each.`],
+    [ch(F.km_day, B.km_day), `distance. BinSight drives ${fmt(B.km_day)} km a day against ${fmt(F.km_day)} km: the stops that need a truck are spread across the city, not packed into one round. Fewer overflows cost some extra driving.`],
   ].map(([b, p]) => `<div class="card takeaway"><b>${b}</b><p>${p}</p></div>`).join("");
-  // model table
-  const res = D.site.model.results;
-  const names = Object.keys(res);
-  $("#modelTable").innerHTML = `<thead><tr><th>Model</th><th class="n">MAE</th><th class="n">RMSE</th><th class="n">R²</th><th class="n">F1 at 80 %</th></tr></thead><tbody style="cursor:default">` +
-    names.map(n => `<tr><td>${n === D.site.model.name ? "<b>" + esc(n) + "</b>" : esc(n)}</td><td class="n">${fmt(res[n].MAE, 2)}</td><td class="n">${fmt(res[n].RMSE, 2)}</td><td class="n">${fmt(res[n].R2, 3)}</td><td class="n">${fmt(res[n].F1, 3)}</td></tr>`).join("") + "</tbody>";
-  const rs = D.site.model.residual;
-  $("#modelNote").textContent = `Errors are in fill-level percentage points. Residual mean ${fmt(rs.residual_mean, 2)}, Brier score for the overflow probability ${fmt(rs.brier_score, 4)}. Accuracy is measured on simulated data, so it is optimistic: real sensor data would be noisier.`;
-  // reality check
-  const p = D.site.plan, f = D.site.fleet;
-  const lift = p.served * f.service_min / 60, drive = p.solver_km / f.speed_kmh, per = (lift + drive) / p.trucks_used;
-  $("#realityText").innerHTML = `The optimised plan sends ${p.trucks_used} trucks to ${fmt(p.served)} stops. At ${f.service_min} minutes a stop that is <b>${fmt(lift)} hours</b> of lifting plus <b>${fmt(drive)} hours</b> of driving: about <b>${fmt(per, 1)} hours per truck</b>, against an 8-hour shift. The solver, like EcoBin’s, has no shift-length limit. A real deployment needs a time constraint, more crews, or faster lifts.`;
-  // ablation
-  const ab = ex.ablation.concat(ex.sensitivity);
-  const pretty = v => ({ Only_Forecasting: "Forecast only (weight 1.0, so collects at ≥ 75 %)", Forecast_and_Uncertainty: "Forecast + overflow probability", Full_EcoBin_Proposed: "Forecast + probability + location (proposed)" }[v] || v.replace(/^w_(\d)_(\d)_(\d)$/, (_, a, b, c) => `Weights ${a / 10} / ${b / 10} / ${c / 10}`));
-  $("#ablationTable").innerHTML = `<thead><tr><th>Variant</th><th class="n">Distance km</th><th class="n">Overflow bin-h</th><th class="n">Overflow events</th><th class="n">Stops emptied</th><th class="n">Under 40 %</th></tr></thead><tbody style="cursor:default">` +
-    ab.map(r => `<tr><td>${esc(pretty(r.Variant))}</td><td class="n">${fmt(r.Distance_km_mean)}</td><td class="n">${fmt(r.Overflow_Bin_Hours_mean)}</td><td class="n">${fmt(r.Overflow_Events_mean)}</td><td class="n">${fmt(r.Bins_Collected_mean)}</td><td class="n">${fmt(r.Unnecessary_Collections_mean, 1)}</td></tr>`).join("") + "</tbody>";
-  const spread = ex.sensitivity.map(r => r.Overflow_Bin_Hours_mean);
-  const fo = ex.ablation.find(r => r.Variant === "Only_Forecasting"), fu = ex.ablation.find(r => r.Variant === "Full_EcoBin_Proposed");
-  $("#ablationNote").textContent = (fo && fu ? `The forecast-only variant gives the forecast weight 1.0, so in practice it collects every stop forecast at 75 % or more. It empties ${fmt(fo.Bins_Collected_mean - fu.Bins_Collected_mean)} more stops a day and cuts overflow bin-hours by ${fmt(100 * (1 - fo.Overflow_Bin_Hours_mean / fu.Overflow_Bin_Hours_mean))} %, for ${fmt(100 * (fo.Distance_km_mean / fu.Distance_km_mean - 1))} % more driving. ` : "") +
-    `Across the weight settings, overflow bin-hours stay between ${fmt(Math.min(...spread))} and ${fmt(Math.max(...spread))}: the threshold matters far more than the weights. On simulated data the overflow probability is almost always 0 or 1, so the risk term adds little; with noisier real data it should matter more.`;
+  // forecast table
+  const m = D.site.model.metrics;
+  $("#modelTable").innerHTML = `<thead><tr><th>Forecast</th><th class="n">MAE</th><th class="n">RMSE</th></tr></thead><tbody style="cursor:default">` +
+    [["BinSight", m.binsight, 1], ["Persistence: fill stays the same", m.persistence], ["Last-day trend", m.trend]].map(([n, v, b]) => `<tr><td>${b ? "<b>" + n + "</b>" : n}</td><td class="n">${fmt(v.mae, 2)}</td><td class="n">${fmt(v.rmse, 2)}</td></tr>`).join("") + "</tbody>";
+  $("#modelNote").textContent = `Overflow risk: Brier score ${fmt(m.brier, 4)} (always predicting the average: ${fmt(m.brier_climatology, 4)}). The 80 % interval holds the truth ${fmt(100 * m.coverage80)} % of the time, the 95 % interval ${fmt(100 * m.coverage95)} %. Measured on the simulator the forecast was designed for, so it is optimistic: real sensors would be noisier.`;
+  // limits
+  $("#realityText").innerHTML = `Fill levels are <b>simulated</b>, and the forecast is tested on the same simulator, so the forecast looks better than it would on real sensors. Routes ignore one-way streets and turn restrictions, assume tomorrow’s weather is known, and tip at Seafield (Edinburgh’s residual waste actually goes to Millerhill). Costs per km, per hour and per overflow are our assumptions. Every number here can be rerun with <span class="mono">python -m model.run</span>.`;
+  // cost breakdown
+  const rowsC = POLICIES.map(strat);
+  const parts = r => [P.COST_KM * r.km_day, P.COST_HOUR * r.truck_hours_day, P.COST_OVERFLOW * r.overflow_events_day];
+  const mx = Math.max(...rowsC.map(r => parts(r).reduce((a, b) => a + b, 0)));
+  const colsC = [PAL.ink3, PAL.ink, PAL.f[4]];
+  $("#ablationTable").innerHTML = `<thead><tr><th>Policy</th><th class="n">Driving</th><th class="n">Crew time</th><th class="n">Overflows</th><th class="n">Total / day</th><th style="width:34%"></th></tr></thead><tbody style="cursor:default">` +
+    rowsC.map(r => { const q = parts(r), tot = q.reduce((a, b) => a + b, 0); return `<tr><td>${r.policy === "binsight" ? "<b>" + STRAT_LABEL[r.policy] + "</b>" : STRAT_LABEL[r.policy]}</td>${q.map(v => `<td class="n">£${fmt(v)}</td>`).join("")}<td class="n"><b>£${fmt(tot)}</b></td><td><span style="display:flex;height:12px;border-radius:4px;overflow:hidden;width:${tot / mx * 100}%">${q.map((v, k) => `<span style="width:${v / tot * 100}%;background:${colsC[k]}"></span>`).join("")}</span></td></tr>`; }).join("") + "</tbody>";
+  $("#ablationNote").textContent = `Crew time dominates every policy. BinSight spends a little more on driving and crews than the timetable and far less on overflows. The cost-of-overflow slider in The maths shows the whole trade-off curve.`;
 }
 
 /* ── planner ─────────────────────────────────────── */
-BS.planCalc = ({ thr = 80, fleet = 24, shift = 8, svc = 10, speed = 30, prio = true } = {}) => {
-  const S = D.S, sel = []; let litres = 0, missP = 0;
+BS.planCalc = ({ alpha = .2, co = 60, fleet = 24, shift = 8, svc = 1, speed = 1 } = {}) => {
+  const S = D.S, f = D.site.fleet, sel = []; let litres = 0, missP = 0, lift = 0;
   for (let i = 0; i < D.n; i++) {
-    if (S.pred[i] >= thr || (prio && S.prio[i] >= 75)) { sel.push(i); litres += S.cap[i] * Math.min(S.pred[i], 100) / 100; }
+    if (S.prob[i] > alpha || S.prob[i] * co > earlyCost(i)) { sel.push(i); litres += S.cap[i] * Math.min(S.pred[i], 100) / 100; lift += f.service_base_min + svc * S.nb[i]; }
     else missP += S.prob[i];
   }
   const trips = Math.ceil(litres / (D.R.capacity_l * D.bhh.util));
   const g = geomOf(sel);
-  const km = sel.length ? 2 * trips * g.rbar + D.bhh.k * Math.sqrt(sel.length * g.area) : 0;
-  const lift = sel.length * svc / 60, drive = km / speed, need = lift + drive, have = fleet * shift;
-  const tripsMax = fleet * D.R.trips_per_truck;
-  const trucksNeeded = Math.max(Math.ceil(need / shift), Math.ceil(trips / D.R.trips_per_truck));
-  return { thr, fleet, shift, svc, speed, prio, sel, n: sel.length, litres, missP, trips, g, km, co2: km * .3 * 2.68, lift, drive, need, have, tripsMax, trucksNeeded, ok: need <= have && trips <= tripsMax };
+  const km = sel.length ? Math.max(0, 2 * trips * g.rbar + D.bhh.k * Math.sqrt(sel.length * g.area)) : 0;
+  lift /= 60;
+  const drive = km / (D.bhh.kmh * speed), tip = trips * f.tip_min / 60, need = lift + drive + tip, have = fleet * shift;
+  const trucksNeeded = Math.ceil(need / shift);
+  const cost = f.cost_km * km + f.cost_hour * need;
+  return { alpha, co, fleet, shift, svc, speed, sel, n: sel.length, litres, missP, trips, g, km, co2: km * f.fuel_l_per_km * f.co2_kg_per_l, lift, drive, tip, need, have, trucksNeeded, cost, ok: need <= have * .97 };
 };
 function initPlanner() {
-  const ids = ["pThr", "pFleet", "pShift", "pSvc", "pSpeed", "pPrio"];
+  const ids = ["pThr", "pCo", "pFleet", "pShift", "pSvc", "pSpeed"];
   const upd = () => {
-    const thr = +$("#pThr").value, fleet = +$("#pFleet").value, shift = +$("#pShift").value, svc = +$("#pSvc").value, speed = +$("#pSpeed").value, prio = $("#pPrio").checked;
-    $("#oThr").textContent = thr + " %"; $("#oFleet").textContent = fleet; $("#oShift").textContent = shift.toFixed(1) + " h"; $("#oSvc").textContent = svc + " min"; $("#oSpeed").textContent = speed + " km/h";
-    const { sel, litres, missP, trips, g, km, lift, drive, need, have, tripsMax, trucksNeeded, ok } = BS.planCalc({ thr, fleet, shift, svc, speed, prio });
+    const alpha = +$("#pThr").value, co = +$("#pCo").value, fleet = +$("#pFleet").value, shift = +$("#pShift").value, svc = +$("#pSvc").value, speed = +$("#pSpeed").value;
+    $("#oThr").textContent = alpha >= 1 ? "off" : alpha.toFixed(2); $("#oCo2").textContent = "£" + co; $("#oFleet").textContent = fleet; $("#oShift").textContent = shift.toFixed(1) + " h"; $("#oSvc").textContent = svc.toFixed(1) + " min"; $("#oSpeed").textContent = "× " + speed.toFixed(2);
+    const r = BS.planCalc({ alpha, co, fleet, shift, svc, speed });
     $("#planOut").innerHTML = [
-      [fmt(sel.length), "stops to empty"], [fmt(litres / 1000) + " m³", "waste to collect"], [fmt(trips), "truck loads"],
-      [fmt(km) + " km", "estimated distance"], [fmt(km * .3 * 2.68) + " kg", "CO₂ from diesel"], [fmt(missP, 1), "stops expected past 80 % but skipped"],
-    ].map(([b, s]) => `<div class="po"><b>${b}</b><span>${s}</span></div>`).join("");
-    const pc = v => clamp(v / Math.max(need, have) * 100, 0, 100);
-    $("#planHours").innerHTML = `<div class="track"><span class="seg2" style="left:0;width:${pc(lift)}%;background:var(--ink)"></span><span class="seg2" style="left:${pc(lift)}%;width:${pc(drive)}%;background:var(--f2)"></span><span class="cap" style="left:${pc(have)}%"></span></div>
-      <div class="keys"><span><i style="background:var(--ink)"></i>Lifting ${fmt(lift)} h</span><span><i style="background:var(--f2)"></i>Driving ${fmt(drive)} h</span><span><i style="background:var(--ink);width:2px"></i>Fleet time ${fmt(have)} h (${fleet} × ${shift} h)</span></div>`;
-    $("#planFeas").className = "feas " + (ok ? "ok" : "no");
-    $("#planFeas").innerHTML = ok
-      ? `<span>✓</span><span><b>Feasible.</b> ${fleet} trucks have ${fmt(have)} crew-hours for ${fmt(need)} hours of work (${fmt(need / have * 100)} % used) and ${tripsMax} trip slots for ${trips} loads.</span>`
-      : `<span>!</span><span><b>Not feasible with ${fleet} trucks.</b> The work needs ${fmt(need)} crew-hours${trips > tripsMax ? ` and ${trips} loads (only ${tripsMax} trip slots)` : ""}. You would need about <b>${trucksNeeded} trucks</b>, a longer shift, or faster lifts.</span>`;
-    $("#planNote").textContent = `Distance = 2 × loads × mean depot distance + k·√(n·A), where n is stops, A the area they cover (${fmt(g.area)} km²) and k = ${D.bhh.k.toFixed(3)} fitted so the formula reproduces the optimised plan (${fmt(D.site.plan.solver_km)} km for ${fmt(D.site.plan.served)} stops). Loads assume the plan’s ${fmt(D.bhh.util * 100)} % truck fill.`;
+      [fmt(r.n), "stops to empty"], [fmt(r.litres / 1000) + " m³", "waste to collect"], [fmt(r.trips), "truck loads"],
+      [fmt(r.km) + " km", "estimated distance"], ["£" + fmt(r.cost), "route cost (km + crew time)"], [fmt(r.missP, 1), "overflows expected among skipped stops"],
+    ].map(([b, s_]) => `<div class="po"><b>${b}</b><span>${s_}</span></div>`).join("");
+    const pc = v => clamp(v / Math.max(r.need, r.have) * 100, 0, 100);
+    $("#planHours").innerHTML = `<div class="track"><span class="seg2" style="left:0;width:${pc(r.lift)}%;background:var(--ink)"></span><span class="seg2" style="left:${pc(r.lift)}%;width:${pc(r.drive)}%;background:var(--f2)"></span><span class="seg2" style="left:${pc(r.lift + r.drive)}%;width:${pc(r.tip)}%;background:var(--f1)"></span><span class="cap" style="left:${pc(r.have)}%"></span></div>
+      <div class="keys"><span><i style="background:var(--ink)"></i>Lifting ${fmt(r.lift)} h</span><span><i style="background:var(--f2)"></i>Driving ${fmt(r.drive)} h</span><span><i style="background:var(--f1)"></i>Tipping ${fmt(r.tip)} h</span><span><i style="background:var(--ink);width:2px"></i>Fleet time ${fmt(r.have)} h (${fleet} × ${shift} h)</span></div>`;
+    $("#planFeas").className = "feas " + (r.ok ? "ok" : "no");
+    $("#planFeas").innerHTML = r.ok
+      ? `<span>✓</span><span><b>Fits.</b> ${fleet} trucks have ${fmt(r.have)} crew-hours for about ${fmt(r.need)} hours of work (${fmt(r.need / r.have * 100)} % used). The router would need about ${r.trucksNeeded} trucks.</span>`
+      : `<span>!</span><span><b>Does not fit ${fleet} trucks.</b> The work needs about ${fmt(r.need)} crew-hours, so about <b>${r.trucksNeeded} trucks</b>. With ${fleet}, the router would drop the stops of least value, and the overflows expected would rise.</span>`;
+    $("#planNote").textContent = `Distance = 2 × loads × mean depot distance + k·√(n·A), where n is stops, A the area they cover (${fmt(r.g.area)} km²) and k = ${D.bhh.k.toFixed(3)} fitted so the formula reproduces tomorrow’s routed plan (${fmt(D.site.plan.road_km)} km for ${fmt(D.site.plan.served)} stops). Driving at the plan’s average ${fmt(D.bhh.kmh, 1)} km/h. A quick estimate: the real plan comes from the router.`;
   };
   ids.forEach(id => $("#" + id).addEventListener("input", upd));
   upd();
-  BS.planner = (o = {}) => { if (o.thr) $("#pThr").value = o.thr; if (o.fleet) $("#pFleet").value = o.fleet; if (o.shift) $("#pShift").value = o.shift; if (o.svc) $("#pSvc").value = o.svc; if (o.speed) $("#pSpeed").value = o.speed; upd(); };
+  BS.planner = (o = {}) => { if (o.alpha != null) $("#pThr").value = o.alpha; if (o.co != null) $("#pCo").value = o.co; if (o.fleet) $("#pFleet").value = o.fleet; if (o.shift) $("#pShift").value = o.shift; if (o.svc) $("#pSvc").value = o.svc; if (o.speed) $("#pSpeed").value = o.speed; upd(); };
 }
 
 /* ── business ────────────────────────────────────── */
@@ -1993,14 +2408,13 @@ function initSources() {
     ["Bin locations, bin sizes, bin counts, street descriptions", "real", `City of Edinburgh Council, <i>Communal Bins</i> asset register, ${fmt(t.assets)} records (Open Government Licence v3.0; contains OS data © Crown copyright 2026)`],
     ["Ward of every stop", "real", "ONS Open Geography Portal, Wards (December 2024) Boundaries UK BGC; point-in-polygon for each stop"],
     ["Street map: every building, street name, house number, station and park", "real", "© OpenStreetMap contributors (ODbL), vector tiles from OpenFreeMap drawn with MapLibre; a light fallback map from the Overpass API"],
-    ["Route geometry on real streets", "real", "OSRM public routing service over OpenStreetMap"],
-    ["Hourly temperature and rain", "real", `Open-Meteo, Edinburgh, ${fmtDate(D.site.weather.start, { day: "numeric", month: "short" })} to ${fmtDate(D.site.forecast_for, { day: "numeric", month: "short", year: "numeric" })}`],
-    ["Bank holidays", "real", "Scottish bank holidays 2026, gov.scot"],
+    ["Road network: every drivable street", "real", `OpenStreetMap via the Overpass API (ODbL): ${fmt(t.road_nodes)} junctions and bends, ${fmt(t.road_edges)} street segments, ${fmt(t.road_km)} km. Our Dijkstra shortest paths give every distance, time and route line.`],
+    ["Hourly temperature and rain", "real", `Open-Meteo, Edinburgh, ${fmtDate(D.site.weather.start, { day: "numeric", month: "short" })} to ${fmtDate(D.site.plan_day + "T06:00", { day: "numeric", month: "short", year: "numeric" })}`],
     ["Problem, market and policy statistics", "real", "Cited under each figure; full list below"],
-    ["Fill levels, collections, sensor battery and signal", "sim", "EcoBin’s hourly fill model with Edinburgh parameters, driven by the real weather above. The council does not publish its sensor readings."],
-    ["Forecasts and routes", "sim", `${esc(D.site.model.name)} and Google OR-Tools run on the simulated history`],
-    ["Area types (City Centre / Inner / Outer)", "asm", "Distance rings from Princes Street, used only to set fill rates"],
-    ["Fleet: 24 trucks × 60,000 L, 3 trips, 10 min per stop, 30 km/h", "asm", "Modelling assumptions, not council figures"],
+    ["Fill levels, collections, sensor battery and signal", "sim", "Our compound-Poisson fill model (model/simulate.py), driven by the real weather above. The council does not publish its sensor readings."],
+    ["Forecasts, decisions and routes", "sim", "Our forecast, decision rule and routing heuristic (model/), run on the simulated history"],
+    ["Area types (City Centre / Inner / Outer)", "asm", "City Centre ward, then 4 km from Princes Street; labels only"],
+    ["Fleet and costs: 24 trucks × 60 m³, 8-hour shift, 2 min a stop + 1 min a bin, 25 min to tip, £1.45/km, £75/truck-hour, £60 per overflow", "asm", "Modelling assumptions, not council figures (model/config.py)"],
   ];
   const tag = { real: `<span class="tag real">Real</span>`, sim: `<span class="tag sim">Simulated</span>`, asm: `<span class="tag asm">Assumed</span>` };
   $("#provRows").innerHTML = rows.map(([a, b, c]) => `<tr><td><b>${a}</b></td><td>${tag[b]}</td><td class="muted">${c}</td></tr>`).join("");
@@ -2056,31 +2470,31 @@ const KB = [
   { id: "policy", q: ["policy pressure", "landfill ban", "pepr", "extended producer responsibility", "circular economy act", "why now"], k: "policy landfill ban 2028 pepr 17.3 circular economy act 2024 targets why now timing",
     a: "Three rules make efficiency urgent:\n- **Packaging EPR (from 2025):** producers pay councils for packaging waste. Edinburgh gets about **£17.3m** in 2026/27, and up to 20 % can be withheld from services judged inefficient (GOV.UK; COSLA).\n- **Landfill ban:** biodegradable municipal waste is banned from landfill, with SEPA enforcing fully from **1 January 2028**.\n- **Circular Economy (Scotland) Act 2024:** a statutory recycling code, council targets expected from 2030, and penalties for persistent contamination.", f: ["What does the council already have?", "How does BinSight make money?"], go: "problem" },
   { id: "how", q: ["how does it work", "how does binsight work", "the process", "steps", "sense predict optimise collect"], k: "how works steps sense predict optimise collect pipeline",
-    a: "Four steps:\n1. **Sense:** a battery sensor in the bin lid measures fill level.\n2. **Predict:** a gradient-boosted model forecasts each bin 24 hours ahead, with an overflow probability.\n3. **Optimise:** a vehicle-routing solver plans the shortest routes covering only bins forecast to need emptying.\n4. **Collect:** crews follow the plan in a driver view; residents report problems in an app and earn vouchers.\n\nWe don’t make bins or run trucks. Councils keep their bins, vehicles and crews.", f: ["How accurate is the forecast?", "How are routes planned?", "Show me a truck route"], go: "how" },
+    a: "Four steps:\n1. **Sense:** a battery sensor in the bin lid reports fill level every hour.\n2. **Predict:** our forecast learns the city’s hourly, weekly and weather pattern and each stop’s own fill rate, and gives each stop a probability of overflowing before the next truck.\n3. **Decide and route:** a chance-constrained cost rule picks the stops worth a truck, and our own routing heuristic (savings, local search, simulated annealing) plans 8-hour shifts on Edinburgh’s real streets.\n4. **Collect:** crews follow the plan in a driver view; residents report problems in an app and earn vouchers.\n\nWe don’t make bins or run trucks. Councils keep their bins, vehicles and crews.", f: ["How accurate is the forecast?", "How are routes planned?", "Show me a truck route"], go: "how" },
   { id: "sensor", q: ["what sensor", "how does the sensor work", "hardware", "esp32", "ultrasonic", "battery"], k: "sensor hardware esp32 ultrasonic wokwi battery lid mount",
-    a: "The prototype is an **ESP32 with an ultrasonic distance sensor** (simulated in Wokwi). It measures the gap between the lid and the waste, converts it to a fill percentage, and posts it to the platform’s `/api/bin/update` endpoint. The product is a small battery-powered unit with a universal mount that fits inside existing lids. It collects bin-level data only, no personal data.\n\nEdinburgh already has **11,000** sensors in communal and litter bins (£6.4m programme), so BinSight’s software can also run on sensors the council owns.", f: ["Does Edinburgh already use sensors?", "What does the platform do with the data?"], go: "how" },
+    a: "The sensor in the business plan is a small battery-powered **ultrasonic fill sensor** (for example an ESP32 board with an ultrasonic distance sensor) on a universal mount inside the lid. It measures the gap between the lid and the waste, converts it to a fill percentage and reports it a few times an hour. It collects bin-level data only, no personal data. On this site the readings are **simulated**: we have not deployed hardware, and the model only needs a fill percentage per stop per hour.\n\nEdinburgh already has **11,000** sensors in communal and litter bins (£6.4m programme), so BinSight’s software can also run on sensors the council owns.", f: ["Does Edinburgh already use sensors?", "What does the platform do with the data?"], go: "how" },
   { id: "existing", q: ["does edinburgh already have sensors", "existing sensors", "glass bin sensors", "what does the council already have", "why not use existing sensors"], k: "existing sensors 11000 6.4m glass 2700 3400 dynamic manchester",
     a: "Yes. Edinburgh installed **11,000** smart sensors in communal and litter bins through projects budgeted at **£6.4m** (CEC), and by late 2024 **2,700 of about 3,400** communal glass bins had sensors, ahead of a move to fully dynamic collection (Edinburgh Reporter).\n\nMeasurement alone hasn’t fixed the problem: recycling is at a record low ranking and costs are rising. The missing step is turning data into decisions: forecasting, choosing which bins to skip, and routing. Manchester’s 2017 sensor trial worked technically but wasn’t financially viable without that step. That gap is where BinSight fits.", f: ["How are routes planned?", "What evidence is there that it saves money?"], go: "business" },
   { id: "model", q: ["how does the forecast work", "what model", "machine learning", "xgboost", "features", "how do you predict"], k: "model forecast machine learning xgboost gradient boosting features lag rolling",
-    a: "The engine trains **{modelName}** to predict each stop’s fill level 24 hours ahead. It uses {nFeatures} features: fill 1, 2 and 24 hours ago, 6- and 24-hour rolling mean and spread, hours since the last collection, hour, weekday, month, weekend, Scottish bank holidays, temperature and rain, capacity and area type.\n\nTraining uses the first 75 % of the history; the last 25 % is the test set. It’s compared against “tomorrow = today” (persistence) and ridge regression.", f: ["How accurate is the forecast?", "What is the overflow probability?"], go: "results" },
+    a: "The forecast is ours and has three parts:\n1. **City-wide shape:** least squares on the log of the mean hourly fill increase, with hour, weekday, rain and temperature terms.\n2. **Each stop’s rate:** exponential smoothing, `r ← 0.7 r + 0.3 o`, one observation a day.\n3. **Variance:** random bag arrivals (φ·μ), the error of the smoothed rate, and sensor noise.\n\nOn the 7 test days its error is **{mae} points** (MAE) against {maePersist} for “fill stays the same”, and its 80 % interval holds the truth {cov80} of the time. Tested on the same simulator, so real sensors would score worse.", f: ["How accurate is the forecast?", "What is the overflow probability?"], go: "results" },
   { id: "overflowprob", q: ["overflow probability", "how is risk calculated", "what does risk mean", "probability of overflow"], k: "overflow probability risk normal cdf rmse uncertainty",
-    a: "The forecast has an error, so BinSight turns it into a probability. Assuming errors are roughly normal with spread equal to the test RMSE ({rmse} points):\n\n`P(overflow) = 1 − Φ((80 − forecast) / RMSE)`\n\nA stop forecast at 78 % gets a meaningful chance of passing 80 %; one at 50 % gets almost none. The Brier score of these probabilities on the test set is {brier}.", f: ["What is the priority score?", "Which stops are highest risk?"], go: "how" },
+    a: "Fill only rises between collections, so the risk that stop *i* overflows before the next truck (14:00 the day after) is\n\n`pᵢ = 1 − Φ((100 − μᵢ) / σᵢ)`\n\nwhere μᵢ is the forecast fill and σᵢ its standard deviation. Brier score {brier} (always predicting the average: {brierClim}).", f: ["What is the priority score?", "Which stops are highest risk?"], go: "how" },
   { id: "priority", q: ["priority score", "how are bins chosen", "which bins get collected", "selection rule", "threshold"], k: "priority score selection rule threshold 80 75 weights",
-    a: "A stop is scheduled if its forecast is **≥ 80 %**, or its **priority score ≥ 75**:\n\n`priority = 0.6 × forecast + 0.2 × 100 × P(overflow) + 0.2 × 100 × area weight`\n\nArea weights are 0.9 for the City Centre, 0.6 inner residential and 0.4 outer residential. Tomorrow that flags **{flagged}** of {stops} stops. In the experiments the weights barely change the outcome; the collection threshold matters far more. Collecting at a 75 % forecast instead of 80 % cuts overflow bin-hours by about {abl75} for about {abl75km} more driving. On simulated data the overflow probability is almost always 0 or 1, so the risk term adds little.", f: ["What if we collect at 70 %?", "Does the priority score help?"], go: "results" },
+    a: "A stop gets a truck if `pᵢ > α` (α = 0.20, a service standard) **or** its net value beats the truck time it uses: `pᵢ·c_o − Δᵢkᵢ/τᵢ > λ·tᵢ`.\n\n- c_o = £60 per overflow\n- Δᵢ = cost of adding it to the routes, τᵢ = days from empty to full, kᵢ = days early\n- λ = a price per truck-minute (a Lagrange multiplier), 0 when the fleet has room\n\nTomorrow: **{mand}** stops must go, **{flagged}** are chosen in all.", f: ["What if we collect at 70 %?", "Does the priority score help?"], go: "results" },
   { id: "routing", q: ["how are routes planned", "routing", "vehicle routing", "or-tools", "cvrp", "optimisation", "solver"], k: "routing vrp cvrp or-tools solver optimise guided local search depot trips capacity",
-    a: "Routing is a **capacitated vehicle-routing problem** solved with Google OR-Tools: start from the cheapest-arc solution, then improve with guided local search. Each truck carries {truckCap} L of bin volume per load and can return to Seafield depot to tip and go out again up to {tripsPer} times. Distances are great-circle × 1.3.\n\nTomorrow’s plan: **{served}** stops, **{trips}** trips by **{trucksUsed}** trucks, **{km} km**. Snapped to real streets with OSRM, it’s {roadKm} km by road.", f: ["Show me a truck route", "Can the crews actually finish this?", "Where is the depot?"], go: "how" },
+    a: "Routing is a **multi-trip vehicle-routing problem** on Edinburgh’s real street graph (OpenStreetMap, Dijkstra shortest paths). Each truck carries {truckCap} L per load, tips at Seafield and goes out again inside an 8-hour shift. Our heuristic: Clarke–Wright savings, then 2-opt, Or-opt, relocate and swap, then simulated annealing, then first-fit decreasing into shifts.\n\nTomorrow: **{served}** stops, **{trips}** trips by **{trucksUsed}** trucks, **{roadKm} km**. On 30 small real instances it matched the proven optimum {optimal} times out of 30.", f: ["Show me a truck route", "Can the crews actually finish this?", "Where is the depot?"], go: "how" },
   { id: "depot", q: ["where is the depot", "seafield", "where do trucks start"], k: "depot seafield start trucks base",
     a: "Trucks start and tip at **Seafield depot**, next to the Seafield household waste recycling centre on Seafield Road in Leith (55.9675 N, 3.1372 W). Its position comes from the council’s own bin records at that site.", f: ["Show me a truck route", "How many trucks are used?"], go: "console" },
   { id: "real", q: ["is this data real", "is the data fake", "what is simulated", "where does the data come from", "how real is it", "data sources", "provenance"], k: "real fake simulated data source provenance open data council ons osm weather",
-    a: "**Real:** every stop’s location, bin count, bin size and street description (City of Edinburgh Council asset register, {assets} records, Open Government Licence); the ward of every stop (ONS ward boundaries); the street map, down to every building, street name and house number (OpenStreetMap, via OpenFreeMap vector tiles); route geometry on real streets (OSRM); hourly Edinburgh weather (Open-Meteo); Scottish bank holidays; and every statistic in the problem and business sections, each with a source.\n\n**Simulated:** fill levels, collections, sensor battery and signal, and so the forecasts and routes built on them. The council doesn’t publish its sensor readings, so the engine simulates fill with EcoBin’s hourly model, driven by real Edinburgh weather.\n\n**Assumed:** fleet size (24 trucks), truck capacity, 3 trips a shift, 10 minutes per stop, 30 km/h.", f: ["How is fill simulated?", "What are the limitations?"], go: "sources" },
+    a: "**Real:** every stop’s location, bin count, size and street description (City of Edinburgh Council asset register, {assets} records, Open Government Licence); wards (ONS); the street map and the drivable road network (OpenStreetMap); hourly Edinburgh weather (Open-Meteo); and every statistic in the problem and business sections, each with a source.\n\n**Simulated:** fill levels, collections, sensor battery and signal, and so the forecasts and routes built on them. The council doesn’t publish sensor readings, so our compound-Poisson model simulates them, driven by the real weather.\n\n**Assumed:** 24 trucks, 60 m³ loads, 8-hour shifts, 2 min a stop + 1 min a bin, costs of £1.45/km, £75/truck-hour and £60 per overflow.", f: ["How is fill simulated?", "What are the limitations?"], go: "sources" },
   { id: "sim", q: ["how is fill simulated", "simulation model", "how do bins fill", "fill rate"], k: "simulation fill rate model ecobin peak hours holidays rain temperature",
-    a: "Each hour, a stop’s fill grows by: area base rate × peak-hour factor (1.8 at peak, 0.6 off-peak) × day factor (weekends +10 %, bank holidays +10–30 %) × temperature and rain effects × a random factor. Each stop has its own lognormal rate multiplier, so neighbouring bins behave differently. Bins are emptied in the history when they pass 85 % or after 72–120 hours.\n\nBase rates: City Centre 1.5 %/h, inner residential 1.2 %/h, outer residential 0.95 %/h. The weather is the real hourly Edinburgh record for {weatherRange}.", f: ["What was the weather?", "Is this data real?"], go: "sources" },
+    a: "Each stop gets bags at random: in each hour the number of bags is **Poisson**, and each bag’s volume is **Gamma** (mean 35 L). The rate follows a daily and weekly profile, real Edinburgh rain and temperature, and busier weekends in the City Centre. A sum of gamma volumes is again gamma, so a whole hour for every stop is one exact draw. Sensors add noise of 1.5 points.", f: ["What was the weather?", "Is this data real?"], go: "sources" },
   { id: "limits", q: ["limitations", "weaknesses", "what is missing", "caveats", "assumptions", "critique"], k: "limitations weakness assumptions caveats shift constraint simulated optimistic",
-    a: "The main limits:\n- **Fill levels are simulated**, so model accuracy (R² {r2}) is optimistic; real sensor data is noisier.\n- **No shift-length limit** in the solver: tomorrow’s plan needs about {perTruck} hours per truck at 10 min a stop.\n- **Fleet figures are assumptions**, not council data.\n- **Distances** use great-circle × 1.3 inside the solver. Snapped to real streets, tomorrow’s routes are {roadKm} km, **{roadGap} longer** than the solver’s {km} km, so a road-distance matrix would improve the plan.\n- **One waste stream:** only general-waste communal bins are routed; glass, packaging and food use different vehicles.\n- Experiments use {days} replayed days × {seeds} seeds, enough to compare strategies, not to promise savings.", f: ["Can the crews actually finish this?", "Is this data real?"], go: "results" },
+    a: "Limits we state openly:\n- **Fill data are simulated**, and the forecast is tested on the same simulator, so it looks better than it would on real sensors.\n- Routes ignore **one-way streets** and turn restrictions.\n- Tomorrow’s **weather is assumed known**.\n- Trucks tip at Seafield; Edinburgh’s residual waste actually goes to Millerhill.\n- Costs per km, hour and overflow are our assumptions.\n- The plan is at most {gapMax} above the optimum (a proven but loose bound).", f: ["Can the crews actually finish this?", "Is this data real?"], go: "results" },
   { id: "reality", q: ["can the crews finish", "shift length", "is the plan feasible", "how many hours", "working time", "reality check"], k: "shift hours feasible crew time working service minutes per stop",
-    a: "Not as modelled. The plan sends {trucksUsed} trucks to {served} stops. At 10 minutes a stop that’s **{liftH} h** of lifting plus **{driveH} h** of driving, about **{perTruck} h per truck** against an 8-hour shift. The solver (like EcoBin’s) has no time limit.\n\nFixes: add a working-time constraint, use a realistic lift time (a mechanised communal lift is likely 2–5 minutes), or add crews. Try it in the planner.", f: ["What if each stop takes 4 minutes?", "What if we had 40 trucks?"], go: "planner" },
+    a: "Yes: unlike a plain routing model, ours has the shift limit built in. Every truck’s day, driving plus lifting plus tipping, fits in **480 minutes**. Tomorrow’s plan uses **{trucksUsed}** of 24 trucks. With unlimited trucks the chosen stops would need {fleetNeeded}; no plan could do with fewer than {fleetLB}.", f: ["What if each stop takes 4 minutes?", "What if we had 40 trucks?"], go: "planner" },
   { id: "results", q: ["results", "does it work", "what did the experiment show", "compare strategies", "fixed vs predictive", "is it better than a timetable"], k: "results experiment strategies fixed reactive predictive compare overflow distance",
-    a: "In the {days}-day × {seeds}-seed replay (simulated fill, same 24 trucks):\n\n| Strategy | km/day | Overflow bin-h/day | Emptied under 40 % |\n|---|--:|--:|--:|\n{stratRows}\n\nForecast-driven collection cuts overflow bin-hours by **{overflowCut}** compared with the fixed rota, for **{distChange}** distance. Reacting to current fill alone saves driving but lets bins overflow first.", f: ["Why not just empty bins when they're full?", "Does the priority score help?", "What are the limitations?"], go: "results" },
+    a: "In the {days}-day × {seeds}-seed experiment (simulated fill, the same deposits for every policy):\n\n| Policy | km/day | Overflows/day | Cost/day |\n|---|--:|--:|--:|\n{stratRows}\n\nBinSight cuts overflows by **{overflowCut}** against the timetable, with distance {distChange}.", f: ["Why not just empty bins when they're full?", "Does the priority score help?", "What are the limitations?"], go: "results" },
   { id: "reactive", q: ["why not just empty bins when they are full", "reactive", "why predict", "why forecast instead of reacting"], k: "reactive full now why forecast predict instead",
     a: "Because by the time a bin reads full, it’s too late: the truck can’t get there before it overflows. In the replay the reactive rule (empty when fill now ≥ 80 %) waits until bins average **{reactiveFill} %**, and causes **{reactiveEvents}** overflow events a day against **{predEvents}** for the forecast rule. Forecasting tomorrow lets crews arrive just before a bin fills.", f: ["How accurate is the forecast?", "Show me the results"], go: "results" },
   { id: "planner", q: ["how do i use the planner", "what if", "scenario", "change the threshold", "planner"], k: "planner what-if scenario threshold fleet shift sliders bhh beardwood",
@@ -2116,13 +2530,15 @@ const KB = [
   { id: "wards", q: ["what are the wards", "how many wards", "ward list", "areas of edinburgh"], k: "wards 17 electoral areas boundaries ons",
     a: "Edinburgh has **17 multi-member electoral wards**. Every stop is assigned to its ward using official ONS boundaries (Wards, December 2024). The most stops are in {topWards}. Ask me about any ward, for example “How is Leith doing?”", f: ["Which ward needs the most collections tomorrow?", "Which ward has the most bins?"], go: "console" },
   { id: "areas", q: ["area types", "city centre inner outer", "why area type"], k: "area type city centre inner outer residential rings distance princes street",
-    a: "Area type is a modelling choice, not council data. The open data has no land-use field, so stops are grouped by distance from Princes Street: **City Centre** (< 1.2 km), **Inner Residential** (< 3.5 km), **Outer Residential**. It sets fill rates and the location part of the priority score. Wards on the map are real; area types are not.", f: ["How is fill simulated?", "What are the wards?"], go: "sources" },
+    a: "Area type is a label, not council data: **City Centre** is the City Centre ward, **Inner Residential** is within 4 km of Princes Street, **Outer Residential** is the rest. The model only uses the City Centre ward, for busier weekends.", f: ["How is fill simulated?", "What are the wards?"], go: "sources" },
   { id: "co2", q: ["emissions", "co2", "carbon", "fuel", "environment"], k: "co2 emissions carbon fuel diesel environment",
     a: "The engine counts diesel at 0.30 L per km and 2.68 kg CO₂ per litre. Tomorrow’s plan of {km} km burns about {fuel} L and emits about **{co2} kg CO₂**. In the replay the predictive rule drives slightly further than the fixed rota, because it reaches the bins that need it rather than a fixed third of the city; the gain is in overflow, not distance. Hannan et al. (2020) report an 18 % emissions cut in their study.", f: ["What did this site's experiment show?"], go: "results" },
   { id: "team", q: ["who made this", "who built this", "team", "ems group 6", "authors", "credits"], k: "team authors credits group ems university edinburgh ecobin",
-    a: "BinSight is a project by **EMS Group 6 at the University of Edinburgh**. The forecasting and routing engine is adapted from the team’s BinSight repository, which itself adapts **EcoBin** by Rishvin Reddy (MIT licence), re-built here for Edinburgh’s real bin network, real wards and real weather. The full engine (Python, FastAPI, OR-Tools, ESP32 sketch) is in the `engine/` folder of this site’s repository.", f: ["Is this data real?", "How does it work?"], go: "sources" },
+    a: "BinSight is a project by **EMS Group 6 at the University of Edinburgh**. The model, forecast, decision rule and routing are written by the team (`model/` in the repository). The first prototype built on the open-source EcoBin project (MIT licence), which we acknowledge; none of its code is used now.", f: ["Is this data real?", "How does it work?"], go: "sources" },
+  { id: "original", q: ["is this original", "is the model original", "did you write the code", "is it your own work", "what did you build yourselves", "did you copy", "plagiarism"], k: "original own work wrote code copied plagiarism ecobin methods classic cited",
+    a: "Yes. Every line of the model (`model/`: simulator, forecast, decision rule, routing heuristic, exact checks, experiments) and of this site was written by the team, and every experiment was run by us. The **methods** are classic, and we cite them: compound Poisson processes, exponential smoothing, Lagrangian relaxation, Clarke–Wright savings, 2-opt and Or-opt, simulated annealing, an MTZ integer program solved by HiGHS, and the Held–Karp bound. **Data** come from the council, ONS, OpenStreetMap and Open-Meteo; **libraries** are numpy, scipy and Leaflet. The first prototype built on EcoBin (MIT), which we thank; none of its code is used now.", f: ["Is this data real?", "What are the limitations?"], go: "sources" },
   { id: "engine", q: ["can i run it", "source code", "github", "backend", "api", "fastapi"], k: "source code github run engine backend fastapi api local",
-    a: "Yes. The repository’s `engine/` folder holds the full pipeline: `python run_pipeline.py` builds the stops, simulates history, trains the model, forecasts, routes and runs the experiments; `uvicorn backend.main:app` starts the FastAPI backend with 40+ endpoints (IoT ingestion, predictions, routing, driver and maintenance portals, QR identity, WebSocket). `scripts/build_site_data.py` exports this website’s data.", f: ["How are routes planned?", "Who made this?"], go: "sources" },
+    a: "Yes. The whole model is in the `model/` folder of this site’s GitHub repository (Python: numpy, scipy). Run `python -m model.run` to rebuild every number on this site, or `python -m model.run --experiments` to rerun the experiments too.", f: ["How are routes planned?", "Who made this?"], go: "sources" },
   { id: "site", q: ["how do i use this site", "help", "what can you do", "what can i ask", "navigation"], k: "help use site navigate ask twin can do",
     a: "I can answer from this site’s data. Try:\n- a **street**: “How full are the bins on Easter Road?”\n- a **ward**: “How is Morningside doing tomorrow?”\n- a **truck**: “Show me truck 7’s route”\n- **rankings**: “Which ward has the most flagged stops?”\n- **what-ifs**: “What if we collect at 70 % with 30 trucks?”\n- **money**: “Gain-share for 50,000 properties”\n- the **business plan**, **sources** and **limitations**.\n\nI’ll move the map for you when it helps.", f: ["Which ward needs the most collections tomorrow?", "How full are the bins on Easter Road?", "Is this data real?"], go: "home" },
   { id: "festival", q: ["festival", "fringe", "august", "hogmanay", "events", "tourists"], k: "festival fringe august hogmanay events tourists peaks",
@@ -2154,26 +2570,20 @@ function retrieve(q, k = 3) {
 
 /* ── facts used in answers ───────────────────────── */
 function facts() {
-  const s = D.site, p = s.plan, t = s.totals, ex = s.experiments, f = s.fleet;
-  const st = n => ex.aggregate.find(r => r.Strategy === n);
-  const F = st("Fixed"), P = st("Predictive"), R = st("Reactive");
-  const best = s.model.results[s.model.name] || {};
-  const lift = p.served * f.service_min / 60, drive = p.solver_km / f.speed_kmh;
-  const lbl = { Fixed: "Fixed rota", Reactive: "Reactive (fill now)", Predictive: "Predictive (forecast)", "Full EcoBin": "Forecast + priority" };
-  const fo = ex.ablation.find(r => r.Variant === "Only_Forecasting"), fu = ex.ablation.find(r => r.Variant === "Full_EcoBin_Proposed");
+  const s = D.site, p = s.plan, t = s.totals, ex = s.experiments, f = s.fleet, m = s.model.metrics, K = s.maths.check;
+  const st = n => ex.aggregate.find(r => r.policy === n);
+  const F = st("timetable"), B = st("binsight"), R = st("reactive");
+  const lbl = { timetable: "Timetable", reactive: "Reactive (reads ≥ 80 %)", binsight: "BinSight" };
   return {
-    abl75: fo && fu ? fmt(100 * (1 - fo.Overflow_Bin_Hours_mean / fu.Overflow_Bin_Hours_mean)) + " %" : "–",
-    roadGap: fmt(100 * (p.road_km / p.solver_km - 1)) + " %",
-    abl75km: fo && fu ? fmt(100 * (fo.Distance_km_mean / fu.Distance_km_mean - 1)) + " %" : "–",
-    stops: fmt(t.stops), assets: fmt(t.assets), flagged: fmt(p.flagged), served: fmt(p.served), trips: p.trips, trucksUsed: p.trucks_used,
-    km: fmt(p.solver_km), roadKm: fmt(p.road_km), co2: fmt(p.co2_kg), fuel: fmt(p.solver_km * .3), truckCap: fmt(f.capacity_l), tripsPer: f.trips_per_truck,
-    modelName: s.model.name, nFeatures: s.model.features.length, rmse: fmt(s.model.rmse, 2), brier: fmt(s.model.residual.brier_score, 4), r2: fmt(best.R2, 3),
-    liftH: fmt(lift), driveH: fmt(drive), perTruck: fmt((lift + drive) / p.trucks_used, 1),
-    days: ex.manifest.configuration.days, seeds: ex.manifest.configuration.seeds,
-    overflowCut: fmt(100 * (1 - P.Overflow_Bin_Hours_mean / F.Overflow_Bin_Hours_mean)) + " %",
-    distChange: (P.Distance_km_mean >= F.Distance_km_mean ? "+" : "−") + fmt(Math.abs(100 * (P.Distance_km_mean / F.Distance_km_mean - 1))) + " %",
-    reactiveFill: fmt(R.Mean_Fill_at_Collection_mean), reactiveEvents: fmt(R.Overflow_Events_mean), predEvents: fmt(P.Overflow_Events_mean),
-    stratRows: ["Fixed", "Reactive", "Predictive", "Full EcoBin"].map(n => { const r = st(n); return `| ${lbl[n]} | ${fmt(r.Distance_km_mean)} | ${fmt(r.Overflow_Bin_Hours_mean)} | ${fmt(r.Unnecessary_Collections_mean, 1)} |`; }).join("\n"),
+    stops: fmt(t.stops), assets: fmt(t.assets), flagged: fmt(p.flagged), mand: fmt(p.mand), served: fmt(p.served), trips: p.trips, trucksUsed: p.trucks_used,
+    km: fmt(p.road_km), roadKm: fmt(p.road_km), co2: fmt(p.co2_kg), fuel: fmt(p.road_km * f.fuel_l_per_km), truckCap: fmt(f.capacity_l),
+    mae: fmt(m.binsight.mae, 1), maePersist: fmt(m.persistence.mae, 1), cov80: fmt(100 * m.coverage80) + " %", brier: fmt(m.brier, 4), brierClim: fmt(m.brier_climatology, 4),
+    optimal: s.maths.route.validation.summary.ours.optimal, gapMax: fmt(100 * K.gap_max, 1) + " %", fleetNeeded: K.fleet.needed, fleetLB: K.fleet.lower_bound,
+    days: ex.eval_days, seeds: ex.seeds.length,
+    overflowCut: fmt(100 * (1 - B.overflow_events_day / F.overflow_events_day)) + " %",
+    distChange: (B.km_day >= F.km_day ? "+" : "−") + fmt(Math.abs(100 * (B.km_day / F.km_day - 1))) + " %",
+    reactiveEvents: fmt(R.overflow_events_day), predEvents: fmt(B.overflow_events_day),
+    stratRows: ["timetable", "reactive", "binsight"].map(n => { const r = st(n); return `| ${lbl[n]} | ${fmt(r.km_day)} | ${fmt(r.overflow_events_day)} | £${fmt(r.cost_day)} |`; }).join("\n"),
     topWards: [...D.wards].sort((a, b) => b.stops - a.stops).slice(0, 3).map(w => `${w.name} (${w.stops})`).join(", "),
     weatherRange: new Date(s.weather.start).toLocaleDateString("en-GB", { day: "numeric", month: "long" }) + " to " + new Date(s.weather.history_end).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
   };
@@ -2200,7 +2610,7 @@ function findStreet(q) {
 }
 const pctTok = q => { const m = q.match(/(\d{2})\s*(%|percent|per cent)/); return m ? +m[1] : null; };
 function numNear(q, words) { const re = new RegExp("(\\d+(?:[.,]\\d+)?)\\s*(k|,000)?\\s*(?:" + words + ")", "i"); const m = q.match(re); if (!m) return null; let v = parseFloat(m[1].replace(",", "")); if (m[2] === "k") v *= 1000; return v; }
-function stopLine(i) { const S = D.S; return `${S.site[i]}${S.loc[i] ? " (" + S.loc[i] + ")" : ""}: ${fmt(S.fill[i])} % now → **${fmt(S.pred[i])} %** tomorrow${S.truck[i] >= 0 ? `, stop ${S.ord[i]} on ${D.trucks[S.truck[i]].truck}` : ""}`; }
+function stopLine(i) { const S = D.S; return `${S.site[i]}${S.loc[i] ? " (" + S.loc[i] + ")" : ""}: ${fmt(S.fill[i])} % now → **${S.pred[i] >= 100 ? "over 100 %" : fmt(S.pred[i]) + " %"}** by tomorrow if skipped${S.truck[i] >= 0 ? `, stop ${S.ord[i]} on ${D.trucks[S.truck[i]].truck}` : ""}`; }
 
 function local(q) {
   const ql = q.toLowerCase().trim(), F = facts(), S = D.S;
@@ -2210,16 +2620,18 @@ function local(q) {
 
   // stop id
   const idm = ql.match(/edi-?(\d{4,})/);
-  if (idm) { const i = D.idx.get("EDI-" + idm[1]); if (i != null) return { text: `**${S.id[i]}** is a communal bin stop at ${stopLine(i)}. It has ${S.nb[i]} bin(s), ${fmt(S.cap[i])} L in total, in ${D.wards[S.ward[i]].name}. Chance of passing 80 %: ${fmt(S.prob[i] * 100, 1)} %. (Fill levels are simulated.)`, acts: [["Show on map", () => BS.focusStop(i)]] }; }
+  if (idm) { const i = D.idx.get("EDI-" + idm[1]); if (i != null) return { text: `**${S.id[i]}** is a communal bin stop at ${stopLine(i)}. It has ${S.nb[i]} bin(s), ${fmt(S.cap[i])} L in total, in ${D.wards[S.ward[i]].name}. Risk of overflowing if skipped tomorrow: ${fmt(S.prob[i] * 100, 1)} %. (Fill levels are simulated.)`, acts: [["Show on map", () => BS.focusStop(i)]] }; }
 
   // what-if planner
   const wantsWhatIf = /\bwhat if\b|\bscenario\b|\bsuppose\b|\bif we\b|\bwith \d+ trucks\b|minutes? (per|a) stop|\bthreshold\b/.test(ql);
   if (wantsWhatIf && !/propert/.test(ql)) {
-    const o = { thr: pctTok(ql) ?? 80, fleet: numNear(ql, "trucks?|vehicles?|lorries") ?? 24, svc: numNear(ql, "min(?:ute)?s?(?: per| a)? stop|min(?:ute)?s?") ?? 10, shift: numNear(ql, "h(?:ou)?r?s?(?: shift)?|hour shift") ?? 8 };
-    o.thr = Math.max(50, Math.min(95, o.thr)); o.fleet = Math.max(1, Math.min(60, o.fleet)); o.svc = Math.max(1, Math.min(30, o.svc)); o.shift = Math.max(4, Math.min(14, o.shift));
+    const o = { co: numNear(ql, "pounds?|£") ?? 60, fleet: numNear(ql, "trucks?|vehicles?|lorries") ?? 24, svc: numNear(ql, "min(?:ute)?s?(?: per| a)? (?:bin|container)") ?? 1, shift: numNear(ql, "h(?:ou)?r?s?(?: shift)?|hour shift") ?? 8 };
+    const am = ql.match(/(?:alpha|α|service standard|threshold)\D{0,12}?(\d+(?:\.\d+)?)\s*(%)?/);
+    if (am) { let a = parseFloat(am[1]); if (am[2] || a > 1) a /= 100; o.alpha = Math.max(.01, Math.min(1, a)); }
+    o.fleet = Math.max(1, Math.min(60, o.fleet)); o.svc = Math.max(.5, Math.min(4, o.svc)); o.shift = Math.max(4, Math.min(14, o.shift));
     const r = BS.planCalc(o), base = BS.planCalc({});
-    const an = /^(8|11|18)/.test(String(o.thr)) ? "an" : "a";
-    return { text: `With ${an} **${o.thr} %** threshold, **${o.fleet}** trucks, **${o.shift} h** shifts and **${o.svc} min** per stop:\n- **${fmt(r.n)}** stops to empty${r.n !== base.n ? ` (vs ${fmt(base.n)} at the default)` : ""}, ${fmt(r.litres / 1000)} m³ of waste, ${r.trips} truck loads\n- about **${fmt(r.km)} km** and ${fmt(r.co2)} kg CO₂\n- **${fmt(r.need)}** crew-hours needed vs ${fmt(r.have)} available → ${r.ok ? "**feasible**" : `**not feasible**; you’d need about ${r.trucksNeeded} trucks`}\n- about ${fmt(r.missP, 1)} skipped stops expected to pass 80 %\n\nDistance is a calibrated estimate (Beardwood–Halton–Hammersley), not a full re-solve.`, acts: [["Open in the planner", () => { BS.planner(o); document.getElementById("planner").scrollIntoView(); }]], f: ["What if each stop takes 4 minutes?", "Can the crews actually finish this?"] };
+    BS.planner(o);
+    return { text: `With **${o.fleet}** trucks, **${o.shift} h** shifts, **${o.svc} min** per container, α = **${o.alpha ?? 0.2}** and an overflow cost of **£${o.co}**:\n- **${fmt(r.n)}** stops chosen${r.n !== base.n ? ` (vs ${fmt(base.n)} at the default)` : ""}, ${fmt(r.litres / 1000)} m³ of waste, ${r.trips} truck loads\n- about **${fmt(r.km)} km** and £${fmt(r.cost)} a day in driving and crew time\n- **${fmt(r.need)}** crew-hours needed vs ${fmt(r.have)} available → ${r.ok ? "**fits**" : `**does not fit**; about ${r.trucksNeeded} trucks needed`}\n- risk left among skipped stops: ${fmt(r.missP, 1)} (sum of their chances of overflowing before 14:00 the day after)\n\nThis counts every stop the rule flags, before the fleet limit; the router would then drop the ones of least value per minute. A quick distance estimate calibrated to the routed plan; the planner below now shows it.`, f: ["What are the limitations?"], go: "planner" };
   }
 
   // gain-share calculator
@@ -2288,8 +2700,8 @@ function local(q) {
     const t = D.site.totals, p = D.site.plan;
     if (/truck|vehicle|lorr/.test(ql)) return { text: `The fleet is **24 trucks** (an assumption). Tomorrow’s plan uses **${p.trucks_used}** of them for **${p.trips}** trips.`, f: ["Can the crews actually finish this?"] };
     if (/ward/.test(ql)) return { text: "Edinburgh has **17 wards**. Every stop is assigned to its ward using ONS boundaries.", f: ["Which ward has the most bins?"] };
-    if (/flag|collect|empt|tomorrow|need/.test(ql)) return { text: `**${F.flagged}** of ${F.stops} stops are flagged for tomorrow (forecast ≥ 80 % or priority ≥ 75), and **${F.served}** are on routes. (Simulated fill.)`, f: ["Which ward needs the most collections tomorrow?"] };
-    if (/km|distance|kilomet|mile/.test(ql)) return { text: `Tomorrow’s routes total **${F.km} km** in the solver (great-circle × 1.3) and **${F.roadKm} km** on real streets (OSRM).`, f: ["How are routes planned?"] };
+    if (/flag|collect|empt|tomorrow|need/.test(ql)) return { text: `**${F.flagged}** of ${F.stops} stops are flagged for tomorrow (risk above α, or worth the truck time), and **${F.served}** are on routes. (Simulated fill.)`, f: ["Which ward needs the most collections tomorrow?"] };
+    if (/km|distance|kilomet|mile/.test(ql)) return { text: `Tomorrow’s routes total **${F.km} km** on real streets (our shortest paths on OpenStreetMap).`, f: ["How are routes planned?"] };
     if (/asset|register|recycl|glass|packag|food|all bin|bank/.test(ql)) return { text: `The council register lists **${F.assets}** communal bins and recycling banks: general waste, packaging, mixed glass, food waste, paper, textiles and more. BinSight routes the general-waste ones (${fmt(t.general_waste_records)} records, merged into ${F.stops} stops).`, acts: [["Show all streams on the map", () => { const s = document.getElementById("layerSel"); s.value = "net"; s.dispatchEvent(new Event("change")); document.getElementById("console").scrollIntoView(); }]] };
     if (/bin|stop/.test(ql)) return { text: `**${F.stops}** general-waste collection stops holding **${fmt(t.bins)} bins** (${fmt(t.cap_l / 1e6, 1)} million litres), merged from ${fmt(t.general_waste_records)} council records. Across all waste streams the register has ${F.assets} assets.`, f: ["Which ward has the most bins?", "Show me the council register on the map"] };
   }
@@ -2307,7 +2719,7 @@ function local(q) {
   // shift replay on the live map
   if (/\b(play|replay|animat\w*|watch|follow)\b|\bshift (replay|animation)\b|how does the (live )?map work|trucks? (move|moving|driving)/.test(ql)) {
     const p = D.site.plan;
-    return { text: `The live map replays tomorrow’s shift. **${p.trucks_used} trucks** leave Seafield at **06:00**, drive their optimised routes along real streets (OSRM), and stop **10 minutes** at each flagged bin. Emptied bins turn pale with a green ring, each truck draws a trail of the road it has covered, and the counters show stops emptied, m³ collected and km driven.\n\nThe clock runs until about **${(() => { const m = Math.max(...D.trucks.map(t => t.trips.reduce((a, tr) => a + (tr.drive_min || 0) + tr.stops.length * 10, 0))); const h = 6 + Math.floor(m / 60); return String(h % 24).padStart(2, "0") + ":" + String(Math.round(m % 60)).padStart(2, "0") + (h >= 24 ? " the next morning" : ""); })()}** for the longest route, which is the shift-length problem in plain sight. Click a truck chip above the map to follow it; drag the slider to jump to any time. Zoom in (click the map, then scroll or pinch) to street level: every building, street name and house number is drawn, and each truck’s route shows in its own colour, street by street.`, acts: [["Play the shift", () => { document.querySelector(".map-shell").scrollIntoView({ block: "center" }); BS.play?.(); }], ["Follow truck " + D.trucks[0].truck.replace("EDI-RCV-", ""), () => { document.querySelector(".map-shell").scrollIntoView({ block: "center" }); BS.follow?.(0); }]], f: ["Can the crews actually finish this?", "Which truck has the longest route?"] };
+    return { text: `The live map replays tomorrow’s shift. **${p.trucks_used} trucks** leave Seafield at **06:00** and drive their routes along real streets. Each stop takes 2 minutes plus 1 minute per container, and each load is tipped at the depot (25 minutes). Arrival times come straight from the schedule, and every truck is back by **${(() => { const m = Math.max(...D.trucks.map(t => t.trips[t.trips.length - 1].end)); const h = 6 + Math.floor(m / 60); return String(h).padStart(2, "0") + ":" + String(Math.round(m % 60)).padStart(2, "0"); })()}**, inside the 8-hour shift. Emptied bins turn pale with a green ring, and each truck draws a trail. Click a truck chip to follow it; zoom in to street level to see every route in its own colour.`, acts: [["Play the shift", () => { document.querySelector(".map-shell").scrollIntoView({ block: "center" }); BS.play?.(); }], ["Follow truck " + D.trucks[0].truck.replace("EDI-RCV-", ""), () => { document.querySelector(".map-shell").scrollIntoView({ block: "center" }); BS.follow?.(0); }]], f: ["Can the crews actually finish this?", "Which truck has the longest route?"] };
   }
 
   // model accuracy
@@ -2334,11 +2746,11 @@ function kbText() { const F = facts(); return KB.map(e => `## ${e.q[0]}\n${fill(
 function contextText() {
   const s = D.site, F = facts();
   const wards = D.wards.map(w => `${w.name} | ${w.code} | stops ${w.stops} | bins ${w.bins} | capacity ${Math.round(w.cap_l / 1000)} m3 | mean fill now ${w.fill}% | mean forecast ${w.pred}% | flagged ${w.flagged} | high risk ${w.risk} | trucks ${w.trucks.length}`).join("\n");
-  const trucks = D.trucks.map(t => `${t.truck} | ${t.driver} | ${t.stops.length} stops | ${t.trips.length} trips | ${t.km} km planned | ${Math.round(t.road)} km road | load ${t.load} L`).join("\n");
-  return `SNAPSHOT: history ends ${s.snapshot}; forecasts are for ${s.forecast_for} (Europe/London).
-TOTALS: ${F.stops} general-waste communal bin stops (real), ${fmt(s.totals.bins)} bins, ${F.assets} assets in the council register across all streams. Flagged tomorrow ${F.flagged}; on routes ${F.served}; ${F.trucksUsed} trucks, ${F.trips} trips, ${F.km} km (solver) / ${F.roadKm} km (real streets); CO2 ${F.co2} kg. Mean fill now ${s.totals.mean_fill}%, mean forecast ${s.totals.mean_pred}%. Stops ≥90% now: ${s.totals.over90}.
-MODEL: ${F.modelName}; ${JSON.stringify(s.model.results)}
-EXPERIMENT (${F.days} days × ${F.seeds} seeds, means per day): ${JSON.stringify(s.experiments.aggregate.map(r => ({ strategy: r.Strategy, km: Math.round(r.Distance_km_mean), overflow_bin_hours: Math.round(r.Overflow_Bin_Hours_mean), overflow_events: Math.round(r.Overflow_Events_mean), stops_emptied: Math.round(r.Bins_Collected_mean), under40: +r.Unnecessary_Collections_mean.toFixed(1), fill_at_collection: +r.Mean_Fill_at_Collection_mean.toFixed(1) })))}
+  const trucks = D.trucks.map(t => `${t.truck} | ${t.driver} | ${t.stops.length} stops | ${t.trips.length} trips | ${t.km} km on streets | back ${t.trips[t.trips.length - 1].end} min after 06:00 | load ${t.load} L`).join("\n");
+  return `SNAPSHOT: history ends ${s.snapshot}; the plan is for ${s.plan_day}, shift from 06:00 (Europe/London).
+TOTALS: ${F.stops} general-waste communal bin stops (real), ${fmt(s.totals.bins)} bins, ${F.assets} assets in the council register across all streams. Flagged tomorrow ${F.flagged}; on routes ${F.served}; ${F.trucksUsed} trucks, ${F.trips} trips, ${F.roadKm} km on real streets; ${F.mand} stops above the risk standard; CO2 ${F.co2} kg. Mean fill now ${s.totals.mean_fill}%, mean forecast ${s.totals.mean_pred}%. Stops ≥90% now: ${s.totals.over90}.
+MODEL: ${s.model.name}; forecast accuracy ${JSON.stringify(s.model.metrics.binsight)} vs persistence ${JSON.stringify(s.model.metrics.persistence)}; Brier ${F.brier}; 80% interval coverage ${F.cov80}. Decision: collect if p > 0.20 or p·£60 − Δk/τ > λ·t. Routing: our Clarke–Wright + local search + simulated annealing heuristic with 8-hour shifts.
+EXPERIMENT (${F.days} days × ${F.seeds} seeds, means per day): ${JSON.stringify(s.experiments.aggregate.map(r => ({ policy: r.policy, km: Math.round(r.km_day), truck_hours: Math.round(r.truck_hours_day), overflow_events: Math.round(r.overflow_events_day), overflow_bin_hours: Math.round(r.overflow_bin_hours_day), stops_emptied: Math.round(r.collections_day), share_under40: +r.share_under_40.toFixed(3), fill_at_collection: +r.fill_at_collection.toFixed(1), cost_gbp: Math.round(r.cost_day) })))}
 WARDS (name | ONS code | ...):
 ${wards}
 TRUCKS:
@@ -2372,9 +2784,9 @@ const TOOLS = () => [
   { name: "truck_route", description: "Details of one truck's route tomorrow (e.g. 'EDI-RCV-07' or '7'): stops in order (first 25), trips, km, load.", inputSchema: { type: "object", properties: { truck: { type: "string" } }, required: ["truck"] },
     execute: ({ truck }) => { const m = String(truck).match(/(\d{1,2})\s*$/); const t = m && D.trucks.find(x => x.truck.endsWith("-" + m[1].padStart(2, "0"))); if (!t) throw new Error("No route for that truck tomorrow. Trucks with routes: " + D.trucks.map(x => x.truck).join(", "));
       return { truck: t.truck, driver: t.driver, trips: t.trips.length, stops: t.stops.length, km: t.km, road_km: +t.road.toFixed(1), load_l: t.load, wards: t.wards, first_stops: t.stops.slice(0, 25).map((i, k) => `${k + 1}. ${D.S.site[i]} (${D.S.pred[i]}%)`) }; } },
-  { name: "what_if", description: "Re-estimate tomorrow's plan for a different collection threshold (%), fleet size, shift length (hours), minutes per stop and speed (km/h). Returns stops, waste, loads, estimated km, crew-hours and feasibility. Also updates the planner on the page.", inputSchema: { type: "object", properties: { threshold: { type: "number" }, trucks: { type: "number" }, shift_hours: { type: "number" }, minutes_per_stop: { type: "number" }, speed_kmh: { type: "number" } } },
-    execute: ({ threshold = 80, trucks = 24, shift_hours = 8, minutes_per_stop = 10, speed_kmh = 30 }) => { const o = { thr: +threshold, fleet: +trucks, shift: +shift_hours, svc: +minutes_per_stop, speed: +speed_kmh }; const r = BS.planCalc(o); BS.planner(o);
-      return { stops: r.n, waste_m3: Math.round(r.litres / 1000), loads: r.trips, est_km: Math.round(r.km), co2_kg: Math.round(r.co2), crew_hours_needed: Math.round(r.need), crew_hours_available: r.have, feasible: r.ok, trucks_needed: r.trucksNeeded, skipped_expected_over80: +r.missP.toFixed(1), method: "BHH estimate calibrated to the optimised plan" }; } },
+  { name: "what_if", description: "Re-estimate tomorrow's plan for a different overflow cost (£), service standard alpha (0-1), fleet size, shift length (hours) and minutes per container. Returns stops, waste, loads, estimated km, crew-hours and whether it fits. Also updates the planner on the page.", inputSchema: { type: "object", properties: { overflow_cost: { type: "number" }, alpha: { type: "number" }, trucks: { type: "number" }, shift_hours: { type: "number" }, minutes_per_container: { type: "number" } } },
+    execute: ({ overflow_cost = 60, alpha = .2, trucks = 24, shift_hours = 8, minutes_per_container = 1 }) => { const o = { co: +overflow_cost, alpha: +alpha, fleet: +trucks, shift: +shift_hours, svc: +minutes_per_container }; const r = BS.planCalc(o); BS.planner(o);
+      return { stops: r.n, waste_m3: Math.round(r.litres / 1000), loads: r.trips, est_km: Math.round(r.km), route_cost_gbp: Math.round(r.cost), crew_hours_needed: Math.round(r.need), crew_hours_available: r.have, fits: r.ok, trucks_needed: r.trucksNeeded, overflows_expected_skipped: +r.missP.toFixed(1), method: "BHH estimate calibrated to the routed plan" }; } },
   { name: "gain_share", description: "Model B gain-share calculator: properties, cost per property per year (£, default 72.35), saving %, BinSight share %.", inputSchema: { type: "object", properties: { properties: { type: "number" }, cost_per_property: { type: "number" }, saving_pct: { type: "number" }, share_pct: { type: "number" } }, required: ["properties"] },
     execute: ({ properties, cost_per_property = 72.35, saving_pct = 20, share_pct = 25 }) => BS.gainShare(+properties, +cost_per_property, +saving_pct, +share_pct) },
   { name: "show_on_map", description: "Move the website's map to a stop ID, a street, a ward or a truck route, so the visitor can see it.", inputSchema: { type: "object", properties: { kind: { type: "string", enum: ["stop", "street", "ward", "truck"] }, value: { type: "string" } }, required: ["kind", "value"] },

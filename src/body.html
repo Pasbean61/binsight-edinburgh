@@ -9,6 +9,7 @@
       <a href="#problem">Problem</a>
       <a href="#how">How it works</a>
       <a href="#console">Live map</a>
+      <a href="#maths">The maths</a>
       <a href="#results">Results</a>
       <a href="#planner">Planner</a>
       <a href="#business">Business</a>
@@ -166,12 +167,168 @@
   <div class="tabpane" id="pane-weather" hidden></div>
 </section>
 
-<!-- ── RESULTS ────────────────────────────────────────── -->
+<!-- ── THE MATHS ──────────────────────────────────────── -->
 <div class="band">
+<section class="chapter wrap" id="maths">
+  <div class="chapter-head">
+    <div><span class="eyebrow">The maths</span><h2>Five models behind one plan</h2></div>
+    <p>Each step of BinSight is a piece of mathematics we wrote and tested ourselves: a stochastic model of how bins fill, a statistical forecast, a decision rule, a routing algorithm, and checks against exact answers. Every widget below runs on tomorrow’s real stops and today’s model output.</p>
+  </div>
+  <div class="m-tabs" role="tablist" id="mTabs">
+    <button type="button" role="tab" data-m="0" class="on"><span class="k">1</span>Model<small>stochastic process</small></button>
+    <button type="button" role="tab" data-m="1"><span class="k">2</span>Predict<small>statistics</small></button>
+    <button type="button" role="tab" data-m="2"><span class="k">3</span>Decide<small>chance constraint</small></button>
+    <button type="button" role="tab" data-m="3"><span class="k">4</span>Route<small>optimisation</small></button>
+    <button type="button" role="tab" data-m="4"><span class="k">5</span>Check<small>validation</small></button>
+  </div>
+
+  <!-- 1 · MODEL -->
+  <div class="card m-pane" data-m="0">
+    <div class="m-grid">
+      <div class="m-text">
+        <h3>How a bin fills: a compound Poisson process</h3>
+        <p>Households drop bags at random moments. In hour <var>t</var>, stop <var>i</var> receives <var>N</var> bags, and each bag has a random volume <var>V</var>. The litres added are</p>
+        <div class="eq"><var>X<sub>it</sub></var> = <var>V</var><sub>1</sub> + … + <var>V<sub>N</sub></var>, &nbsp; <var>N</var> ~ Poisson(<var>λ<sub>it</sub></var>), &nbsp; <var>V</var> ~ Gamma(<var>k</var> = 2, mean <span data-mk="bag">35</span> L)</div>
+        <div class="eq"><var>λ<sub>it</sub></var> = (<var>D<sub>i</sub></var> / <var>v̄</var>) · <var>a</var>(hour, weekday) · <var>w<sub>t</sub></var> · <var>c<sub>it</sub></var> / 24</div>
+        <ul class="m-list">
+          <li><var>D<sub>i</sub></var> = cap<sub><var>i</var></sub> · <var>ρ<sub>i</sub></var>: litres a day. Each stop’s fill share <var>ρ<sub>i</sub></var> is log-normal, median <span data-mk="median">0.20</span> a day.</li>
+          <li><var>a</var>: the hour-of-week profile, mean 1, with morning and evening peaks and busier weekends.</li>
+          <li><var>w<sub>t</sub></var> = e<sup>−0.15·1[rain ≥ 0.5 mm]</sup> (1 + 0.01 (<var>T</var> − 10 °C)), from <b>real hourly Edinburgh weather</b>.</li>
+          <li><var>c<sub>it</sub></var> = 1.25 on Friday to Sunday in the City Centre ward, for visitors and short lets.</li>
+        </ul>
+        <p>Because a sum of <var>n</var> Gamma(<var>k</var>, <var>θ</var>) volumes is Gamma(<var>nk</var>, <var>θ</var>), a whole hour for all 4,533 stops is one exact vectorised draw. The mean and variance follow from the law of total variance:</p>
+        <div class="eq">E[<var>X</var>] = <var>λ v̄</var>, &nbsp; Var[<var>X</var>] = <var>λ</var> E[<var>V</var><sup>2</sup>] = <var>λ v̄</var><sup>2</sup>(1 + 1/<var>k</var>) &nbsp;⇒&nbsp; <var>φ</var> = Var/E = <var>v̄</var>(1 + 1/<var>k</var>) = <span data-mk="phiTrue">52.5</span> L</div>
+        <p class="note">The forecaster never sees these settings. It estimates <var>φ</var> = <b data-mk="phiHat">–</b> L from sensor readings alone, close to the true 52.5 L. The fill process is simulated because the council does not publish sensor data; the weather, places and bins are real.</p>
+      </div>
+      <div class="m-widget">
+        <div class="slider"><div class="top"><label for="mRho">Daily fill share <var>ρ</var></label><output id="oRho">0.20</output></div><input type="range" id="mRho" min="0.07" max="0.6" step="0.01" value="0.2"><small>Share of the stop’s capacity filled on an average day.</small></div>
+        <svg class="chart" id="mPaths" viewBox="0 0 520 260" role="img" aria-label="Simulated fill paths over one week"></svg>
+        <div class="m-row"><button class="btn ghost sm" type="button" id="mRedraw">Draw three new weeks</button><span class="muted small" id="mPathNote"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 · PREDICT -->
+  <div class="card m-pane" data-m="1" hidden>
+    <div class="m-grid">
+      <div class="m-text">
+        <h3>A forecast with honest uncertainty</h3>
+        <p>The forecast learns only from sensor readings, in three steps.</p>
+        <ol class="m-list">
+          <li><b>City-wide shape.</b> Least squares on the log of the mean hourly increase across all stops:
+            <div class="eq">log <var>g<sub>t</sub></var> = <var>β</var><sub>0</sub> + <var>h</var>(hour) + <var>d</var>(weekday) + <var>β</var><sub>rain</sub> 1[rain] + <var>β</var><sub>temp</sub>(<var>T</var> − 10)</div>
+            This gives <var>m<sub>t</sub></var>, the share of a day’s waste expected in hour <var>t</var>. Fitted rain effect: <b data-mk="rainFx">–</b>.</li>
+          <li><b>Each stop’s rate.</b> Each day gives one observation <var>o</var> of litres per average day, and
+            <div class="eq"><var>r<sub>i</sub></var> ← (1 − <var>β</var>) <var>r<sub>i</sub></var> + <var>β o</var>, &nbsp; <var>β</var> = 0.3</div>
+            Exponential smoothing tracks each stop and forgets old days geometrically.</li>
+          <li><b>Variance from three sources.</b> With <var>μ<sub>L</sub></var> = <var>r<sub>i</sub></var> Σ <var>m<sub>t</sub></var> the litres expected before the next truck:
+            <div class="eq"><var>σ<sub>i</sub></var><sup>2</sup> = (100/cap<sub><var>i</var></sub>)<sup>2</sup> ( <var>φ μ<sub>L</sub></var> + <span class="frac"><var>β</var>/(2 − <var>β</var>)</span> <var>e<sub>i</sub></var><sup>2</sup> <var>μ<sub>L</sub></var><sup>2</sup> ) + <var>σ<sub>s</sub></var><sup>2</sup></div>
+            These are Poisson arrival noise, the error of the smoothed rate (the variance of an EWMA), and sensor noise.</li>
+        </ol>
+        <p>Fill only rises between collections, so the risk of overflowing before the next truck (by 14:00 the day after) is</p>
+        <div class="eq"><var>p<sub>i</sub></var> = 1 − Φ( (100 − <var>μ<sub>i</sub></var>) / <var>σ<sub>i</sub></var> )</div>
+      </div>
+      <div class="m-widget">
+        <div class="m-head"><b id="fanTitle">–</b><span class="muted small" id="fanSub"></span></div>
+        <svg class="chart" id="mFan" viewBox="0 0 520 250" role="img" aria-label="Fill history and forecast fan for one stop"></svg>
+        <div class="slider" style="margin-top:8px"><div class="top"><label for="mSig">Scale the uncertainty <var>σ</var></label><output id="oSig">× 1.0</output></div><input type="range" id="mSig" min="0.3" max="2.5" step="0.05" value="1"><small id="fanP"></small></div>
+        <div class="tablewrap"><table id="fcTable" class="tight"></table></div>
+        <div class="m-two">
+          <svg class="chart" id="mRel" viewBox="0 0 250 200" role="img" aria-label="Reliability diagram"></svg>
+          <p class="note" id="fcNote"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 · DECIDE -->
+  <div class="card m-pane" data-m="2" hidden>
+    <div class="m-grid">
+      <div class="m-text">
+        <h3>Who gets a truck: a chance-constrained cost rule</h3>
+        <p>Skipping stop <var>i</var> tomorrow risks an overflow with probability <var>p<sub>i</sub></var>, at cost <var>c<sub>o</sub></var> = £<span data-mk="co">60</span> (complaint, side waste, street cleaning). Collecting it costs the extra driving and lifting it adds to the routes, <var>Δ<sub>i</sub></var>.</p>
+        <p>Going early is cheaper than it looks. A stop emptied today will not need emptying later. Over a renewal cycle of <var>τ<sub>i</sub></var> days from empty to full, emptying it <var>k<sub>i</sub></var> days before it would otherwise have to go wastes <var>k<sub>i</sub></var>/<var>τ<sub>i</sub></var> of a cycle. So the net value of collecting it tomorrow is</p>
+        <div class="eq"><var>v<sub>i</sub></var> = <var>p<sub>i</sub> c<sub>o</sub></var> − <var>Δ<sub>i</sub> k<sub>i</sub></var> / <var>τ<sub>i</sub></var>, &nbsp; <var>k<sub>i</sub></var> = 1 + max(0, (100 − <var>μ<sub>i</sub></var>) / <var>g<sub>i</sub></var>)</div>
+        <p>where <var>g<sub>i</sub></var> = 100/<var>τ<sub>i</sub></var> is the fill rate in % a day. The fleet has 24 × 480 truck-minutes, and stop <var>i</var> uses <var>t<sub>i</sub></var> of them, so tomorrow is a knapsack problem. Relaxing the time limit with a Lagrange multiplier <var>λ</var> (a price per truck-minute) gives the rule</p>
+        <div class="eq big">collect <var>i</var> &nbsp;⇔&nbsp; <var>p<sub>i</sub></var> &gt; <var>α</var> &nbsp; or &nbsp; <var>v<sub>i</sub></var> &gt; <var>λ t<sub>i</sub></var></div>
+        <ul class="m-list">
+          <li><var>α</var> = <span data-mk="alpha">0.20</span> is a service standard: no stop is skipped with more than a 20 % chance of overflowing (a chance constraint).</li>
+          <li><var>λ</var> = 0 when the trucks have room; otherwise bisection finds the smallest <var>λ</var> whose choice fits the shift. Tomorrow: <b data-mk="lambda">–</b>.</li>
+          <li><var>Δ<sub>i</sub></var> and <var>t<sub>i</sub></var> depend on which other stops are chosen. We start from the cheapest insertion between nearby urgent stops, route, then use the exact insertion cost into the routed trips and the exact removal saving, correct the time estimate by what routing really used, and choose again.</li>
+          <li>Costs: £<span data-mk="ckm">1.45</span> per km (diesel and wear) and £<span data-mk="chr">75</span> per truck-hour (driver, two loaders, vehicle).</li>
+        </ul>
+        <p class="note" id="decNote"></p>
+      </div>
+      <div class="m-widget">
+        <svg class="chart" id="mDec" viewBox="0 0 520 330" role="img" aria-label="Stops placed by overflow risk and cost of going early"></svg>
+        <p class="note" style="margin-top:0">With λ = 0, as here, a stop goes if it is right of the dashed line or above the green one (p·c<sub>o</sub> &gt; Δk/τ). The router then trims to the fleet.</p>
+        <div class="slider"><div class="top"><label for="mCo">Overflow cost <var>c<sub>o</sub></var></label><output id="oCo">£60</output></div><input type="range" id="mCo" min="5" max="400" step="5" value="60"></div>
+        <div class="slider"><div class="top"><label for="mAl">Service standard <var>α</var></label><output id="oAl">0.20</output></div><input type="range" id="mAl" min="0.02" max="1" step="0.01" value="0.2"><small>Set α to 1 to turn the chance constraint off.</small></div>
+        <div class="m-counts" id="decCounts"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 · ROUTE -->
+  <div class="card m-pane" data-m="3" hidden>
+    <div class="m-grid">
+      <div class="m-text">
+        <h3>Routing: a multi-trip vehicle-routing problem</h3>
+        <p>On the road graph (<span data-mk="roadKm">–</span> km of Edinburgh streets from OpenStreetMap, shortest paths by Dijkstra), with cost <var>c<sub>ij</sub></var> = £1.45·km + £75·hours:</p>
+        <div class="eq left">min &nbsp; Σ<sub><var>k</var></sub> Σ<sub><var>i</var>≠<var>j</var></sub> <var>c<sub>ij</sub> x<sub>ijk</sub></var><br>
+          s.t. &nbsp; every chosen stop is visited exactly once<br>
+          &emsp;&emsp; Σ<sub><var>i</var> ∈ trip</sub> <var>q<sub>i</sub></var> ≤ <var>Q</var> = 60 m³ per load, then tip at the depot<br>
+          &emsp;&emsp; Σ (drive + lift + tip) ≤ 480 min per truck, 24 trucks<br>
+          &emsp;&emsp; <var>u<sub>j</sub></var> ≥ <var>u<sub>i</sub></var> + <var>q<sub>j</sub></var> − <var>Q</var>(1 − <var>x<sub>ij</sub></var>) &nbsp; (no subtours), &nbsp; <var>x</var> ∈ {0, 1}</div>
+        <p>This is NP-hard, and tomorrow has <b data-mk="nStops">–</b> stops. We solve it with our own heuristic in four stages:</p>
+        <ol class="m-list">
+          <li><b>Clarke–Wright savings</b>: <var>s<sub>ij</sub></var> = <var>c</var><sub>0<var>i</var></sub> + <var>c</var><sub>0<var>j</var></sub> − <var>c<sub>ij</sub></var>, merging trips in order of saving while load and time allow.</li>
+          <li><b>Local search</b>: 2-opt and Or-opt inside trips; relocate and swap between trips, over each stop’s 20 nearest neighbours.</li>
+          <li><b>Simulated annealing</b>: accept a worse move with probability e<sup>−Δ/<var>T</var></sup>, cooling <var>T</var> geometrically, then local search again.</li>
+          <li><b>Pack trips into shifts</b> by first-fit decreasing; if the fleet is short, drop the stops of least net value.</li>
+        </ol>
+        <p class="note" id="routeNote"></p>
+      </div>
+      <div class="m-widget">
+        <div class="m-head"><b>Try it on 12 real stops</b><span class="muted small" id="toySub"></span></div>
+        <div class="seg" id="toyBtns" style="margin:8px 0 10px">
+          <button type="button" data-a="nn" class="on">Nearest neighbour</button><button type="button" data-a="cw">Savings</button><button type="button" data-a="opt2">+ 2-opt</button><button type="button" data-a="hk">Exact (Held–Karp)</button>
+        </div>
+        <svg class="chart" id="mToy" viewBox="0 0 520 330" role="img" aria-label="One truck trip through 12 real stops"></svg>
+        <div class="m-counts" id="toyOut"></div>
+        <p class="note">Held–Karp dynamic programming, <var>C</var>(<var>S</var>, <var>j</var>) = min<sub><var>i</var>∈<var>S</var></sub> <var>C</var>(<var>S</var> ∖ {<var>j</var>}, <var>i</var>) + <var>c<sub>ij</sub></var>, solves the tour exactly over 2<sup>12</sup> × 12 states, in your browser. Lines are straight; costs are road costs.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5 · CHECK -->
+  <div class="card m-pane" data-m="4" hidden>
+    <div class="m-grid">
+      <div class="m-text">
+        <h3>How do we know it works?</h3>
+        <p><b>Against exact optima.</b> On 30 small real instances (12 stops in one ward, loads from 50 to 100 % full, capacity forcing several trips), the MILP above is solved to proven optimality with HiGHS and compared with each stage of the heuristic.</p>
+        <div class="tablewrap"><table id="valTable" class="tight"></table></div>
+        <p><b>Against a lower bound.</b> No plan can cost less than <span class="eq inline">max(Held–Karp 1-tree bound, 2 Σ <var>q<sub>i</sub> c</var><sub>0<var>i</var></sub> / <var>Q</var>)</span>. The 1-tree bound is improved by subgradient optimisation; the radial bound counts the trips each litre forces to and from the depot.</p>
+        <p id="lbText" class="small"></p>
+        <p><b>The fleet.</b> <span id="fleetText"></span></p>
+      </div>
+      <div class="m-widget">
+        <div class="m-head"><b>The cost of fewer overflows</b><span class="muted small">7 test days, mean per day</span></div>
+        <svg class="chart" id="mPareto" viewBox="0 0 520 300" role="img" aria-label="Route cost against overflow events"></svg>
+        <p class="note" id="paretoNote"></p>
+        <div class="m-head" style="margin-top:14px"><b>Sensitivity of tomorrow’s plan</b></div>
+        <div class="tablewrap"><table id="sensTable" class="tight"></table></div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- ── RESULTS ────────────────────────────────────────── -->
 <section class="chapter wrap" id="results">
   <div class="chapter-head">
-    <div><span class="eyebrow">Results</span><h2>Four ways to run a week of collections</h2></div>
-    <p>The engine replays test days from the simulated history. Each strategy picks its bins at midnight, the solver routes them, and the bins keep filling hour by hour. We count distance, overflow and wasted trips.</p>
+    <div><span class="eyebrow">Results</span><h2>Three ways to run a week of collections</h2></div>
+    <p>The same simulated city, the same deposits and the same sensor noise are fed to three policies (common random numbers). Each picks its stops at 05:00, our solver routes them inside 8-hour shifts, and trucks empty each stop in the hour they reach it. We score 7 days, 26 October to 1 November, for 2 random seeds.</p>
   </div>
   <div class="results-grid">
     <div class="card">
@@ -184,39 +341,38 @@
   <div class="biz-grid" style="margin-top:14px">
     <div class="card">
       <h3 style="font-size:20px">How good is the forecast?</h3>
-      <p class="muted small" style="margin-top:6px">24-hour-ahead fill level, test period (last quarter of the history). F1 measures how well each model spots bins that will pass 80 %.</p>
+      <p class="muted small" style="margin-top:6px">Fill level forecast at 05:00 for 14:00 the next day (33 hours ahead), on the 7 test days, for stops no truck emptied in between. Errors in percentage points.</p>
       <div class="tablewrap" style="margin-top:14px"><table id="modelTable"></table></div>
       <p class="note" id="modelNote"></p>
     </div>
     <div class="card callout" style="border-radius:0 var(--r) var(--r) 0">
-      <h4>Reality check: the plan needs more crew hours than a shift has</h4>
+      <h4>What these results do not show</h4>
       <p id="realityText">Loading…</p>
-      <p class="note">Service time is EcoBin’s assumption of 10 minutes per stop. A real communal-bin lift is likely quicker, so try other values in the planner below.</p>
     </div>
   </div>
   <div class="card" style="margin-top:14px">
-    <h3 style="font-size:20px">Does the priority score help?</h3>
-    <p class="muted small" style="margin-top:6px">Ablation and weight sensitivity: priority = fill weight × forecast + risk weight × overflow probability + area weight × location.</p>
+    <h3 style="font-size:20px">Where the money goes</h3>
+    <p class="muted small" style="margin-top:6px">Cost per day = £1.45 per km + £75 per truck-hour + £60 per overflow. The cost assumptions are ours; change them in <span class="mono">model/config.py</span> and rerun.</p>
     <div class="tablewrap" style="margin-top:14px"><table id="ablationTable"></table></div>
     <p class="note" id="ablationNote"></p>
   </div>
 </section>
-</div>
 
 <!-- ── PLANNER ────────────────────────────────────────── -->
+<div class="band">
 <section class="chapter wrap" id="planner">
   <div class="chapter-head">
     <div><span class="eyebrow">Planner</span><h2>Plan tomorrow yourself</h2></div>
-    <p>Change the collection rule and the fleet. Stop counts and loads come straight from tomorrow’s 4,533 forecasts. Distance is estimated with the Beardwood–Halton–Hammersley law, calibrated to the optimised plan above.</p>
+    <p>Change the decision rule and the fleet. The choice of stops uses tomorrow’s real forecasts, risks and insertion costs for all 4,533 stops. Distance is estimated with the Beardwood–Halton–Hammersley law, calibrated to the optimised plan, so this is a quick estimate, not a new routing run.</p>
   </div>
   <div class="planner">
     <div class="card">
-      <div class="slider"><div class="top"><label for="pThr">Collect when forecast reaches</label><output id="oThr">80 %</output></div><input type="range" id="pThr" min="50" max="95" step="1" value="80"><small>Lower means fewer overflows but more stops.</small></div>
+      <div class="slider"><div class="top"><label for="pThr">Service standard α</label><output id="oThr">0.20</output></div><input type="range" id="pThr" min="0.02" max="1" step="0.01" value="0.2"><small>Collect every stop whose overflow risk is above α. 1 turns it off.</small></div>
+      <div class="slider"><div class="top"><label for="pCo">Overflow cost c<sub>o</sub></label><output id="oCo2">£60</output></div><input type="range" id="pCo" min="0" max="400" step="5" value="60"><small>Also collect when p · c<sub>o</sub> beats the cost of going early, Δk/τ.</small></div>
       <div class="slider"><div class="top"><label for="pFleet">Trucks available</label><output id="oFleet">24</output></div><input type="range" id="pFleet" min="6" max="40" step="1" value="24"></div>
       <div class="slider"><div class="top"><label for="pShift">Shift length</label><output id="oShift">8.0 h</output></div><input type="range" id="pShift" min="6" max="12" step="0.5" value="8"></div>
-      <div class="slider"><div class="top"><label for="pSvc">Minutes per stop</label><output id="oSvc">10 min</output></div><input type="range" id="pSvc" min="2" max="15" step="1" value="10"><small>EcoBin’s default is 10. Try 3–5 for a mechanised lift.</small></div>
-      <div class="slider"><div class="top"><label for="pSpeed">Average truck speed</label><output id="oSpeed">30 km/h</output></div><input type="range" id="pSpeed" min="12" max="40" step="1" value="30"></div>
-      <label class="toggle" style="height:auto;padding:10px 12px"><input type="checkbox" id="pPrio" checked> Also collect when priority score ≥ 75</label>
+      <div class="slider"><div class="top"><label for="pSvc">Minutes per container</label><output id="oSvc">1.0 min</output></div><input type="range" id="pSvc" min="0.5" max="4" step="0.1" value="1"><small>Plus 2 minutes per stop to pull up and walk to the bin store.</small></div>
+      <div class="slider"><div class="top"><label for="pSpeed">Traffic</label><output id="oSpeed">× 1.00</output></div><input type="range" id="pSpeed" min="0.6" max="1.4" step="0.05" value="1"><small>Scales the road speeds (OpenStreetMap road classes).</small></div>
     </div>
     <div class="card">
       <div class="plan-out" id="planOut"></div>
@@ -226,9 +382,9 @@
     </div>
   </div>
 </section>
+</div>
 
 <!-- ── BUSINESS ───────────────────────────────────────── -->
-<div class="band">
 <section class="chapter wrap" id="business">
   <div class="chapter-head">
     <div><span class="eyebrow">Business model</span><h2>Three partners, one service</h2></div>
@@ -288,9 +444,9 @@
     <div class="risks" style="margin-top:8px" id="risks"></div>
   </div>
 </section>
-</div>
 
 <!-- ── SOURCES ────────────────────────────────────────── -->
+<div class="band">
 <section class="chapter wrap" id="sources">
   <div class="chapter-head">
     <div><span class="eyebrow">Sources and method</span><h2>What is real, what is simulated</h2></div>
@@ -303,12 +459,13 @@
   <h3 style="font-size:20px;margin:40px 0 16px">References</h3>
   <ul class="refs" id="refs"></ul>
 </section>
+</div>
 </main>
 
 <footer>
   <div class="wrap">
     <div><b style="color:var(--ink)">BinSight</b> · EMS Group 6, University of Edinburgh · <span data-k="generated"></span></div>
-    <div>Engine adapted from <a href="https://github.com/mizj1213wcz/binsight" target="_blank" rel="noopener">BinSight</a> and <a href="https://github.com/RishvinReddy/EcoBin-Smart-Waste-Management-System" target="_blank" rel="noopener">EcoBin</a> (MIT). Contains public sector information licensed under the Open Government Licence v3.0 and OS data © Crown copyright and database right 2026. Map data © OpenStreetMap contributors.</div>
+    <div>Model, forecast, decision rule and routing written by us (<span class="mono">model/</span>). The first prototype built on the open-source <a href="https://github.com/RishvinReddy/EcoBin-Smart-Waste-Management-System" target="_blank" rel="noopener">EcoBin</a> project (MIT), which we acknowledge with thanks; none of its code is used now. Contains public sector information licensed under the Open Government Licence v3.0 and OS data © Crown copyright and database right 2026. Map data © OpenStreetMap contributors.</div>
   </div>
 </footer>
 </div>

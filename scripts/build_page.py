@@ -6,10 +6,15 @@ Assemble the website from src/ into:
 
     python scripts/build_page.py
 """
+import glob
+import hashlib
 import os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 src = lambda f: open(os.path.join(ROOT, "src", f), encoding="utf-8").read()
+
+# data version: changes whenever any data file changes, so browsers never mix old data with new code
+VER = hashlib.md5(b"".join(open(f, "rb").read() for f in sorted(glob.glob(os.path.join(ROOT, "data", "*.json"))))).hexdigest()[:10]
 
 TITLE = "BinSight Edinburgh"
 DESC = ("Forecast-driven waste collection for Edinburgh's communal bins: a live map of 4,533 real bin stops, "
@@ -19,13 +24,13 @@ HEAD = f"""<title>{TITLE}</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:wght@400;500;600;700&display=swap">
 <style>
 {src("style.css")}
 </style>"""
 SCRIPTS = f"""<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
-{src("app.js")}
+{src("app.js").replace("/*@MATHS@*/", src("maths.js")).replace("/*@VER@*/", VER)}
 </script>
 <script>
 {src("twin.js")}
