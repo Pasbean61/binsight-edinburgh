@@ -140,10 +140,9 @@ def stops_layer(st, L):
         "area": [int(v) for v in area_of(st)], "cap": [int(v) for v in st["cap"]],
         "nb": [int(v) for v in st["nb"]], "rec": [int(v) for v in st["rec"]],
     }
-    for k, d in (("fill", 1), ("pred", 1), ("sd", 1), ("prob", 3), ("tau", 1), ("dcost", 2), ("prio", 2),
-                 ("bat", 1)):
+    for k, d in (("fill", 1), ("pred", 1), ("gain", 2), ("tmin", 1), ("bat", 1)):
         cols[k] = [r(v, d) for v in L[k]]
-    for k in ("flag", "mand", "sig", "since", "truck", "ord", "eta"):
+    for k in ("flag", "risky", "sig", "since", "truck", "ord", "eta"):
         cols[k] = [None if v is None or (isinstance(v, float) and math.isnan(v)) else int(v) for v in L[k]]
     assert all(len(v) == n for v in cols.values())
     dump("stops.json", cols)

@@ -30,7 +30,7 @@ The map is a real street map of Edinburgh. Zoom in to see every building, street
 
 ## About
 
-BinSight forecasts how full each of Edinburgh’s general-waste communal bins will be tomorrow and plans the shortest truck routes that reach only the bins that need emptying. This repository holds the public website and the model behind it, written from scratch by the team: a stochastic fill model, a probabilistic forecast, a chance-constrained decision rule, a routing heuristic, and checks against exact optima. The maths is explained on the site and in [`model/README.md`](model/README.md).
+BinSight forecasts how full each of Edinburgh’s general-waste communal bins will be tomorrow and plans the shortest truck routes that reach only the bins that need emptying. This repository holds the public website and the model behind it, written from scratch by the team: a stochastic fill model, a random-forest fill forecast, a fullest-first decision rule, a routing heuristic, and a before-and-after comparison with the council timetable. The maths is explained on the site and in [`model/README.md`](model/README.md).
 
 A project by **EMS Group 6, University of Edinburgh**.
 
@@ -77,14 +77,14 @@ Open the browser console and run `__twinTest("your question")` to test the built
 index.html                  the website (GitHub Pages), built from src/
 src/                        page source: body.html, style.css, app.js, maths.js, twin.js
 data/                       site data written by the model
-model/                      the BinSight model (Python: numpy, scipy, pyproj)
+model/                      the BinSight model (Python: numpy, scipy, scikit-learn, pyproj)
   network.py                real stops, wards and the OpenStreetMap road graph
-  simulate.py               compound-Poisson fill simulator
-  forecast.py               probabilistic forecast
-  decide.py                 chance-constrained, capacity-priced decision rule
+  simulate.py               fill simulator (council collection frequency, 30 L bags)
+  calibrate.py              calibrates the simulator to the council complaint rate
+  predict.py                random-forest fill forecast
+  decide.py                 fullest-first decision rule
   route.py                  Clarke–Wright, local search, simulated annealing, shift packing
-  exact.py                  exact MILP (HiGHS) and lower bounds
-  experiment.py             rolling-horizon experiment with common random numbers
+  experiment.py             before and after: timetable vs reactive vs BinSight
   export.py, run.py         site data and the entry point
 scripts/build_page.py       src/ → index.html and site/binsight.html
 docs/                       README images
