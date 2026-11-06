@@ -15,7 +15,6 @@
       <a href="#business">Business</a>
       <a href="#sources">Sources</a>
     </nav>
-    <button class="twin-btn" id="twinToggle" type="button" aria-controls="twin" aria-expanded="false"><span class="twin-dot"></span>Ask the twin</button>
   </div>
 </header>
 
@@ -29,7 +28,7 @@
       <p class="lede">Edinburgh’s communal bins are emptied on fixed timetables, so some overflow while others are collected half-empty. BinSight forecasts how full each of the city’s <b class="num" data-k="stops">4,533</b> general-waste communal bin stops will be tomorrow, then plans the shortest truck routes that reach only the bins that need emptying.</p>
       <div class="cta">
         <a class="btn primary" href="#console">Explore tomorrow’s plan</a>
-        <button class="btn ghost" type="button" data-open-twin>Ask the AI twin</button>
+        <a class="btn ghost" href="#maths">See the maths</a>
       </div>
       <div class="provenance" aria-label="Data provenance">
         <span class="prov real"><i></i>Real: council bin register, wards, streets, weather</span>
@@ -196,7 +195,7 @@
           <li><var>w<sub>t</sub></var> = e<sup>−0.15·1[rain ≥ 0.5 mm]</sup> (1 + 0.01 (<var>T</var> − 10 °C)), from <b>real hourly Edinburgh weather</b>.</li>
           <li><var>c<sub>it</sub></var> = 1.25 on Friday to Sunday in the City Centre ward, for visitors and short lets.</li>
         </ul>
-        <p>Because a sum of <var>n</var> Gamma(<var>k</var>, <var>θ</var>) volumes is Gamma(<var>nk</var>, <var>θ</var>), a whole hour for all 4,533 stops is one exact vectorised draw. The mean and variance follow from the law of total variance:</p>
+        <p>Because a sum of <var>n</var> Gamma(<var>k</var>, <var>θ</var>) volumes is Gamma(<var>nk</var>, <var>θ</var>), a whole hour for all 4,532 stops is one exact vectorised draw. The mean and variance follow from the law of total variance:</p>
         <div class="eq">E[<var>X</var>] = <var>λ v̄</var>, &nbsp; Var[<var>X</var>] = <var>λ</var> E[<var>V</var><sup>2</sup>] = <var>λ v̄</var><sup>2</sup>(1 + 1/<var>k</var>) &nbsp;⇒&nbsp; <var>φ</var> = Var/E = <var>v̄</var>(1 + 1/<var>k</var>) = <span data-mk="phiTrue">52.5</span> L</div>
         <p class="note">The forecaster never sees these settings. It estimates <var>φ</var> = <b data-mk="phiHat">–</b> L from sensor readings alone, close to the true 52.5 L. The fill process is simulated because the council does not publish sensor data; the weather, places and bins are real.</p>
       </div>
@@ -363,7 +362,7 @@
 <section class="chapter wrap" id="planner">
   <div class="chapter-head">
     <div><span class="eyebrow">Planner</span><h2>Plan tomorrow yourself</h2></div>
-    <p>Change the decision rule and the fleet. The choice of stops uses tomorrow’s real forecasts, risks and insertion costs for all 4,533 stops. Distance is estimated with the Beardwood–Halton–Hammersley law, calibrated to the optimised plan, so this is a quick estimate, not a new routing run.</p>
+    <p>Change the decision rule and the fleet. The choice of stops uses tomorrow’s real forecasts, risks and insertion costs for all 4,532 stops. Distance is estimated with the Beardwood–Halton–Hammersley law, calibrated to the optimised plan, so this is a quick estimate, not a new routing run.</p>
   </div>
   <div class="planner">
     <div class="card">
@@ -470,20 +469,3 @@
 </footer>
 </div>
 
-<!-- ── TWIN ───────────────────────────────────────────── -->
-<aside class="twin" id="twin" aria-label="BinSight AI twin" aria-hidden="true">
-  <div class="twin-head">
-    <span class="twin-dot" style="width:28px;height:28px"></span>
-    <div><h3>BinSight Twin</h3><div class="mode" id="twinMode"><i></i><span>Built-in engine</span></div></div>
-    <button class="close" type="button" id="twinClose" aria-label="Close twin">×</button>
-  </div>
-  <div class="twin-log" id="twinLog" aria-live="polite"></div>
-  <div class="twin-foot">
-    <form class="twin-form" id="twinForm">
-      <textarea id="twinInput" rows="1" placeholder="Ask about any street, ward, truck or number…" aria-label="Ask the twin"></textarea>
-      <button type="submit" id="twinSend" aria-label="Send"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-    </form>
-    <div class="fine" id="twinFine">Answers come from this site’s data. Fill levels are simulated.</div>
-  </div>
-</aside>
-<button class="twin-fab" type="button" data-open-twin><span class="twin-dot"></span>Ask BinSight</button>

@@ -355,7 +355,7 @@ function initMap() {
   initPlayback();
   const all = L.latLngBounds(S.lat.map((la, i) => [la, S.lon[i]]));
   map.fitBounds(all, { padding: [20, 20] });
-  // the container can change size after first layout (fonts, the twin rail, phones): keep the map filled
+  // the container can change size after first layout (fonts, phones): keep the map filled
   let fitted = false; const born = performance.now();
   setTimeout(() => { fitted = true; }, 4000);   // after the first layout settles, never move the camera on resize
   new ResizeObserver(() => { map.invalidateSize(); if (!fitted && performance.now() - born < 4000 && UI.selStop < 0 && UI.selTruck < 0 && UI.ward < 0 && UI.follow < 0) map.fitBounds(all, { padding: [20, 20] }); }).observe($(".map-shell"));
@@ -561,10 +561,8 @@ BS.focusStop = async (i, opts = {}) => {
     </dl>
     <h4>Tomorrow’s collection</h4>
     <p class="small" style="margin-top:6px">${ti >= 0 ? `Stop <b>${S.ord[i]}</b> of ${D.trucks[ti].stops.length} on <button class="linkbtn" data-truck="${ti}">${D.trucks[ti].truck}</button>, arriving about <b>${hhmm(S.eta[i])}</b>.` : S.flag[i] ? "Chosen, but the fleet could not fit it tomorrow." : "Not needed tomorrow. The truck skips this stop."}</p>
-    <p class="small" style="margin-top:12px"><button class="linkbtn" data-ask="${esc(S.site[i])}">Ask the twin about ${esc(S.site[i])}</button></p>
   </div>`);
   $$("#panel [data-truck]").forEach(b => b.onclick = () => BS.focusTruck(+b.dataset.truck));
-  $$("#panel [data-ask]").forEach(b => b.onclick = () => BS.ask?.(`How full are the bins on ${b.dataset.ask}?`));
   drawSpark(i);
 };
 async function drawSpark(i) {
