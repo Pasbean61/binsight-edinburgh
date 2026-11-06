@@ -141,7 +141,7 @@ function facts() {
     reactiveEvents: fmt(R.overflow_events_day), predEvents: fmt(B.overflow_events_day),
     stratRows: ["timetable", "reactive", "binsight"].map(n => { const r = st(n); return `| ${lbl[n]} | ${fmt(r.km_day)} | ${fmt(r.overflow_events_day)} | £${fmt(r.cost_day)} |`; }).join("\n"),
     topWards: [...D.wards].sort((a, b) => b.stops - a.stops).slice(0, 3).map(w => `${w.name} (${w.stops})`).join(", "),
-    weatherRange: new Date(s.weather.start).toLocaleDateString("en-GB", { day: "numeric", month: "long" }) + " to " + new Date(s.weather.history_end).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
+    weatherRange: new Date(s.weather.start).toLocaleDateString("en-GB", { day: "numeric", month: "long" }) + " to " + new Date(new Date(s.weather.history_end + "T12:00").getTime() - 864e5).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
   };
 }
 const fill = (a, F) => a.replace(/\{(\w+)\}/g, (_, k) => F[k] ?? "");
@@ -268,8 +268,8 @@ function local(q) {
   if (/weather|rain|temperature|wet|cold|warm|°/.test(ql)) {
     const w = D.site.weather, n = w.temp.length - 24;
     const mean = w.temp.slice(0, n).reduce((a, b) => a + b, 0) / n, rain = w.rain.slice(0, n).reduce((a, b) => a + b, 0), wet = w.rain.slice(0, n).filter(v => v > 0).length;
-    const fT = w.temp.slice(n), fR = w.rain.slice(n).reduce((a, b) => a + b, 0);
-    return { text: `The simulation uses Edinburgh’s **real hourly weather** (Open-Meteo) for ${F.weatherRange}: mean **${fmt(mean, 1)} °C** (${fmt(Math.min(...w.temp.slice(0, n)), 1)} to ${fmt(Math.max(...w.temp.slice(0, n)), 1)} °C), **${fmt(rain, 1)} mm** of rain over ${wet} wet hours. The forecast day: ${fmt(Math.min(...fT), 1)}–${fmt(Math.max(...fT), 1)} °C and ${fmt(fR, 1)} mm of rain. Rain slightly slows filling in the model.`, acts: [["Open the weather chart", () => { BS.openTab("weather"); document.getElementById("ctabs").scrollIntoView(); }]] };
+    const fc = w.forecast, fT = fc ? fc.temp : [], fR = fc ? fc.rain.reduce((a, b) => a + b, 0) : 0;
+    return { text: `The simulation uses Edinburgh’s **real hourly weather** (Open-Meteo) for ${F.weatherRange}: mean **${fmt(mean, 1)} °C** (${fmt(Math.min(...w.temp.slice(0, n)), 1)} to ${fmt(Math.max(...w.temp.slice(0, n)), 1)} °C), **${fmt(rain, 1)} mm** of rain over ${wet} wet hours. ${fc ? `The forecast issued on 2 Nov for the next 7 days: ${fmt(Math.min(...fT), 1)}–${fmt(Math.max(...fT), 1)} °C and ${fmt(fR, 1)} mm of rain (shown on the chart, not used by the model).` : ""} Rain slightly slows filling in the model.`, acts: [["Open the weather chart", () => { BS.openTab("weather"); document.getElementById("ctabs").scrollIntoView(); }]] };
   }
 
   // shift replay on the live map
@@ -280,8 +280,8 @@ function local(q) {
 
   // model accuracy
   if (/accura|mae|rmse|r2|r²|error|how good|f1|precision|recall|persistence|ridge/.test(ql)) {
-    const res = D.site.model.results;
-    return { text: `24-hour forecast on the test period (simulated data):\n\n| Model | MAE | R² | F1 at 80 % |\n|---|--:|--:|--:|\n${Object.entries(res).map(([n, r]) => `| ${n} | ${fmt(r.MAE, 2)} | ${fmt(r.R2, 3)} | ${fmt(r.F1, 3)} |`).join("\n")}\n\nErrors are in percentage points of fill. These numbers are optimistic because the model is tested on the same simulator it learned from; real sensors would be noisier.`, acts: [["See the results", () => document.getElementById("results").scrollIntoView()]], f: ["What is the overflow probability?", "What are the limitations?"] };
+    const m = D.site.model.metrics, row = (lab, r) => `| ${lab} | ${fmt(r.mae, 1)} | ${fmt(r.rmse, 1)} |`;
+    return { text: `Forecast of each stop’s fill, scored on ${fmt(m.n)} forecasts over the 7 test days (simulated data):\n\n| Forecast | MAE | RMSE |\n|---|--:|--:|\n${row("**BinSight**", m.binsight)}\n${row("Last-day trend", m.trend)}\n${row("Persistence (no change)", m.persistence)}\n\nErrors are in percentage points of fill. The 80 % interval holds the truth ${fmt(100 * m.coverage80, 1)} % of the time and the 95 % interval ${fmt(100 * m.coverage95, 1)} %. Overflow risk: Brier ${fmt(m.brier, 4)} against ${fmt(m.brier_climatology, 4)} for always predicting the average. These numbers are optimistic because the forecast is tested on the same simulator; real sensors would be noisier.`, acts: [["See the results", () => document.getElementById("results").scrollIntoView()]], f: ["What is the overflow probability?", "What are the limitations?"] };
   }
 
   // knowledge base

@@ -920,28 +920,43 @@ function renderAlerts() {
 }
 function drawWeather() {
   const host = $("#pane-weather"); if (!host || host.hidden && host.dataset.done) return;
-  const w = D.site.weather, n = w.temp.length, W = 1000, H = 260, pl = 40, pr = 16, pt = 16, pb = 34;
-  const t0 = new Date(w.start), histN = D.site.weather.temp.length - 24;
+  const w = D.site.weather, histN = w.temp.length - 24, fc = w.forecast;
+  // left half: the last 7 observed days before the snapshot; right half: the 7-day forecast issued that day
+  const P = 7 * 24, obsT = w.temp.slice(histN - P, histN), obsR = w.rain.slice(histN - P, histN);
+  const fT = fc ? fc.temp : w.temp.slice(histN), fR = fc ? fc.rain : w.rain.slice(histN);
+  const temp = obsT.concat(fT), rain = obsR.concat(fR), n = temp.length, split = P;
+  // naive local days (the hourly series crosses the 25 Oct clock change, so step by calendar day)
+  const dayAt = j => { const d = new Date(D.site.plan_day + "T12:00"); d.setDate(d.getDate() - 7 + j); return d; }, t0 = dayAt(0);
+  const W = 1000, H = 280, pl = 40, pr = 16, pt = 34, pb = 34;
   const x = k => pl + k / (n - 1) * (W - pl - pr);
-  const tmin = Math.floor(Math.min(...w.temp) / 2) * 2, tmax = Math.ceil(Math.max(...w.temp) / 2) * 2;
+  const tmin = Math.floor(Math.min(...temp) / 2) * 2, tmax = Math.ceil(Math.max(...temp) / 2) * 2;
   const yT = v => pt + (tmax - v) / (tmax - tmin) * (H - pt - pb);
-  const rmax = Math.max(2, Math.ceil(Math.max(...w.rain)));
+  const rmax = Math.max(2, Math.ceil(Math.max(...rain)));
   const yR = v => H - pb - v / rmax * (H - pt - pb) * .55;
-  const days = []; for (let k = 0; k < n; k += 24) days.push(k);
-  const line = w.temp.map((v, k) => `${k ? "L" : "M"}${x(k).toFixed(1)},${yT(v).toFixed(1)}`).join("");
-  const total = w.rain.slice(0, histN).reduce((a, b) => a + b, 0), wet = w.rain.slice(0, histN).filter(v => v > 0).length;
-  const mean = w.temp.slice(0, histN).reduce((a, b) => a + b, 0) / histN;
-  host.innerHTML = `<div class="card"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;align-items:baseline"><h3 style="font-size:20px">Edinburgh weather that drove the simulation <span class="tag real">Real</span></h3><span class="muted small">${esc(w.source)}</span></div>
-    <div class="consolekpis" style="margin-top:14px;grid-template-columns:repeat(4,minmax(0,1fr))"><div class="ck"><b>${fmt(mean, 1)} °C</b><span>mean temperature</span></div><div class="ck"><b>${fmt(Math.min(...w.temp.slice(0, histN)), 1)} / ${fmt(Math.max(...w.temp.slice(0, histN)), 1)} °C</b><span>min / max</span></div><div class="ck"><b>${fmt(total, 1)} mm</b><span>total rain</span></div><div class="ck"><b>${wet} h</b><span>hours with rain</span></div></div>
-    <div style="overflow-x:auto"><svg class="chart" viewBox="0 0 ${W} ${H}" style="min-width:640px">
+  const path = (arr, k0) => arr.map((v, k) => `${k ? "L" : "M"}${x(k0 + k).toFixed(1)},${yT(v).toFixed(1)}`).join("");
+  const sum = a => a.reduce((p, q) => p + q, 0), avg = a => sum(a) / a.length;
+  const allT = w.temp.slice(0, histN), allR = w.rain.slice(0, histN);
+  const day = (d, o) => d.toLocaleDateString("en-GB", o || { day: "numeric", month: "short" });
+  const issued = fc ? day(new Date(fc.issued + "T12:00")) : "";
+  const kpi = (lab, t, r, cls) => `<div class="wk ${cls}"><span class="wk-h">${lab}</span><div class="wk-row"><div><b>${fmt(avg(t), 1)} °C</b><span>mean</span></div><div><b>${fmt(Math.min(...t), 1)} / ${fmt(Math.max(...t), 1)}</b><span>min / max °C</span></div><div><b>${fmt(sum(r), 1)} mm</b><span>rain</span></div><div><b>${r.filter(v => v > 0).length} h</b><span>wet hours</span></div></div></div>`;
+  host.innerHTML = `<div class="card"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;align-items:baseline"><h3 style="font-size:20px">Edinburgh weather: the last week and the week ahead <span class="tag real">Real</span></h3><span class="muted small">${esc(w.source)}</span></div>
+    <div class="wks">${kpi(`Observed · ${day(t0)} – ${day(dayAt(6))}`, obsT, obsR, "obs")}${kpi(fc ? `Forecast issued ${issued} · next 7 days` : "Forecast day", fT, fR, "fc")}</div>
+    <div class="wscroll" style="overflow-x:auto"><svg class="chart" viewBox="0 0 ${W} ${H}" style="min-width:640px" role="img" aria-label="Hourly temperature and rain: seven observed days, then the seven-day forecast">
       ${[tmin, (tmin + tmax) / 2, tmax].map(v => `<line class="grid" x1="${pl}" x2="${W - pr}" y1="${yT(v)}" y2="${yT(v)}"/><text x="${pl - 6}" y="${yT(v) + 4}" text-anchor="end">${fmt(v)}°</text>`).join("")}
-      <rect x="${x(histN)}" y="${pt}" width="${x(n - 1) - x(histN)}" height="${H - pt - pb}" fill="${PAL.accent}" opacity=".07"/>
-      <text x="${x(histN) + 6}" y="${pt + 12}" style="fill:${PAL.accent}">forecast day</text>
-      ${w.rain.map((v, k) => v > 0 ? `<rect x="${x(k) - 1}" y="${yR(v)}" width="2.4" height="${H - pb - yR(v)}" fill="${PAL.f[1]}"/>` : "").join("")}
-      <path d="${line}" fill="none" stroke="${PAL.ink}" stroke-width="1.5"/>
-      ${days.filter((_, j) => j % 3 === 0).map(k => { const d = new Date(t0.getTime() + k * 3600e3); return `<text x="${x(k)}" y="${H - 12}" text-anchor="middle">${d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</text>`; }).join("")}
+      <rect x="${x(split)}" y="${pt}" width="${x(n - 1) - x(split)}" height="${H - pt - pb}" fill="${PAL.accent}" opacity=".07"/>
+      <rect x="${x(split)}" y="${pt}" width="${x(split + 24) - x(split)}" height="${H - pt - pb}" fill="${PAL.accent}" opacity=".07"/>
+      <line x1="${x(split)}" x2="${x(split)}" y1="${pt - 6}" y2="${H - pb}" stroke="${PAL.ink3}" stroke-dasharray="3 3"/>
+      <text x="${x(split) - 8}" y="${pt - 12}" text-anchor="end" style="fill:${PAL.ink};font-weight:600">Observed</text>
+      <text x="${x(split) + 8}" y="${pt - 12}" style="fill:${PAL.accent};font-weight:600">Forecast${fc ? ` issued ${issued}` : ""}</text>
+      <text x="${x(split + 12)}" y="${pt + 14}" text-anchor="middle" style="fill:${PAL.accent}">plan day</text>
+      ${rain.map((v, k) => v > 0 ? `<rect x="${x(k) - 1.3}" y="${yR(v)}" width="2.6" height="${H - pb - yR(v)}" fill="${k < split ? PAL.f[1] : PAL.accent}" opacity="${k < split ? 1 : .45}"/>` : "").join("")}
+      <path d="${path(obsT, 0)}" fill="none" stroke="${PAL.ink}" stroke-width="1.6"/>
+      <path d="M${x(split - 1).toFixed(1)},${yT(obsT[P - 1]).toFixed(1)}${path(fT, split).replace(/^M/, "L")}" fill="none" stroke="${PAL.accent}" stroke-width="1.8" stroke-dasharray="5 3"/>
+      ${Array.from({ length: Math.round(n / 24) }, (_, j) => j * 24).map(k => { const d = dayAt(k / 24); return `<line class="grid" x1="${x(k)}" x2="${x(k)}" y1="${H - pb}" y2="${H - pb + 4}"/><text x="${x(k + 12)}" y="${H - 12}" text-anchor="middle" style="${k >= split ? `fill:${PAL.accent}` : ""}">${day(d, { weekday: "short", day: "numeric" })}</text>`; }).join("")}
     </svg></div>
-    <p class="note">Line: hourly temperature. Bars: rain per hour (up to ${rmax} mm). Rain slightly slows how fast bins fill in the model; bank holidays and weekends speed it up.</p></div>`;
+    <p class="note">Solid line: observed hourly temperature. Dashed line: the hourly forecast as Open-Meteo issued it on ${issued || "the snapshot day"}, before any of it happened. Bars: rain per hour (scale up to ${rmax} mm). Rain slightly slows how fast bins fill in the model; weekends and bank holidays speed it up. The simulated history ran on the real weather from ${day(new Date(w.start))} to ${day(dayAt(6), { day: "numeric", month: "short", year: "numeric" })} (mean ${fmt(avg(allT), 1)} °C, ${fmt(sum(allR), 1)} mm of rain in ${allR.filter(v => v > 0).length} wet hours). Tomorrow’s plan assumes the plan-day weather is known; the rest of the week is shown only.</p></div>`;
+  // on narrow screens the chart scrolls: open it centred on the observed / forecast split
+  requestAnimationFrame(() => { const sc = $(".wscroll", host); if (sc) sc.scrollLeft = (sc.scrollWidth - sc.clientWidth) * (x(split) / W); });
   host.dataset.done = 1;
 }
 
@@ -1130,6 +1145,7 @@ function initSources() {
     ["Street map: every building, street name, house number, station and park", "real", "© OpenStreetMap contributors (ODbL), vector tiles from OpenFreeMap drawn with MapLibre; a light fallback map from the Overpass API"],
     ["Road network: every drivable street", "real", `OpenStreetMap via the Overpass API (ODbL): ${fmt(t.road_nodes)} junctions and bends, ${fmt(t.road_edges)} street segments, ${fmt(t.road_km)} km. Our Dijkstra shortest paths give every distance, time and route line.`],
     ["Hourly temperature and rain", "real", `Open-Meteo, Edinburgh, ${fmtDate(D.site.weather.start, { day: "numeric", month: "short" })} to ${fmtDate(D.site.plan_day + "T06:00", { day: "numeric", month: "short", year: "numeric" })}`],
+    ["Seven-day weather forecast", "real", "Open-Meteo Previous Runs API: the hourly forecast for 3–9 Nov as it was issued on 2 Nov 2026 (scripts/fetch_forecast.py). Shown on the Weather tab only; the model does not use it."],
     ["Problem, market and policy statistics", "real", "Cited under each figure; full list below"],
     ["Fill levels, collections, sensor battery and signal", "sim", "Our compound-Poisson fill model (model/simulate.py), driven by the real weather above. The council does not publish its sensor readings."],
     ["Forecasts, decisions and routes", "sim", "Our forecast, decision rule and routing heuristic (model/), run on the simulated history"],

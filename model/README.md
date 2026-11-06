@@ -2,7 +2,7 @@
 
 The model behind the website, written from scratch by EMS Group 6. Five layers, each a piece of mathematics we can state, test and explain. Run `python -m model.run` from the repository root; every number on the site comes from it. Results for the current build are in [`RESULTS.md`](RESULTS.md).
 
-**What is real:** the 4,533 general-waste communal bin stops (City of Edinburgh Council register, OGL), wards (ONS), the drivable street network (OpenStreetMap, ODbL) and hourly weather (Open-Meteo).
+**What is real:** the 4,533 general-waste communal bin stops (City of Edinburgh Council register, OGL), wards (ONS), the drivable street network (OpenStreetMap, ODbL) and hourly weather (Open-Meteo). The site's Weather tab also shows the 7-day forecast as Open-Meteo issued it on 2 Nov (`scripts/fetch_forecast.py`, Previous Runs API); the model does not use it.
 **What is simulated:** fill levels, because the council does not publish sensor data.
 **What is assumed:** fleet, shift and costs, all in `config.py`.
 

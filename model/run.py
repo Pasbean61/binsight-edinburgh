@@ -323,11 +323,20 @@ def main(argv=()):
         "weather": {"start": C.HISTORY_START.isoformat(timespec="minutes"),
                     "temp": [X.r(v, 1) for v in temp[:PLAN_T + 24]], "rain": [X.r(v, 2) for v in rain[:PLAN_T + 24]],
                     "source": "Open-Meteo hourly weather for Edinburgh (55.95 N, 3.19 W)",
-                    "history_end": (C.HISTORY_START + dt.timedelta(hours=PLAN_T)).date().isoformat()},
+                    "history_end": (C.HISTORY_START + dt.timedelta(hours=PLAN_T)).date().isoformat(),
+                    "forecast": forecast_block()},
         "maths": maths,
     }
     X.dump("site.json", conv(site))
     print(f"done in {time.time() - t_all:.0f}s")
+
+
+def forecast_block():
+    """The week-ahead forecast issued on the snapshot day (scripts/fetch_forecast.py); shown only."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("fetch_forecast", os.path.join(os.path.dirname(C.RAW), "..", "..", "scripts", "fetch_forecast.py"))
+    m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+    return m.block()
 
 
 def aggregate(main_runs):
