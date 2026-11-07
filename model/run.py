@@ -141,7 +141,7 @@ def main(argv=()):
 
     print("2. live run …", flush=True)
     t = time.time()
-    live = E.run(LIVE_SEED, "binsight", warm=C.LEARN_DAYS, days=PLAN_T // 24 - C.LEARN_DAYS, sa=2.0)
+    live = E.run(LIVE_SEED, "binsight", warm=C.LEARN_DAYS, days=PLAN_T // 24 - C.LEARN_DAYS)
     B = live["B"]
     print(f"   {time.time() - t:.0f}s")
 
@@ -151,8 +151,8 @@ def main(argv=()):
     t0, t1 = PLAN_T, PLAN_T + C.SHIFT_START_H + C.HORIZON_H
     proj = rf.predict(B.Y, B.K, t0, t1)
     gain = rf.gain
-    args = (st, T, D, y, proj, gain)
-    plan = DC.plan(*args, fleet=G["fleet"], sa_seconds=8.0, seed=0, verbose=True, Tm_all=G["Tm"])
+    plan = DC.plan(st, T, D, y, proj, B.last, PLAN_T, fleet=G["fleet"], seconds=30.0, seed=0,
+                   verbose=True, Tm_all=G["Tm"])
     base = plan_summary(plan, proj)
     sol, I = plan["sol"], plan["I"]
     print(f"   {base}")
@@ -203,7 +203,8 @@ def main(argv=()):
                                               "TARGET_OVERFLOW", "DAILY_FILL_SPREAD", "SENSOR_NOISE", "REACTIVE_AT",
                                               "FLEET", "TRUCK_LOAD_L", "SHIFT_MIN", "TIP_MIN", "SERVICE_BASE_MIN",
                                               "SERVICE_PER_BIN_MIN", "COST_KM", "COST_HOUR", "COST_OVERFLOW",
-                                              "FLOOR", "HORIZON_H", "SPEED")},
+                                              "FLOOR", "HORIZON_H", "SPEED", "RAIN_EFFECT", "TEMP_EFFECT",
+                                              "HOLIDAY_EFFECT", "RAIN_SLOWDOWN")},
         "fill": {"hour_w": SM.HOUR_W.tolist(), "public_holidays": C.PUBLIC_HOLIDAYS, "school_holidays": C.SCHOOL_HOLIDAYS},
         "forecast": {"model": "random forest regression", "trees": rf.rf.n_estimators, "features": PR.FEATURES,
                      "importance": rf.importance(), "n_train": rf.n_train,
@@ -215,7 +216,8 @@ def main(argv=()):
                    "served": int(plan["served"].sum()),
                    "sample": {"proj": np.round(proj[samp], 1).tolist(), "chosen": plan["chosen"][samp].astype(int).tolist(),
                               "served": plan["served"][samp].astype(int).tolist()}},
-        "route": {"cw": sol["cost_cw"], "ls": sol["cost_ls"], "sa": sol["cost_sa"], "final": sol["cost"],
+        "route": {"start": sol["cost_start"], "final": sol["cost"], "theta": plan["theta"],
+                  "iterations": sol["iterations"],
                   "seconds": sol["seconds"], "trips": len(sol["routes"]), "trucks": len(sol["trucks"]),
                   "stops": I.n, "toy": toy_instance(st, plan, T, D)},
     }

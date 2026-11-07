@@ -27,12 +27,75 @@ def _tiny(n=7, seed=1):
     return Dm, Dm * 3
 
 
-def test_routing_is_no_worse_than_brute_force_tsp_bound():
+def test_annealing_finds_the_brute_force_optimum_of_a_small_tour():
     Dm, Tm = _tiny()
     n = len(Dm) - 1
     I = RT.Instance(np.arange(1, n + 1), np.ones(n), np.zeros(n), Tm, Dm, Q=1e9, tmax=1e9)
     brute = min(RT.trip_cost(I, list(p)) for p in itertools.permutations(range(1, n + 1)))
-    assert RT.solve(I, fleet=99, sa_seconds=.3)["cost"] >= brute - 1e-6
+    assert abs(RT.solve(I, fleet=1, seconds=.5)["cost"] - brute) < 1e-6
+
+
+def _check(I, sol, fleet):
+    served = [v for r in sol["routes"] for v in r]
+    assert len(served) == len(set(served))                                       # (1) at most once
+    assert sorted(served + sol["dropped"]) == list(range(1, I.n + 1))
+    assert all(I.q[r].sum() <= I.Q + 1e-6 for r in sol["routes"])                # (4) load
+    assert all(sum(RT.trip_time(I, sol["routes"][k]) for k in tr) <= I.tmax + 1e-6 for tr in sol["trucks"])  # (5)
+    assert len(sol["trucks"]) <= fleet
+
+
+def test_annealing_respects_load_shift_and_fleet():
+    rng = np.random.default_rng(3)
+    n = 120
+    Dm, Tm = _tiny(n, seed=3)
+    I = RT.Instance(np.arange(1, n + 1), rng.uniform(500, 2500, n), np.full(n, 3.0), Tm, Dm,
+                    prize=np.full(n, 60.0), Q=12_000, tmax=240)
+    sol = RT.solve(I, fleet=3, seconds=1.0)
+    _check(I, sol, 3)
+    # all prizes are equal, so the objective is cost + 60 × unserved; annealing never ends worse than its start
+    assert sol["cost"] + 60 * len(sol["dropped"]) <= sol["cost_start"] + 60 * sol["dropped_start"] + 1e-6
+
+
+def test_rain_slows_the_trucks_and_fewer_stops_fit():
+    rng = np.random.default_rng(4)
+    n = 150
+    Dm, Tm = _tiny(n, seed=4)
+    q, svc, prize = rng.uniform(500, 2500, n), np.full(n, 3.0), np.full(n, 60.0)
+    dry = RT.Instance(np.arange(1, n + 1), q, svc, Tm, Dm, prize=prize, Q=20_000, tmax=200)
+    wet = RT.Instance(np.arange(1, n + 1), q, svc, Tm, Dm, prize=prize, Q=20_000, tmax=200, slow=1.3)
+    a, b = RT.solve(dry, fleet=2, seconds=1.0), RT.solve(wet, fleet=2, seconds=1.0)
+    _check(wet, b, 2)
+    assert len(b["dropped"]) >= len(a["dropped"])
+
+
+def test_required_stops_are_all_served_without_a_fleet_limit():
+    rng = np.random.default_rng(5)
+    n = 80
+    Dm, Tm = _tiny(n, seed=5)
+    I = RT.Instance(np.arange(1, n + 1), rng.uniform(500, 2500, n), np.full(n, 3.0), Tm, Dm, Q=15_000, tmax=240)
+    sol = RT.solve(I, fleet=None, seconds=.5)
+    assert not sol["dropped"]
+    _check(I, sol, 99)
+
+
+def test_weather_and_holiday_factor_has_mean_one_and_the_right_signs():
+    w = SM.factor()
+    temp, rain = SM.weather()
+    hol = SM.holidays()
+    assert abs(w.mean() - 1) < 1e-9
+    base = (1 + C.TEMP_EFFECT * (temp - 10))
+    ratio = w / base
+    assert ratio[(rain >= .5) & ~hol].max() < ratio[(rain < .5) & ~hol].min()        # rain lowers deposits
+    if hol.any():
+        assert ratio[(rain < .5) & hol].min() > ratio[(rain < .5) & ~hol].max()     # holidays raise them
+
+
+def test_demand_grows_with_the_factor_and_never_passes_capacity():
+    st = {"cap": np.array([1000.0, 1000.0, 2000.0])}
+    y = np.array([20.0, 60.0, 99.0])
+    last = np.array([100, 100, 100])
+    q = DC.demand(st, y, last, 125)
+    assert np.all(q >= st["cap"] * y / 100 - 1e-9) and np.all(q <= st["cap"])
 
 
 def test_choice_fits_budget_takes_fullest_first_and_respects_floor():

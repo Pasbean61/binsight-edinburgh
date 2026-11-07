@@ -13,11 +13,15 @@ of its capacity a day. σ spreads the stops (some serve more flats than others).
 
 Households drop one kitchen-bin bag (30 L) at a time. In hour t stop i receives
 
-    N_it ~ Poisson(λ_it),   X_it = 30 L · N_it,   λ_it = (D_i / 30 L) · a(hour) / 24,   D_i = cap_i · ρ_i
+    N_it ~ Poisson(λ_it),   X_it = 30 L · N_it,   λ_it = (D_i / 30 L) · a(hour) · w_t / 24,   D_i = cap_i · ρ_i
 
-where a is an hour-of-day profile with mean 1 (quiet at night, morning and evening peaks).
-Weather and holidays are not given an effect here: we found no reliable evidence of their size.
-They are inputs to the forecast (predict.py), which can learn them from real data.
+where a is an hour-of-day profile with mean 1 (quiet at night, morning and evening peaks) and w_t the
+weather and holiday factor (factor(), mean 1 over the month):
+
+    w_t ∝ exp(β_rain · 1[rain ≥ 0.5 mm]) · (1 + β_temp · (T − 10 °C)) · (1 + β_hol · 1[holiday])
+
+The weather and the holidays are real; the sizes β are assumptions (config.py). The same factor
+enters the route model's load constraint (decide.demand).
 
 Fill in litres F_it grows by X_it; at or above capacity the bin overflows. A truck empties it.
 Sensors report min(100, 100·F/cap) + N(0, σ_s²) percentage points.
@@ -62,6 +66,16 @@ def profile():
     return HOUR_W / HOUR_W.mean()
 
 
+def factor(hours=C.HOURS):
+    """w_t, the weather and holiday multiplier of hourly deposits, rescaled to mean 1.
+
+    w_t = exp(β_rain · 1[rain ≥ 0.5 mm]) · (1 + β_temp · (T − 10 °C)) · (1 + β_hol · 1[holiday])"""
+    temp, rain = weather(hours)
+    w = (np.exp(C.RAIN_EFFECT * (rain >= .5)) * (1 + C.TEMP_EFFECT * (temp - 10))
+         * (1 + C.HOLIDAY_EFFECT * holidays(hours)))
+    return w / w.mean()
+
+
 def true_rates(st, seed, U=None):
     """Litres a day at every stop: cap · U/K · lognormal spread."""
     U = C.FILL_AT_COLLECTION if U is None else U
@@ -74,7 +88,7 @@ def deposits(st, seed, hours=C.HOURS, U=None):
     """Litres deposited at every stop in every hour: array (stops, hours)."""
     rng = np.random.default_rng(seed)
     hour, _, _ = clock(hours)
-    a = profile()[hour]
+    a = profile()[hour] * factor(hours)
     lam = (true_rates(st, seed, U) / C.BAG_L)[:, None] * a[None, :] / 24
     return (C.BAG_L * rng.poisson(lam)).astype(np.float32)
 

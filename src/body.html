@@ -273,20 +273,15 @@
   <div class="card m-pane" data-m="3" hidden>
     <div class="m-grid">
       <div class="m-text">
-        <h3>Routing: a multi-trip vehicle-routing problem</h3>
-        <p>On the road graph (<span data-mk="roadKm">–</span> km of Edinburgh streets from OpenStreetMap, shortest paths by Dijkstra), with cost <var>c<sub>ij</sub></var> = £1.45·km + £75·hours:</p>
-        <div class="eq left">min &nbsp; Σ<sub><var>k</var></sub> Σ<sub><var>i</var>≠<var>j</var></sub> <var>c<sub>ij</sub> x<sub>ijk</sub></var><br>
-          s.t. &nbsp; every chosen stop is visited exactly once<br>
-          &emsp;&emsp; Σ<sub><var>i</var> ∈ trip</sub> <var>q<sub>i</sub></var> ≤ <var>Q</var> = 60 m³ per load, then tip at the depot<br>
-          &emsp;&emsp; Σ (drive + lift + tip) ≤ 480 min per truck, 24 trucks<br>
-          &emsp;&emsp; <var>u<sub>j</sub></var> ≥ <var>u<sub>i</sub></var> + <var>q<sub>j</sub></var> − <var>Q</var>(1 − <var>x<sub>ij</sub></var>) &nbsp; (no subtours), &nbsp; <var>x</var> ∈ {0, 1}</div>
-        <p>This is NP-hard, and tomorrow has <b data-mk="nStops">–</b> stops. We solve it with our own heuristic in four stages:</p>
-        <ol class="m-list">
-          <li><b>Clarke–Wright savings</b>: <var>s<sub>ij</sub></var> = <var>c</var><sub>0<var>i</var></sub> + <var>c</var><sub>0<var>j</var></sub> − <var>c<sub>ij</sub></var>, merging trips in order of saving while load and time allow.</li>
-          <li><b>Local search</b>: 2-opt and Or-opt inside trips; relocate and swap between trips, over each stop’s 20 nearest neighbours.</li>
-          <li><b>Simulated annealing</b>: accept a worse move with probability e<sup>−Δ/<var>T</var></sup>, cooling <var>T</var> geometrically, then local search again.</li>
-          <li><b>Pack trips into shifts</b> by first-fit decreasing; if the fleet is short, drop the stops of least net value.</li>
-        </ol>
+        <h3>Routing: one model, one algorithm</h3>
+        <p>On the road graph (<span data-mk="roadKm">–</span> km of Edinburgh streets from OpenStreetMap, shortest paths by Dijkstra), truck <var>k</var> makes trips <var>r</var>; <var>x<sub>ijkr</sub></var> = 1 if it drives <var>i</var> → <var>j</var>, <var>y<sub>ikr</sub></var> = 1 if it empties stop <var>i</var>. Cost <var>c<sub>ij</sub></var> = £1.45·km + £75·θ·hours, prize <var>π<sub>i</sub></var> = £60 × projected fill.</p>
+        <div class="eq left">min &nbsp; Σ <var>c<sub>ij</sub> x<sub>ijkr</sub></var> + Σ<sub><var>i</var></sub> <var>π<sub>i</sub></var>(1 − Σ<sub><var>kr</var></sub> <var>y<sub>ikr</sub></var>)<br>
+          s.t. &nbsp; Σ<sub><var>kr</var></sub> <var>y<sub>ikr</sub></var> ≤ 1 &nbsp; (each stop at most once)<br>
+          &emsp;&emsp; Σ<sub><var>i</var></sub> <var>q<sub>i</sub></var>(<var>w</var>) <var>y<sub>ikr</sub></var> ≤ <var>Q</var> = 60 m³ per trip, then tip at the depot<br>
+          &emsp;&emsp; Σ<sub><var>r</var></sub> (θ·drive + lift + tip) ≤ 480 min per truck, <span data-mk="fleet">24</span> trucks<br>
+          &emsp;&emsp; flow in = flow out, no subtours, &nbsp; <var>x</var>, <var>y</var> ∈ {0, 1}</div>
+        <p><b>Weather and holidays sit in the constraints.</b> The load <var>q<sub>i</sub></var>(<var>w</var>) = cap<sub><var>i</var></sub> · min(1, (<var>y<sub>i</sub></var> + <var>b<sub>i</sub></var> Σ<sub><var>h</var></sub> <var>w<sub>h</sub></var>) / 100) grows with the hourly factor <var>w<sub>h</sub></var> = e<sup>−0.15·rain</sup> · (1 + 0.01(<var>T</var> − 10)) · (1 + 0.10·holiday) until the truck arrives. Rain also slows driving: θ = 1 + 0.10 × the share of the shift’s hours with rain. All four effect sizes are assumptions.</p>
+        <p>This is NP-hard, and tomorrow has <b data-mk="nStops">–</b> stops, so we solve it with <b>simulated annealing</b>: start by filling truck after truck with the nearest stop that still fits; then, again and again, change the plan a little (move a stop, swap two, reverse part of a trip, swap the ends of two trips, drop or add a stop) and keep the change if it lowers the objective, or with probability e<sup>−Δ/<var>T</var></sup> if it raises it, cooling <var>T</var> geometrically. A change that breaks a constraint is never made.</p>
         <p class="note" id="routeNote"></p>
       </div>
       <div class="m-widget">

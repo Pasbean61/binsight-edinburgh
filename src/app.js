@@ -268,7 +268,7 @@ reported hourly, capped at 100 %</div><p class="note">On this site the readings 
 pᵢ = 1 − Φ((100 − μᵢ) / σᵢ)
 
 collect i  ⇔  pᵢ > α   or   pᵢ c_o − Δᵢ kᵢ/τᵢ > λ tᵢ</div></div>`,
-    `<div><h4>A multi-trip vehicle-routing problem, solved by our own heuristic</h4><p class="muted">Costs come from shortest paths on Edinburgh’s street graph. Each truck carries ${fmt(f.capacity_l / 1000)} m³ per load, tips at Seafield and goes out again, inside an ${fmt(f.shift_min / 60)}-hour shift. Clarke–Wright savings builds the trips, local search and simulated annealing improve them, and first-fit decreasing packs them into shifts.</p>
+    `<div><h4>A multi-trip vehicle-routing problem, solved by simulated annealing</h4><p class="muted">Costs come from shortest paths on Edinburgh’s street graph. Each truck carries ${fmt(f.capacity_l / 1000)} m³ per load, tips at Seafield and goes out again, inside an ${fmt(f.shift_min / 60)}-hour shift. One simulated-annealing search builds and improves every truck’s trips together; rain lengthens driving times and the weather and holiday factor raises each stop’s load.</p>
       <ul><li>${fmt(p.served)} stops in ${p.trips} trips by ${p.trucks_used} trucks, ${fmt(p.road_km)} km on real streets</li><li>Proven optimal on ${D.site.maths.route.validation.summary.ours.optimal} of 30 small real instances</li><li>Stops the fleet cannot fit are reported, never silently dropped</li><li>${toMaths(3)}</li></ul></div>
      <div><div class="formula">minimise   Σ cᵢⱼ xᵢⱼ ,  cᵢⱼ = £${f.cost_km}/km + £${fmt(f.cost_hour)}/h
 subject to  each chosen stop visited once

@@ -50,10 +50,22 @@ SENSOR_NOISE = 1.0
 #   how many flats each stop serves). Hour-of-day profile: simulate.HOUR_W.
 DAILY_FILL_SPREAD = 0.35
 # REAL: City of Edinburgh Council public holidays 2026 (Spring holiday and Victoria Day still to be
-#   checked) and school holidays 2026/27 (edinburgh.gov.uk/schools/term-dates). Forecast inputs only.
+#   checked) and school holidays 2026/27 (edinburgh.gov.uk/schools/term-dates).
 PUBLIC_HOLIDAYS = ["2026-01-01", "2026-01-02", "2026-04-03", "2026-04-06", "2026-05-04",
                    "2026-09-14", "2026-12-25", "2026-12-28"]
 SCHOOL_HOLIDAYS = [("2026-10-12", "2026-10-19")]        # October mid-term break, inclusive
+
+# ── weather and holiday factors ──────────────────────────────────────────────
+# The weather and the holiday calendar are REAL inputs. The SIZE of their effects is an ASSUMPTION
+# (no published Edinburgh figure); each is one number here. They act in two places:
+#   the simulator   (simulate.factor): hourly deposits × w_t
+#   the route model (decide.demand, decide.slowdown): the load and the shift-time constraints
+# w_t = exp(RAIN_EFFECT · 1[rain ≥ 0.5 mm]) · (1 + TEMP_EFFECT · (T − 10 °C)) · (1 + HOLIDAY_EFFECT · 1[holiday]),
+# rescaled to mean 1 over the simulated hours, so the calibrated average fill rate is unchanged.
+RAIN_EFFECT = -0.15     # ASSUMPTION: fewer trips to the bin store in a wet hour (log multiplier)
+TEMP_EFFECT = 0.01      # ASSUMPTION: +1 % deposits per °C above 10 °C
+HOLIDAY_EFFECT = 0.10   # ASSUMPTION: +10 % deposits on a public or school holiday (more people at home)
+RAIN_SLOWDOWN = 0.10    # ASSUMPTION: driving takes 10 % longer in a wet hour
 
 # ── assumed operations ────────────────────────────────────────────────────────
 # DERIVED: the trucks the council's own every-two-days timetable needs on its busiest day

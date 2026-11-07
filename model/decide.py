@@ -1,22 +1,64 @@
 """
-Layer 4a: which stops get a truck tomorrow.
+Layer 4a: which stops get a truck tomorrow, and the inputs of the route model.
 
 One rule:  sort the stops by projected fill ŷ_i at the next chance of a truck (predict.py), fullest
 first, and take them while the fleet still has time.  A stop projected below FLOOR % is never taken,
 so trucks are not sent to stops that can safely wait even on a quiet day.
 
 The time a stop uses is its lifting time plus the drive from its nearest other candidate stop, and
-each full load adds a trip to the depot to tip.  This estimate is rough on purpose: routing
-(route.py) has the final say, and if the routes do not fit it drops the least risky stops first.
+each full load adds a trip to the depot to tip.  This estimate is rough on purpose: the route model
+(route.py) has the final say, and if the routes do not fit it leaves out the stops of least prize.
+
+Weather and holidays enter the route model's constraints here:
+  demand()    q_i, the load constraint:    q_i = cap_i · min(1, (y_i + b_i · W_i) / 100)
+              b_i = y_i / Σ w_h over the hours since stop i was last emptied   (its fill per unit of w)
+              W_i = Σ w_h from the decision to the truck's visit,  w_h = simulate.factor()  (rain, temperature, holiday)
+  slowdown()  θ, the shift constraint:     θ = 1 + κ · (share of the shift's hours with ≥ 0.5 mm of rain)
 """
+import functools
+
 import numpy as np
 
 from . import config as C
 from . import route as RT
+from . import simulate as SM
 
-PACKING = 0.95          # share of fleet time first-fit packing can fill
-# hours from the 05:00 decision to the middle of the 06:00 shift, when a truck reaches a typical stop
-VISIT_H = 1 + C.SHIFT_MIN / 60 / 2
+PACKING = 0.95          # share of fleet time the routes can fill
+MID_SHIFT_H = C.SHIFT_MIN / 60 / 2      # a truck reaches a typical stop half-way through the shift
+
+
+@functools.lru_cache(maxsize=None)
+def _calendar():
+    _, rain = SM.weather()
+    return SM.factor(), rain
+
+
+def shift_start(t):
+    """First 06:00 at or after hour t."""
+    return t + (C.SHIFT_START_H - t) % 24
+
+
+def slowdown(t_dec):
+    """θ for the next shift after a decision at hour t_dec."""
+    _, rain = _calendar()
+    h0 = shift_start(t_dec)
+    shift = rain[h0:h0 + C.SHIFT_MIN // 60]
+    return 1 + C.RAIN_SLOWDOWN * float((shift >= .5).mean()) if len(shift) else 1.0
+
+
+def demand(st, y, last, t_dec):
+    """Litres in every stop when the truck arrives, with the weather and holiday factor w_h.
+
+    y: readings (%) at t_dec − 1; last: hour each stop was last emptied (−1 if never)."""
+    w, _ = _calendar()
+    cw = np.r_[0, np.cumsum(w)]                                   # Σ w over hours [a, b) = cw[b] − cw[a]
+    start = np.where(last >= 0, last + 1, 0)
+    w_since = cw[t_dec] - cw[np.minimum(start, t_dec)]
+    b = np.where(w_since > 1, y / np.maximum(w_since, 1e-9), np.nan)
+    b = np.where(np.isnan(b), np.nanmedian(b), b)
+    t1 = min(int(round(shift_start(t_dec) + MID_SHIFT_H)), len(w))
+    W = cw[t1] - cw[t_dec]
+    return st["cap"] * np.clip(y + b * W, 0, 100) / 100
 
 
 def svc_min(nb):
@@ -43,24 +85,26 @@ def choose(proj, tmin, q, budget, floor=C.FLOOR, Q=C.TRUCK_LOAD_L, tip=C.TIP_MIN
     return chosen
 
 
-def plan(st, T, D, y, proj, gain, floor=C.FLOOR, fleet=C.FLEET, sa_seconds=3.0, seed=0, verbose=False,
-         tmax=C.SHIFT_MIN, Q=C.TRUCK_LOAD_L, svc_scale=1.0, Tm_all=None):
+def plan(st, T, D, y, proj, last, t_dec, floor=C.FLOOR, fleet=C.FLEET, seconds=10.0, seed=0, verbose=False,
+         tmax=C.SHIFT_MIN, Q=C.TRUCK_LOAD_L, Tm_all=None):
     """Choose and route tomorrow's stops.
 
-    y: latest readings (%); proj: projected fill at the next chance of a truck (%);
-    gain: predicted fill gain (% an hour). proj and gain come from predict.py."""
+    y: latest readings (%); proj: projected fill at the next chance of a truck (%, predict.py);
+    last: hour each stop was last emptied; t_dec: the decision hour (05:00)."""
     if Tm_all is None:
         Tm_all = ((T + T.T) / 2).astype(np.float32)
-    svc = svc_min(st["nb"]) * svc_scale
-    q = st["cap"] * np.clip(y + gain * VISIT_H, 0, 100) / 100               # litres when the truck arrives
+    theta = slowdown(t_dec)
+    svc = svc_min(st["nb"])
+    q = demand(st, y, last, t_dec)
     risky = proj >= floor
-    tmin = drive_estimate(Tm_all, risky) + svc
+    tmin = theta * drive_estimate(Tm_all, risky) + svc
     chosen = choose(proj, tmin, q, fleet * tmax * PACKING, floor, Q, C.TIP_MIN)
     idx = np.flatnonzero(chosen)
-    I = RT.Instance(idx + 1, q[idx], svc[idx], T, D, value=proj[idx], Q=Q, tmax=tmax)
-    sol = RT.solve(I, fleet=fleet, sa_seconds=sa_seconds, seed=seed, verbose=verbose)
+    prize = C.COST_OVERFLOW * proj[idx] / 100
+    I = RT.Instance(idx + 1, q[idx], svc[idx], T, D, prize=prize, Q=Q, tmax=tmax, slow=theta)
+    sol = RT.solve(I, fleet=fleet, seconds=seconds, seed=seed, verbose=verbose)
     served = chosen.copy()
     if sol["dropped"]:
         served[idx[np.asarray(sol["dropped"], int) - 1]] = False
     return {"sol": sol, "I": I, "idx": idx, "chosen": chosen, "served": served, "risky": risky,
-            "tmin": tmin, "q": q, "proj": proj}
+            "mand": proj >= 100, "tmin": tmin, "q": q, "proj": proj, "theta": theta}

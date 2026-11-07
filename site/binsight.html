@@ -842,20 +842,15 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
   <div class="card m-pane" data-m="3" hidden>
     <div class="m-grid">
       <div class="m-text">
-        <h3>Routing: a multi-trip vehicle-routing problem</h3>
-        <p>On the road graph (<span data-mk="roadKm">–</span> km of Edinburgh streets from OpenStreetMap, shortest paths by Dijkstra), with cost <var>c<sub>ij</sub></var> = £1.45·km + £75·hours:</p>
-        <div class="eq left">min &nbsp; Σ<sub><var>k</var></sub> Σ<sub><var>i</var>≠<var>j</var></sub> <var>c<sub>ij</sub> x<sub>ijk</sub></var><br>
-          s.t. &nbsp; every chosen stop is visited exactly once<br>
-          &emsp;&emsp; Σ<sub><var>i</var> ∈ trip</sub> <var>q<sub>i</sub></var> ≤ <var>Q</var> = 60 m³ per load, then tip at the depot<br>
-          &emsp;&emsp; Σ (drive + lift + tip) ≤ 480 min per truck, 24 trucks<br>
-          &emsp;&emsp; <var>u<sub>j</sub></var> ≥ <var>u<sub>i</sub></var> + <var>q<sub>j</sub></var> − <var>Q</var>(1 − <var>x<sub>ij</sub></var>) &nbsp; (no subtours), &nbsp; <var>x</var> ∈ {0, 1}</div>
-        <p>This is NP-hard, and tomorrow has <b data-mk="nStops">–</b> stops. We solve it with our own heuristic in four stages:</p>
-        <ol class="m-list">
-          <li><b>Clarke–Wright savings</b>: <var>s<sub>ij</sub></var> = <var>c</var><sub>0<var>i</var></sub> + <var>c</var><sub>0<var>j</var></sub> − <var>c<sub>ij</sub></var>, merging trips in order of saving while load and time allow.</li>
-          <li><b>Local search</b>: 2-opt and Or-opt inside trips; relocate and swap between trips, over each stop’s 20 nearest neighbours.</li>
-          <li><b>Simulated annealing</b>: accept a worse move with probability e<sup>−Δ/<var>T</var></sup>, cooling <var>T</var> geometrically, then local search again.</li>
-          <li><b>Pack trips into shifts</b> by first-fit decreasing; if the fleet is short, drop the stops of least net value.</li>
-        </ol>
+        <h3>Routing: one model, one algorithm</h3>
+        <p>On the road graph (<span data-mk="roadKm">–</span> km of Edinburgh streets from OpenStreetMap, shortest paths by Dijkstra), truck <var>k</var> makes trips <var>r</var>; <var>x<sub>ijkr</sub></var> = 1 if it drives <var>i</var> → <var>j</var>, <var>y<sub>ikr</sub></var> = 1 if it empties stop <var>i</var>. Cost <var>c<sub>ij</sub></var> = £1.45·km + £75·θ·hours, prize <var>π<sub>i</sub></var> = £60 × projected fill.</p>
+        <div class="eq left">min &nbsp; Σ <var>c<sub>ij</sub> x<sub>ijkr</sub></var> + Σ<sub><var>i</var></sub> <var>π<sub>i</sub></var>(1 − Σ<sub><var>kr</var></sub> <var>y<sub>ikr</sub></var>)<br>
+          s.t. &nbsp; Σ<sub><var>kr</var></sub> <var>y<sub>ikr</sub></var> ≤ 1 &nbsp; (each stop at most once)<br>
+          &emsp;&emsp; Σ<sub><var>i</var></sub> <var>q<sub>i</sub></var>(<var>w</var>) <var>y<sub>ikr</sub></var> ≤ <var>Q</var> = 60 m³ per trip, then tip at the depot<br>
+          &emsp;&emsp; Σ<sub><var>r</var></sub> (θ·drive + lift + tip) ≤ 480 min per truck, <span data-mk="fleet">24</span> trucks<br>
+          &emsp;&emsp; flow in = flow out, no subtours, &nbsp; <var>x</var>, <var>y</var> ∈ {0, 1}</div>
+        <p><b>Weather and holidays sit in the constraints.</b> The load <var>q<sub>i</sub></var>(<var>w</var>) = cap<sub><var>i</var></sub> · min(1, (<var>y<sub>i</sub></var> + <var>b<sub>i</sub></var> Σ<sub><var>h</var></sub> <var>w<sub>h</sub></var>) / 100) grows with the hourly factor <var>w<sub>h</sub></var> = e<sup>−0.15·rain</sup> · (1 + 0.01(<var>T</var> − 10)) · (1 + 0.10·holiday) until the truck arrives. Rain also slows driving: θ = 1 + 0.10 × the share of the shift’s hours with rain. All four effect sizes are assumptions.</p>
+        <p>This is NP-hard, and tomorrow has <b data-mk="nStops">–</b> stops, so we solve it with <b>simulated annealing</b>: start by filling truck after truck with the nearest stop that still fits; then, again and again, change the plan a little (move a stop, swap two, reverse part of a trip, swap the ends of two trips, drop or add a stop) and keep the change if it lowers the objective, or with probability e<sup>−Δ/<var>T</var></sup> if it raises it, cooling <var>T</var> geometrically. A change that breaks a constraint is never made.</p>
         <p class="note" id="routeNote"></p>
       </div>
       <div class="m-widget">
@@ -1329,7 +1324,7 @@ reported hourly, capped at 100 %</div><p class="note">On this site the readings 
 pᵢ = 1 − Φ((100 − μᵢ) / σᵢ)
 
 collect i  ⇔  pᵢ > α   or   pᵢ c_o − Δᵢ kᵢ/τᵢ > λ tᵢ</div></div>`,
-    `<div><h4>A multi-trip vehicle-routing problem, solved by our own heuristic</h4><p class="muted">Costs come from shortest paths on Edinburgh’s street graph. Each truck carries ${fmt(f.capacity_l / 1000)} m³ per load, tips at Seafield and goes out again, inside an ${fmt(f.shift_min / 60)}-hour shift. Clarke–Wright savings builds the trips, local search and simulated annealing improve them, and first-fit decreasing packs them into shifts.</p>
+    `<div><h4>A multi-trip vehicle-routing problem, solved by simulated annealing</h4><p class="muted">Costs come from shortest paths on Edinburgh’s street graph. Each truck carries ${fmt(f.capacity_l / 1000)} m³ per load, tips at Seafield and goes out again, inside an ${fmt(f.shift_min / 60)}-hour shift. One simulated-annealing search builds and improves every truck’s trips together; rain lengthens driving times and the weather and holiday factor raises each stop’s load.</p>
       <ul><li>${fmt(p.served)} stops in ${p.trips} trips by ${p.trucks_used} trucks, ${fmt(p.road_km)} km on real streets</li><li>Proven optimal on ${D.site.maths.route.validation.summary.ours.optimal} of 30 small real instances</li><li>Stops the fleet cannot fit are reported, never silently dropped</li><li>${toMaths(3)}</li></ul></div>
      <div><div class="formula">minimise   Σ cᵢⱼ xᵢⱼ ,  cᵢⱼ = £${f.cost_km}/km + £${fmt(f.cost_hour)}/h
 subject to  each chosen stop visited once
@@ -2042,7 +2037,7 @@ function initMaths() {
     bag: fmt(P.BAG_L), median: P.DAILY_FILL_MEDIAN.toFixed(2), phiTrue: fmt(P.BAG_L * (1 + 1 / P.BAG_SHAPE), 1), phiHat: fmt(F.phi, 1),
     rainFx: `${fmt(rainCut, 1)} % fewer deposits in a wet hour (true value ${fmt(rainTrue, 1)} %)`,
     co: fmt(P.COST_OVERFLOW), alpha: P.ALPHA.toFixed(2), ckm: P.COST_KM.toFixed(2), chr: fmt(P.COST_HOUR),
-    roadKm: fmt(D.site.totals.road_km), nStops: fmt(M.route.stops),
+    roadKm: fmt(D.site.totals.road_km), nStops: fmt(M.route.stops), fleet: fmt(D.site.fleet.trucks),
     lambda: lamT == null ? "–" : lamT > 0 ? `λ = £${fmt(lamT, 2)} per truck-minute: the fleet is the bottleneck` : "λ = 0, the fleet has room",
   };
   $$("[data-mk]").forEach(el => { const v = vals[el.dataset.mk]; if (v != null) el.textContent = v; });
@@ -2206,7 +2201,7 @@ function mathsRoute(M) {
   $$("#toyBtns button").forEach(b => b.onclick = () => draw(b.dataset.a));
   draw("nn");
   const R = M.route;
-  $("#routeNote").textContent = `Tomorrow’s ${fmt(R.stops)} stops: savings £${fmt(R.cw)} → local search £${fmt(R.ls)} → annealing £${fmt(R.sa)}, in ${R.trips} trips on ${R.trucks} trucks, solved in ${fmt(R.seconds, 1)} s.`;
+  $("#routeNote").textContent = `Tomorrow’s ${fmt(R.stops)} stops: start £${fmt(R.start)} → annealed £${fmt(R.final)} after ${fmt(R.iterations)} tried changes, in ${R.trips} trips on ${R.trucks} trucks, solved in ${fmt(R.seconds, 1)} s. Rain slowdown θ = ${fmt(R.theta, 3)}.`;
 }
 
 /* 5 · validation, bound, fleet, Pareto, sensitivity */
@@ -2486,7 +2481,7 @@ const KB = [
   { id: "policy", q: ["policy pressure", "landfill ban", "pepr", "extended producer responsibility", "circular economy act", "why now"], k: "policy landfill ban 2028 pepr 17.3 circular economy act 2024 targets why now timing",
     a: "Three rules make efficiency urgent:\n- **Packaging EPR (from 2025):** producers pay councils for packaging waste. Edinburgh gets about **£17.3m** in 2026/27, and up to 20 % can be withheld from services judged inefficient (GOV.UK; COSLA).\n- **Landfill ban:** biodegradable municipal waste is banned from landfill, with SEPA enforcing fully from **1 January 2028**.\n- **Circular Economy (Scotland) Act 2024:** a statutory recycling code, council targets expected from 2030, and penalties for persistent contamination.", f: ["What does the council already have?", "How does BinSight make money?"], go: "problem" },
   { id: "how", q: ["how does it work", "how does binsight work", "the process", "steps", "sense predict optimise collect"], k: "how works steps sense predict optimise collect pipeline",
-    a: "Four steps:\n1. **Sense:** a battery sensor in the bin lid reports fill level every hour.\n2. **Predict:** our forecast learns the city’s hourly, weekly and weather pattern and each stop’s own fill rate, and gives each stop a probability of overflowing before the next truck.\n3. **Decide and route:** a chance-constrained cost rule picks the stops worth a truck, and our own routing heuristic (savings, local search, simulated annealing) plans 8-hour shifts on Edinburgh’s real streets.\n4. **Collect:** crews follow the plan in a driver view; residents report problems in an app and earn vouchers.\n\nWe don’t make bins or run trucks. Councils keep their bins, vehicles and crews.", f: ["How accurate is the forecast?", "How are routes planned?", "Show me a truck route"], go: "how" },
+    a: "Four steps:\n1. **Sense:** a battery sensor in the bin lid reports fill level every hour.\n2. **Predict:** our forecast learns the city’s hourly, weekly and weather pattern and each stop’s own fill rate, and gives each stop a probability of overflowing before the next truck.\n3. **Decide and route:** a chance-constrained cost rule picks the stops worth a truck, and one simulated-annealing search plans 8-hour shifts on Edinburgh’s real streets.\n4. **Collect:** crews follow the plan in a driver view; residents report problems in an app and earn vouchers.\n\nWe don’t make bins or run trucks. Councils keep their bins, vehicles and crews.", f: ["How accurate is the forecast?", "How are routes planned?", "Show me a truck route"], go: "how" },
   { id: "sensor", q: ["what sensor", "how does the sensor work", "hardware", "esp32", "ultrasonic", "battery"], k: "sensor hardware esp32 ultrasonic wokwi battery lid mount",
     a: "The sensor in the business plan is a small battery-powered **ultrasonic fill sensor** (for example an ESP32 board with an ultrasonic distance sensor) on a universal mount inside the lid. It measures the gap between the lid and the waste, converts it to a fill percentage and reports it a few times an hour. It collects bin-level data only, no personal data. On this site the readings are **simulated**: we have not deployed hardware, and the model only needs a fill percentage per stop per hour.\n\nEdinburgh already has **11,000** sensors in communal and litter bins (£6.4m programme), so BinSight’s software can also run on sensors the council owns.", f: ["Does Edinburgh already use sensors?", "What does the platform do with the data?"], go: "how" },
   { id: "existing", q: ["does edinburgh already have sensors", "existing sensors", "glass bin sensors", "what does the council already have", "why not use existing sensors"], k: "existing sensors 11000 6.4m glass 2700 3400 dynamic manchester",

@@ -19,7 +19,7 @@ function initMaths() {
     bag: fmt(P.BAG_L), median: P.DAILY_FILL_MEDIAN.toFixed(2), phiTrue: fmt(P.BAG_L * (1 + 1 / P.BAG_SHAPE), 1), phiHat: fmt(F.phi, 1),
     rainFx: `${fmt(rainCut, 1)} % fewer deposits in a wet hour (true value ${fmt(rainTrue, 1)} %)`,
     co: fmt(P.COST_OVERFLOW), alpha: P.ALPHA.toFixed(2), ckm: P.COST_KM.toFixed(2), chr: fmt(P.COST_HOUR),
-    roadKm: fmt(D.site.totals.road_km), nStops: fmt(M.route.stops),
+    roadKm: fmt(D.site.totals.road_km), nStops: fmt(M.route.stops), fleet: fmt(D.site.fleet.trucks),
     lambda: lamT == null ? "–" : lamT > 0 ? `λ = £${fmt(lamT, 2)} per truck-minute: the fleet is the bottleneck` : "λ = 0, the fleet has room",
   };
   $$("[data-mk]").forEach(el => { const v = vals[el.dataset.mk]; if (v != null) el.textContent = v; });
@@ -183,7 +183,7 @@ function mathsRoute(M) {
   $$("#toyBtns button").forEach(b => b.onclick = () => draw(b.dataset.a));
   draw("nn");
   const R = M.route;
-  $("#routeNote").textContent = `Tomorrow’s ${fmt(R.stops)} stops: savings £${fmt(R.cw)} → local search £${fmt(R.ls)} → annealing £${fmt(R.sa)}, in ${R.trips} trips on ${R.trucks} trucks, solved in ${fmt(R.seconds, 1)} s.`;
+  $("#routeNote").textContent = `Tomorrow’s ${fmt(R.stops)} stops: start £${fmt(R.start)} → annealed £${fmt(R.final)} after ${fmt(R.iterations)} tried changes, in ${R.trips} trips on ${R.trucks} trucks, solved in ${fmt(R.seconds, 1)} s. Rain slowdown θ = ${fmt(R.theta, 3)}.`;
 }
 
 /* 5 · validation, bound, fleet, Pareto, sensitivity */

@@ -4,10 +4,12 @@ Layer 5: before and after.  A rolling-horizon experiment with common random numb
 For each seed, the same simulated deposits (and the same sensor noise) are fed to three policies:
 
   timetable   every stop every second day, on fixed geographic rounds (today's practice)
-
-All three use the same fleet: the trucks the timetable needs on its busiest day (setup()).
   reactive    every stop whose sensor reads ≥ 80 % at 05:00 (sensors, no forecast)
   binsight    the random-forest fill forecast + fullest-first choice + routing of this model
+
+All three use the same fleet: the trucks the timetable needs on its busiest day (setup()).
+The reactive rule and BinSight route each day with that day's rain slowdown θ; the timetable's
+rounds are fixed.
 
 Every policy runs the timetable for the first 15 days, then itself for 14 days; the last 7
 (26 Oct – 1 Nov) are scored. Trucks start at 06:00 and empty each stop in the hour the schedule
@@ -42,7 +44,7 @@ def setup():
     _G.update(st=st, T=T, D=D, Cm=(C.COST_KM * Ds + C.COST_HOUR * Ts / 60).astype(np.float32), Tm=Ts.astype(np.float32),
               rounds=timetable_rounds(st), weather=SM.weather())
     # the council's timetable: one fixed route per round, no fleet limit; its busiest day sets the fleet
-    _G["fixed"] = {g: route_fixed(_G, _G["rounds"] == g) for g in range(C.TIMETABLE_EVERY)}
+    _G["fixed"] = {g: size_fleet(_G, _G["rounds"] == g) for g in range(C.TIMETABLE_EVERY)}
     _G["fleet"] = max(len(sol["trucks"]) for _, sol, _ in _G["fixed"].values())
     C.FLEET = _G["fleet"]
     return _G
@@ -62,11 +64,25 @@ def timetable_rounds(st, k=C.TIMETABLE_EVERY):
     return grp[st["ward"]]
 
 
-def route_fixed(G, mask, fleet=99, sa=1.0, seed=0):
+def route_fixed(G, mask, fleet=None, seconds=5.0, seed=0, slow=1.0):
+    """Route every stop in mask (all required). fleet=None: as many trucks as needed."""
     st = G["st"]
     idx = np.flatnonzero(mask)
-    I = RT.Instance(idx + 1, st["cap"][idx] * .6, DC.svc_min(st["nb"][idx]), G["T"], G["D"])
-    return I, RT.solve(I, fleet=fleet, sa_seconds=sa, seed=seed), idx
+    I = RT.Instance(idx + 1, st["cap"][idx] * .6, DC.svc_min(st["nb"][idx]), G["T"], G["D"], slow=slow)
+    return I, RT.solve(I, fleet=fleet, seconds=seconds, seed=seed), idx
+
+
+def size_fleet(G, mask, seconds=20.0):
+    """The fewest trucks with which the annealing still empties every stop of a timetable round:
+    start from the trucks the starting solution needs, then try one fewer until a stop is left out."""
+    best = route_fixed(G, mask, fleet=None, seconds=seconds)
+    k = len(best[1]["trucks"])
+    while k > 1:
+        trial = route_fixed(G, mask, fleet=k - 1, seconds=seconds)
+        if trial[1]["dropped"]:
+            break
+        best, k = trial, k - 1
+    return best
 
 
 def empties(I, sol, idx, day):
@@ -84,7 +100,7 @@ def day_stats(I, sol):
             "stops": I.n - len(sol["dropped"]), "dropped": len(sol["dropped"]), "cost": sol["cost"]}
 
 
-def run(seed, policy, warm=WARM_DAYS, days=RUN_DAYS, sa=2.0):
+def run(seed, policy, warm=WARM_DAYS, days=RUN_DAYS, seconds=15.0):
     G = setup()
     st, rounds = G["st"], G["rounds"]
     temp, rain = G["weather"]
@@ -105,13 +121,15 @@ def run(seed, policy, warm=WARM_DAYS, days=RUN_DAYS, sa=2.0):
             I, sol, idx = G["fixed"][day % C.TIMETABLE_EVERY]
         elif pol == "reactive":
             y = B.Y[:, t_dec - 1]
-            I, sol, idx = route_fixed(G, y >= C.REACTIVE_AT, fleet=G["fleet"], sa=sa, seed=day)
+            I, sol, idx = route_fixed(G, y >= C.REACTIVE_AT, fleet=G["fleet"], seconds=seconds, seed=day,
+                                      slow=DC.slowdown(t_dec))
         else:
             y = B.Y[:, t_dec - 1].astype(float)
             t1 = t_dec + 1 + C.HORIZON_H
             rf = PR.FillForest(st, temp, rain, seed=seed).fit(B.Y, B.K, t_dec)
             proj = rf.predict(B.Y, B.K, t_dec, t1)
-            r = DC.plan(st, G["T"], G["D"], y, proj, rf.gain, fleet=G["fleet"], sa_seconds=sa, seed=day, Tm_all=G["Tm"])
+            r = DC.plan(st, G["T"], G["D"], y, proj, B.last, t_dec, fleet=G["fleet"], seconds=seconds, seed=day,
+                        Tm_all=G["Tm"])
             I, sol, idx = r["I"], r["sol"], r["idx"]
             rec.update(risky=int(r["risky"].sum()), chosen=int(r["chosen"].sum()))
         rec.update(day_stats(I, sol))
