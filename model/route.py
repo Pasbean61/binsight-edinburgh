@@ -11,17 +11,17 @@ Model: a prize-collecting multi-trip capacitated vehicle-routing problem with a 
   s_i         lifting minutes at stop i;   Q = 60,000 L a load;   H = 480 min a shift;   t_tip = 25 min
   π_i         £ prize for emptying stop i (decide.py: £60 × projected fill / 100; 10⁶ if it must be emptied)
 
-  x_ijkr = 1 if truck k drives i → j on its trip r;   y_ikr = 1 if trip r of truck k empties i;   u_kr = 1 if used
+  x_ijkr = 1 if truck k drives i → j on its trip r;   z_ikr = 1 if trip r of truck k empties i;   u_kr = 1 if used
 
-  minimise   Σ_kr Σ_ij c_ij x_ijkr  +  Σ_i π_i (1 − Σ_kr y_ikr)                  driving cost + unserved prizes
+  minimise   Σ_kr Σ_ij c_ij x_ijkr  +  Σ_i π_i (1 − Σ_kr z_ikr)                  driving cost + unserved prizes
   subject to
-    (1) Σ_kr y_ikr ≤ 1                                   ∀ i ∈ N      each stop emptied at most once
-    (2) Σ_j x_ijkr = Σ_j x_jikr = y_ikr                  ∀ i, k, r    arrive at a stop, leave it
+    (1) Σ_kr z_ikr ≤ 1                                   ∀ i ∈ N      each stop emptied at most once
+    (2) Σ_j x_ijkr = Σ_j x_jikr = z_ikr                  ∀ i, k, r    arrive at a stop, leave it
     (3) Σ_j x_0jkr = u_kr                                ∀ k, r       a used trip leaves the depot once
-    (4) Σ_i q_i y_ikr ≤ Q u_kr                           ∀ k, r       load       (weather and holidays via q_i)
-    (5) Σ_r ( Σ_ij θ τ_ij x_ijkr + Σ_i s_i y_ikr + t_tip u_kr ) ≤ H    ∀ k    shift     (rain via θ)
+    (4) Σ_i q_i z_ikr ≤ Q u_kr                           ∀ k, r       load       (weather and holidays via q_i)
+    (5) Σ_r ( Σ_ij θ τ_ij x_ijkr + Σ_i s_i z_ikr + t_tip u_kr ) ≤ H    ∀ k    shift     (rain via θ)
     (6) no sub-tours (Σ_{i,j∈S} x_ijkr ≤ |S| − 1 for every S ⊆ N)
-    x, y, u ∈ {0, 1}
+    x, z, u ∈ {0, 1}
 
 With 1,000+ stops this cannot be solved exactly in minutes, so it is solved by simulated annealing.
 
