@@ -48,53 +48,47 @@ and may pass 100 %: a stop projected at 130 % is expected to overflow well befor
 
 ## 4 · Route: one model, solved by simulated annealing (`route.py`, `decide.py`, `network.py`)
 
-**Costs.** The street graph comes from OpenStreetMap (largest connected component, speeds by road class, undirected). Dijkstra gives every distance dᵢⱼ (km) and driving time τᵢⱼ (min).
+The stops chosen in section 3 are routed as one **prize-collecting multi-trip vehicle-routing problem with a shift limit**: K trucks leave the Seafield depot (0), and truck k makes trips r = 1, 2, …, tipping at the depot between them.
 
-**Model: a prize-collecting multi-trip vehicle-routing problem with a shift limit.** N is the set of stops chosen in section 3, 0 the Seafield depot, K the trucks; truck k makes trips r = 1, 2, … .
+- **Network (real).** Dijkstra on the OpenStreetMap street graph (largest connected component, undirected, speeds by road class) gives every distance dᵢⱼ (km) and driving time τᵢⱼ (min).
+- **Cost of a drive.** cᵢⱼ = 1.45 · dᵢⱼ + 75 · θτᵢⱼ / 60 (£): £1.45 per km for fuel and wear, £75 per truck-hour for crew and vehicle. θ ≥ 1 is the rain slowdown (below).
+- **Prize.** πᵢ = 60 · ŷᵢ / 100 (£) is paid if stop i is left out: its share of a £60 overflow, so the fuller the stop, the dearer it is to skip.
+- **Operations (assumed).** One load Q = 60,000 L; one shift H = 480 min; tipping t_tip = 25 min; emptying stop i takes sᵢ = 2 + 1 · binsᵢ min.
 
-| Symbol | Meaning |
-|---|---|
-| xᵢⱼₖᵣ ∈ {0,1} | truck k drives i → j on its trip r |
-| yᵢₖᵣ ∈ {0,1} | trip r of truck k empties stop i |
-| uₖᵣ ∈ {0,1} | truck k makes a trip r |
-| cᵢⱼ = 1.45 · dᵢⱼ + 75 · θ τᵢⱼ / 60 | £ to drive i → j |
-| qᵢ | litres in stop i when the truck arrives (weather and holidays, below) |
-| sᵢ = 2 + 1 · bins | minutes to empty stop i |
-| Q = 60,000 L,  H = 480 min,  t_tip = 25 min | load, shift, tipping time |
-| πᵢ = £60 × ŷᵢ / 100 | prize for emptying stop i (ŷᵢ = projected fill) |
+**Variables.** xᵢⱼₖᵣ = 1 if truck k drives i → j on trip r; zᵢₖᵣ = 1 if that trip empties stop i; uₖᵣ = 1 if the trip is made.
 
-  minimise   Σₖᵣ Σᵢⱼ cᵢⱼ xᵢⱼₖᵣ + Σᵢ πᵢ (1 − Σₖᵣ yᵢₖᵣ)
+  minimise   Σₖᵣ Σᵢⱼ cᵢⱼ xᵢⱼₖᵣ + Σᵢ πᵢ (1 − Σₖᵣ zᵢₖᵣ)   (driving cost + prizes of the stops left out)
 
-  subject to
-  1. Σₖᵣ yᵢₖᵣ ≤ 1 for every stop: emptied at most once
-  2. Σⱼ xᵢⱼₖᵣ = Σⱼ xⱼᵢₖᵣ = yᵢₖᵣ: a truck that comes to a stop leaves it
-  3. Σⱼ x₀ⱼₖᵣ = uₖᵣ: a trip leaves the depot once
-  4. **Load:** Σᵢ qᵢ yᵢₖᵣ ≤ Q uₖᵣ for every trip, then the truck tips
-  5. **Shift:** Σᵣ (Σᵢⱼ θ τᵢⱼ xᵢⱼₖᵣ + Σᵢ sᵢ yᵢₖᵣ + t_tip uₖᵣ) ≤ H for every truck
-  6. no sub-tours; x, y, u binary
+subject to
 
-The objective trades driving cost against leaving stops out: a stop is left out only if the fleet cannot fit it, and then the least full go first. The timetable's stops all get π = 10⁶, so all are emptied.
+1. Σₖᵣ zᵢₖᵣ ≤ 1: each stop is emptied at most once;
+2. Σⱼ xᵢⱼₖᵣ = Σⱼ xⱼᵢₖᵣ = zᵢₖᵣ: a truck that arrives at a stop leaves it;
+3. Σⱼ x₀ⱼₖᵣ = uₖᵣ: every trip made starts at the depot;
+4. **Load:** Σᵢ qᵢ zᵢₖᵣ ≤ Q uₖᵣ: a trip carries at most one load, then tips;
+5. **Shift:** Σᵣ (Σᵢⱼ θτᵢⱼ xᵢⱼₖᵣ + Σᵢ sᵢ zᵢₖᵣ + t_tip uₖᵣ) ≤ H: a truck's driving, emptying and tipping fit one shift;
+6. no sub-tours; x, z, u ∈ {0, 1}.
 
-**Weather and holidays in the constraints.**
-- *Load (4).* qᵢ = capᵢ · min(1, (yᵢ + bᵢ · Wᵢ) / 100). Here yᵢ is the latest reading, bᵢ = yᵢ / Σ wₕ over the hours since stop i was last emptied (its fill per unit of factor), and Wᵢ = Σ wₕ from the decision to mid-shift. A rainy morning lowers qᵢ, a warm day or a holiday raises it, with the same wₕ as the simulator.
-- *Shift (5).* θ = 1 + 0.10 × (share of the shift's hours with ≥ 0.5 mm of rain). Rain makes every drive longer, so fewer stops fit in 480 minutes and each costs more. The 10 % is an assumption (`RAIN_SLOWDOWN`).
+Serving stop i costs the drive to reach it; skipping it costs πᵢ. A stop is therefore left out only when the fleet cannot fit it, and then the least full go first. The timetable and the reactive rule must empty every stop they pick, so for them πᵢ = 10⁶ and qᵢ = 0.6 · capᵢ.
 
-**Algorithm: simulated annealing, the only one.** The model is NP-hard and tomorrow has over a thousand stops, so it is solved approximately by one method.
-1. **Start.** Fill truck after truck, trip after trip, with the nearest stop that still fits (4) and (5). Stops that do not fit wait in a pool.
-2. **Move.** Pick a stop v and one of its 20 nearest stops w, then try one change:
-   - *relocate* v next to w (a pooled v is added);
-   - *swap* v and w (a pooled stop can replace a served one);
-   - *2-opt*: reverse the path between v and w in one trip;
-   - *2-opt\**: cut two trips after v and after w and reconnect them;
-   - *drop* v to the pool, or put v on a *new trip*;
-   - now and then, hand a trip to another truck, or let two trucks trade trips, to gather spare shift time.
-   A change that breaks (1)–(6) is never made, so every plan is feasible.
-3. **Accept.** Keep the change if the objective falls (Δ ≤ 0), or with probability exp(−Δ/T) if it rises. T cools geometrically from 3 × the mean arc cost to 0.002 × over the time budget (30 s for tomorrow's plan, 15 s a day in the experiment).
+**Weather and holidays** enter (4) and (5) through the same hourly factor wₕ as the simulator (section 1):
+
+- **Load.** qᵢ = capᵢ · min(1, (yᵢ + bᵢW) / 100), with yᵢ the latest reading, bᵢ = yᵢ / Σ wₕ over the hours since stop i was last emptied (its fill per unit of factor), and W = Σ wₕ from the decision to mid-shift. Rain lowers qᵢ; warmth or a holiday raises it.
+- **Shift.** θ = 1 + 0.10 · (share of the shift's hours with ≥ 0.5 mm of rain). Rain lengthens every drive, so fewer stops fit and each costs more. The 10 % is an assumption (`RAIN_SLOWDOWN`).
+
+**Algorithm: simulated annealing.** The model is NP-hard and a day has over a thousand stops, so it is solved approximately, by this one method. Every plan it visits satisfies (1)–(6).
+
+1. **Start.** Fill truck after truck, trip after trip, with the nearest stop that still fits (4) and (5); the rest wait in a pool.
+2. **Move.** Pick a stop v and one of its 20 nearest stops w, and try one change: *relocate* v next to w, *swap* v and w, *2-opt* (reverse the path from v to w in a trip), *2-opt\** (exchange the tails of two trips after v and w), *drop* v to the pool, or put v on a *new trip*. A pooled stop comes back by relocate or swap. Now and then a whole trip moves to another truck, or two trucks trade trips, to gather spare shift time.
+3. **Accept** a change Δ in the objective if Δ ≤ 0, otherwise with probability e^(−Δ/T). The temperature cools geometrically over the time budget t_max:
+
+   T(t) = T₀ · (T₁ / T₀)^(t / t_max),   T₀ = 3c̄,   T₁ = 0.002c̄,
+
+   where c̄ is the mean arc cost of the starting plan, and t_max = 30 s for tomorrow's plan, 15 s a day in the experiment.
 4. **Return** the best plan seen.
 
-**Fleet for the timetable.** The annealing first routes each timetable round with as many trucks as its start needs, then again with one truck fewer, until a stop is left out. The fewest trucks that still empty every stop, on the busiest round, become the fleet for all three policies.
+**Fleet.** Each timetable round g is routed with the trucks its start needs, then with one fewer at a time until a stop is left out; K(g) is the last count that still empties every stop. The fleet for all three policies is K = max K(g) over the rounds, i.e. what the busiest round needs.
 
-**Check against the previous four-stage heuristic** (savings, local search, annealing, packing), on real stop locations with straight-line distance × 1.35 at 22 km/h, 24 trucks, equal time:
+**Check against the previous four-stage heuristic** (savings, local search, annealing, packing), on real stop locations with straight-line distance × 1.35 at 22 km/h, 24 trucks, equal run time:
 
 | Instance | Previous: £ route + £60 per stop left out | Annealing only |
 |---|---:|---:|
@@ -104,7 +98,7 @@ The objective trades driving cost against leaving stops out: a stop is left out 
 | Timetable round of 2,404 stops (route £, trucks) | £6,611, 35 | £6,479, 35 |
 | Timetable round of 2,128 stops (route £, trucks) | £5,028, 30 | £4,830, 31 |
 
-Annealing alone did as well as or better than the previous four stages on route cost in every case, needing one truck more on the smaller round. These checks use an approximate distance matrix; rerun them on the OpenStreetMap matrix.
+Annealing alone matched or beat the four stages on route cost every time, at one truck more on the smaller round. These checks used an approximate distance matrix; rerun them on the OpenStreetMap matrix.
 
 ## 5 · Before and after (`experiment.py`)
 
