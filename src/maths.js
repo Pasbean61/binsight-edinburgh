@@ -1,9 +1,8 @@
 /* ── the maths: five interactive explainers on the live model output ── */
-const Phi = x => { const t = 1 / (1 + .3275911 * Math.abs(x) / Math.SQRT2), y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - .284496736) * t + .254829592) * t * Math.exp(-x * x / 2); return x >= 0 ? .5 * (1 + y) : .5 * (1 - y); };
 function rng32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function poisson(l, u) { if (l > 30) { const z = Math.sqrt(-2 * Math.log(u() || 1e-12)) * Math.cos(2 * Math.PI * u()); return Math.max(0, Math.round(l + Math.sqrt(l) * z)); } let k = 0, p = 1; const L = Math.exp(-l); do { k++; p *= u(); } while (p > L); return k - 1; }
-function gammaDraw(k, th, u) { const d = k - 1 / 3, c = 1 / Math.sqrt(9 * d); for (;;) { let x, v; do { x = Math.sqrt(-2 * Math.log(u() || 1e-12)) * Math.cos(2 * Math.PI * u()); v = 1 + c * x; } while (v <= 0); v = v * v * v; const w = u(); if (w < 1 - .0331 * x ** 4 || Math.log(w) < .5 * x * x + d * (1 - v + Math.log(v))) return d * v * th; } }
 const svgAxisY = (x0, x1, y, vals, f) => vals.map(v => `<line class="grid" x1="${x0}" x2="${x1}" y1="${y(v)}" y2="${y(v)}"/><text x="${x0 - 6}" y="${y(v) + 4}" text-anchor="end">${f(v)}</text>`).join("");
+const FEATURE_LABEL = { fill: "Latest reading", rate: "Fill rate since last emptied", d24: "Change over the last 24 h", hours_since: "Hours since last emptied", cap: "Capacity", weekday: "Weekday", rain_h: "Hours of rain ahead", temp: "Mean temperature ahead", holiday: "Share of holiday hours ahead" };
 
 function initMaths() {
   const M = D.site.maths; if (!M) return;
@@ -13,120 +12,101 @@ function initMaths() {
   $$("#mTabs button").forEach(b => b.onclick = () => show(+b.dataset.m));
   BS.mathsTab = show;
   // numbers in the text
-  const lamT = M.decide.rounds?.at(-1)?.lambda;
-  const rainCut = 100 * (1 - F.rain), rainTrue = 100 * (1 - Math.exp(P.RAIN_EFFECT));
   const vals = {
-    bag: fmt(P.BAG_L), median: P.DAILY_FILL_MEDIAN.toFixed(2), phiTrue: fmt(P.BAG_L * (1 + 1 / P.BAG_SHAPE), 1), phiHat: fmt(F.phi, 1),
-    rainFx: `${fmt(rainCut, 1)} % fewer deposits in a wet hour (true value ${fmt(rainTrue, 1)} %)`,
-    co: fmt(P.COST_OVERFLOW), alpha: P.ALPHA.toFixed(2), ckm: P.COST_KM.toFixed(2), chr: fmt(P.COST_HOUR),
-    roadKm: fmt(D.site.totals.road_km), nStops: fmt(M.route.stops),
-    lambda: lamT == null ? "–" : lamT > 0 ? `λ = £${fmt(lamT, 2)} per truck-minute: the fleet is the bottleneck` : "λ = 0, the fleet has room",
+    K: fmt(P.COLLECT_EVERY_DAYS), sigma: P.DAILY_FILL_SPREAD.toFixed(2), bag: fmt(P.BAG_L), U: P.FILL_AT_COLLECTION.toFixed(3), noise: fmt(P.SENSOR_NOISE),
+    trees: fmt(F.trees), nTrain: fmt(F.n_train), floor: fmt(P.FLOOR), loadM3: fmt(P.TRUCK_LOAD_L / 1000),
+    roadKm: fmt(D.site.totals.road_km), nStops: fmt(M.route.stops), fleet: fmt(D.site.fleet.trucks),
   };
   $$("[data-mk]").forEach(el => { const v = vals[el.dataset.mk]; if (v != null) el.textContent = v; });
-  mathsModel(M); mathsPredict(M); mathsDecide(M); mathsRoute(M); mathsCheck(M);
+  mathsSimulate(M); mathsPredict(M); mathsDecide(M); mathsRoute(M); mathsCheck(M);
 }
 
-/* 1 · compound Poisson paths */
-function mathsModel(M) {
-  const hw = M.fill.hour_w, dw = M.fill.day_w, P = M.params, cap = M.forecast.example.cap;
-  const a = []; for (let d = 0; d < 7; d++) for (let h = 0; h < 24; h++) a.push(dw[d] * hw[h]);
-  const am = a.reduce((s, v) => s + v, 0) / a.length; for (let k = 0; k < a.length; k++) a[k] /= am;
+/* 1 · Poisson bag arrivals, emptied by the timetable every K days */
+function mathsSimulate(M) {
+  const P = M.params, cap = M.forecast.example.cap, K = P.COLLECT_EVERY_DAYS * 24;
+  const hw = M.fill.hour_w, hm = hw.reduce((s, v) => s + v, 0) / hw.length, a = hw.map(v => v / hm);
   let seed = 11;
   const draw = () => {
     const rho = +$("#mRho").value; $("#oRho").textContent = rho.toFixed(2);
     const W = 520, H = 260, l = 34, r = 10, t = 14, b = 28, x = h => l + h / 168 * (W - l - r), y = v => t + (1 - v / 100) * (H - t - b);
-    const lamDay = cap * rho / P.BAG_L;
-    const paths = [], full = [];
+    const bagsDay = cap * rho / P.BAG_L;
+    const paths = [], over = [], atColl = [];
     for (let s = 0; s < 3; s++) {
-      const u = rng32(seed * 97 + s * 13 + 1); let L = 0, hit = null; const pts = [[0, 0]];
+      const u = rng32(seed * 97 + s * 13 + 1), c0 = 8 + Math.floor(u() * 8);   // the truck comes between 08:00 and 16:00
+      // the last truck came K − c0 hours before Monday 00:00
+      let L = cap * rho * (K - c0) / 24, full = false; const pts = [[0, Math.min(100, 100 * L / cap)]], hits = [];
       for (let h = 0; h < 168; h++) {
-        const n = poisson(lamDay * a[h] / 24, u);
-        if (n) L += gammaDraw(n * P.BAG_SHAPE, P.BAG_L / P.BAG_SHAPE, u);
+        if (h % K === c0) { atColl.push(Math.min(100, 100 * L / cap)); L = 0; full = false; pts.push([h, 0]); }
+        L += poisson(bagsDay * a[h % 24] / 24, u) * P.BAG_L;
         const v = Math.min(100, 100 * L / cap); pts.push([h + 1, v]);
-        if (v >= 100 && hit == null) hit = h + 1;
+        if (v >= 100 && !full) { full = true; hits.push(h + 1); }
       }
-      paths.push(pts); full.push(hit);
+      paths.push(pts); over.push(hits);
     }
-    let E = 0; const mean = [[0, 0]]; for (let h = 0; h < 168; h++) { E += lamDay * a[h] / 24 * P.BAG_L; mean.push([h + 1, Math.min(100, 100 * E / cap)]); }
     const line = pts => pts.map(([h, v], k) => `${k ? "L" : "M"}${x(h).toFixed(1)},${y(v).toFixed(1)}`).join("");
     const cols = [PAL.accent, PAL.f[3], PAL.ink];
     $("#mPaths").innerHTML = svgAxisY(l, W - r, y, [0, 50, 100], v => v + "%") +
       ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d, k) => `<text x="${x(k * 24 + 12)}" y="${H - 8}" text-anchor="middle">${d}</text><line class="ax" x1="${x(k * 24)}" x2="${x(k * 24)}" y1="${y(0)}" y2="${y(0) + 4}"/>`).join("") +
-      `<path d="${line(mean)}" fill="none" stroke="${PAL.ink3}" stroke-width="1.4" stroke-dasharray="4 4"/>` +
-      paths.map((p, s) => `<path d="${line(p)}" fill="none" stroke="${cols[s]}" stroke-width="1.7" opacity=".9"/>` + (full[s] ? `<circle cx="${x(full[s])}" cy="${y(100)}" r="4" fill="${PAL.bad}"/>` : "")).join("") +
-      `<text x="${W - r}" y="${y(100) - 5}" text-anchor="end" style="fill:${PAL.bad}">full: overflow from here</text><text x="${x(150)}" y="${y(Math.min(100, mean[150][1])) + 16}" text-anchor="end">expected</text>`;
-    const days = full.map(f => f ? fmt(f / 24, 1) + " d" : "not this week");
-    $("#mPathNote").textContent = `A ${fmt(cap)} L stop is expected to fill in ${fmt(1 / rho, 1)} days. These three weeks: ${days.join(", ")}. Bags arrive in bursts, so two weeks with the same rate fill at different times.`;
+      paths.map((p, s) => `<path d="${line(p)}" fill="none" stroke="${cols[s]}" stroke-width="1.7" opacity=".9"/>` + over[s].map(h => `<circle cx="${x(h)}" cy="${y(100)}" r="4" fill="${PAL.bad}"/>`).join("")).join("") +
+      `<text x="${W - r}" y="${y(100) - 5}" text-anchor="end" style="fill:${PAL.bad}">full: overflow until the truck comes</text>`;
+    const nOver = over.reduce((s, h) => s + h.length, 0), mean = atColl.length ? atColl.reduce((s, v) => s + v, 0) / atColl.length : 0;
+    $("#mPathNote").textContent = `A ${fmt(cap)} L stop filling ${fmt(100 * rho)} % a day, emptied every ${P.COLLECT_EVERY_DAYS} days. These three weeks: ${fmt(mean)} % full on average when the truck came (about ${fmt(Math.min(100, 100 * rho * P.COLLECT_EVERY_DAYS))} % expected), ${nOver} overflow${nOver === 1 ? "" : "s"} in ${atColl.length} collections. Bags arrive at random, so the same rate overflows in one week and not the next. (Weather left out here.)`;
   };
   $("#mRho").oninput = draw; $("#mRedraw").onclick = () => { seed++; draw(); };
   draw();
 }
 
-/* 2 · forecast fan, reliability, accuracy */
+/* 2 · one stop's projection and what the forest looks at */
 function mathsPredict(M) {
-  const F = M.forecast, ex = F.example, m = F.metrics;
-  $("#fanTitle").textContent = ex.site; $("#fanSub").textContent = `${ex.id} · ${fmt(ex.cap)} L · learned rate ${fmt(ex.rate_l_day)} L a day`;
-  const draw = () => {
-    const k = +$("#mSig").value; $("#oSig").textContent = "× " + k.toFixed(2);
-    const W = 520, H = 250, l = 34, r = 12, t = 12, b = 28, n0 = ex.past.length, n1 = ex.mu.length;
-    const x = h => l + (h + n0) / (n0 + n1 - 1) * (W - l - r), ymax = 130, y = v => t + (1 - clamp(v, 0, ymax) / ymax) * (H - t - b);
-    const band = z => { const up = ex.mu.map((v, j) => [j, v + z * k * ex.sd[j]]), lo = ex.mu.map((v, j) => [j, v - z * k * ex.sd[j]]).reverse(); return up.concat(lo).map(([j, v], q) => `${q ? "L" : "M"}${x(j).toFixed(1)},${y(v).toFixed(1)}`).join("") + "Z"; };
-    const past = ex.past.map((v, j) => `${j ? "L" : "M"}${x(j - n0).toFixed(1)},${y(v).toFixed(1)}`).join("");
-    const fut = ex.mu.map((v, j) => `${j ? "L" : "M"}${x(j).toFixed(1)},${y(v).toFixed(1)}`).join("");
-    const muE = ex.mu[n1 - 1], sdE = ex.sd[n1 - 1] * k, p = 1 - Phi((100 - muE) / sdE);
-    $("#mFan").innerHTML = svgAxisY(l, W - r, y, [0, 50, 100], v => v + "%") +
-      `<line x1="${l}" x2="${W - r}" y1="${y(100)}" y2="${y(100)}" stroke="${PAL.bad}" stroke-dasharray="4 3"/><text x="${l + 4}" y="${y(100) - 5}" style="fill:${PAL.bad}">100 %: overflow</text>` +
-      `<path d="${band(1.96)}" fill="${PAL.accent}" opacity=".12"/><path d="${band(1.2816)}" fill="${PAL.accent}" opacity=".2"/>` +
-      `<path d="${past}" fill="none" stroke="${PAL.ink}" stroke-width="1.6"/><path d="${fut}" fill="none" stroke="${PAL.accent}" stroke-width="2"/>` +
-      `<line class="ax" x1="${x(0)}" x2="${x(0)}" y1="${t}" y2="${y(0)}"/><text x="${x(0)}" y="${H - 8}" text-anchor="middle">now (23:00)</text><text x="${x(-n0)}" y="${H - 8}">−72 h</text><text x="${W - r}" y="${H - 8}" text-anchor="end">14:00 the day after</text>` +
-      `<circle cx="${x(n1 - 1)}" cy="${y(muE)}" r="3.5" fill="${PAL.accent}"/>`;
-    $("#fanP").innerHTML = `Bands: 80 % and 95 % intervals. <b>p = ${fmt(100 * p, 1)} %</b> chance of overflowing before the next truck${k === 1 ? " (the model’s value)" : ""}: ${p > M.params.ALPHA ? "above α, so it must be collected" : "below α, so the cost rule decides"}.`;
-  };
-  $("#mSig").oninput = draw; draw();
-  const rows = [["BinSight forecast", m.binsight], ["Persistence (fill stays the same)", m.persistence], ["Last-day trend", m.trend]];
-  $("#fcTable").innerHTML = `<thead><tr><th>Forecast of fill by the next truck</th><th class="n">MAE</th><th class="n">RMSE</th></tr></thead><tbody style="cursor:default">` +
-    rows.map(([lbl, v], q) => `<tr><td>${q ? esc(lbl) : "<b>" + lbl + "</b>"}</td><td class="n">${fmt(v.mae, 1)}</td><td class="n">${fmt(v.rmse, 1)}</td></tr>`).join("") + "</tbody>";
-  // reliability
-  const W = 250, H = 200, l = 34, r = 8, t = 8, b = 30, x = v => l + v * (W - l - r), y = v => t + (1 - v) * (H - t - b);
-  $("#mRel").innerHTML = svgAxisY(l, W - r, y, [0, .5, 1], v => v) + `<line x1="${x(0)}" y1="${y(0)}" x2="${x(1)}" y2="${y(1)}" stroke="${PAL.ink3}" stroke-dasharray="3 3"/>` +
-    m.reliability.map(q => `<circle cx="${x(q.p)}" cy="${y(q.obs)}" r="${clamp(Math.sqrt(q.n) / 6, 2.5, 7)}" fill="${PAL.accent}" opacity=".85"><title>${fmt(q.n)} forecasts: predicted ${fmt(100 * q.p)} %, happened ${fmt(100 * q.obs)} %</title></circle>`).join("") +
-    `<text x="${x(.5)}" y="${H - 6}" text-anchor="middle">forecast risk p</text><text x="${l}" y="${t + 10}" dx="4">share that overflowed</text>`;
-  const hi = m.reliability.filter(q => q.p > .05 && q.n > 0), hp = hi.reduce((a, q) => a + q.p * q.n, 0), ho = hi.reduce((a, q) => a + q.obs * q.n, 0), hn = hi.reduce((a, q) => a + q.n, 0);
-  const relNote = hn ? `for the ${fmt(hn)} forecasts of 10 % or more the model predicted ${fmt(100 * hp / hn, 1)} % on average and ${fmt(100 * ho / hn, 1)} % overflowed, so it ${hp > ho ? "overstates risk in the tail, which errs on the side of collecting." : "understates risk in the tail."}` : "";
-  $("#fcNote").innerHTML = `Scored on ${fmt(m.n)} forecasts over the 7 test days and 2 seeds, for stops no truck emptied in between, against the true simulated fill. Brier score <b>${fmt(m.brier, 4)}</b> against ${fmt(m.brier_climatology, 4)} for always predicting the average rate (skill ${fmt(100 * (1 - m.brier / m.brier_climatology))} %). The 80 % interval holds the truth <b>${fmt(100 * m.coverage80)} %</b> of the time and the 95 % interval ${fmt(100 * m.coverage95)} %. Dots near the diagonal would mean perfectly calibrated risks; ${relNote} The test data come from the same simulator, so real sensors would score worse.`;
+  const F = M.forecast, ex = F.example, P = M.params;
+  $("#fcTitle").textContent = ex.site; $("#fcSub").textContent = `${ex.id} · ${fmt(ex.cap)} L · gains about ${fmt(ex.gain_day, 1)} points a day`;
+  const W = 520, H = 250, l = 34, r = 12, t = 12, b = 28, n0 = ex.past.length, n1 = ex.hours;
+  const ymax = Math.max(130, Math.ceil((ex.proj + 10) / 10) * 10);
+  const x = h => l + (h + n0) / (n0 + n1) * (W - l - r), y = v => t + (1 - Math.max(0, Math.min(v, ymax)) / ymax) * (H - t - b);
+  const last = ex.past[n0 - 1];
+  const past = ex.past.map((v, j) => `${j ? "L" : "M"}${x(j - n0 + 1).toFixed(1)},${y(v).toFixed(1)}`).join("");
+  $("#mFc").innerHTML = svgAxisY(l, W - r, y, [0, 50, 100], v => v + "%") +
+    `<line x1="${l}" x2="${W - r}" y1="${y(100)}" y2="${y(100)}" stroke="${PAL.bad}" stroke-dasharray="4 3"/><text x="${l + 4}" y="${y(100) - 5}" style="fill:${PAL.bad}">100 %: overflow</text>` +
+    `<line x1="${l}" x2="${W - r}" y1="${y(P.FLOOR)}" y2="${y(P.FLOOR)}" stroke="${PAL.ink3}" stroke-dasharray="2 3"/><text x="${l + 4}" y="${y(P.FLOOR) + 13}" style="fill:${PAL.ink3}">${fmt(P.FLOOR)} % floor</text>` +
+    `<path d="${past}" fill="none" stroke="${PAL.ink}" stroke-width="1.6"/>` +
+    `<line x1="${x(0)}" y1="${y(last)}" x2="${x(n1)}" y2="${y(ex.proj)}" stroke="${PAL.accent}" stroke-width="2" stroke-dasharray="5 3"/>` +
+    `<circle cx="${x(n1)}" cy="${y(ex.proj)}" r="4" fill="${PAL.accent}"/><text x="${x(n1) - 6}" y="${y(ex.proj) - 8}" text-anchor="end" style="fill:${PAL.accent};font-weight:600">ŷ = ${fmt(ex.proj)} %</text>` +
+    `<line class="ax" x1="${x(0)}" x2="${x(0)}" y1="${t}" y2="${y(0)}"/><text x="${x(0)}" y="${H - 8}" text-anchor="middle">now (05:00)</text><text x="${x(-n0 + 1)}" y="${H - 8}">−72 h</text><text x="${W - r}" y="${H - 8}" text-anchor="end">14:00 tomorrow</text>`;
+  $("#fcNote").innerHTML = `Solid: the last 72 hours of readings. Dashed: the projection <var>ŷ</var> = <var>y</var> + <var>ĝ</var> · hours over the next ${fmt(n1)} hours, <b>${fmt(ex.proj)} %</b>. ${ex.proj >= P.FLOOR ? `Above the ${fmt(P.FLOOR)} % floor, so it is a candidate for tomorrow.` : `Below the ${fmt(P.FLOOR)} % floor, so it can wait.`}`;
+  // importance
+  const imp = Object.entries(F.importance).sort((p, q) => q[1] - p[1]);
+  const Wi = 520, rowH = 25, x0 = 210, bw = Wi - x0 - 60, mx = imp[0][1] || 1;
+  $("#mImp").setAttribute("viewBox", `0 0 ${Wi} ${imp.length * rowH + 8}`);
+  $("#mImp").innerHTML = imp.map(([k, v], j) => `<text class="lbl" x="${x0 - 10}" y="${j * rowH + 17}" text-anchor="end">${esc(FEATURE_LABEL[k] || k)}</text><rect x="${x0}" y="${j * rowH + 5}" width="${Math.max(2, v / mx * bw)}" height="16" rx="3" fill="${j ? PAL.ink3 : PAL.accent}" opacity="${j ? .6 : 1}"/><text class="val" x="${x0 + Math.max(2, v / mx * bw) + 6}" y="${j * rowH + 17}">${fmt(100 * v)} %</text>`).join("");
 }
 
-/* 3 · decision rule scatter */
+/* 3 · fullest first: every stop ranked by projected fill */
 function mathsDecide(M) {
-  const S = D.S, n = D.n, pick = []; for (let i = 0; i < n; i += 5) pick.push(i);
-  const s = { p: pick.map(i => S.prob[i]), ratio: pick.map(i => earlyCost(i)) }, scale = n / s.p.length;
-  const W = 520, H = 330, l = 46, r = 12, t = 12, b = 34;
-  const lx = p => Math.log10(clamp(p, 1e-4, 1)), X = p => l + (lx(p) + 4) / 4 * (W - l - r);
-  const ys = s.ratio.filter(v => v > 0), lo = Math.floor(Math.log10(Math.max(.05, Math.min(...ys)))), hi = Math.ceil(Math.log10(Math.max(...ys)));
-  const Y = v => t + (1 - (Math.log10(clamp(v, 10 ** lo, 10 ** hi)) - lo) / (hi - lo)) * (H - t - b);
+  const S = D.S, n = D.n, dm = M.decide, fleet0 = D.site.fleet.trucks;
+  const order = Array.from({ length: n }, (_, i) => i).sort((a, b) => S.pred[b] - S.pred[a]);
+  const W = 520, H = 300, l = 40, r = 12, t = 12, b = 34, ymax = 150;
+  const X = k => l + k / (n - 1) * (W - l - r), Y = v => t + (1 - Math.min(v, ymax) / ymax) * (H - t - b);
+  const pts = []; for (let k = 0; k < n; k += 4) pts.push([k, S.pred[order[k]]]); pts.push([n - 1, S.pred[order[n - 1]]]);
+  const line = pts.map(([k, v], j) => `${j ? "L" : "M"}${X(k).toFixed(1)},${Y(v).toFixed(1)}`).join("");
+  $("#mTrucks").max = Math.max(60, 2 * fleet0); $("#mTrucks").value = fleet0;
   const draw = () => {
-    const co = +$("#mCo").value, al = +$("#mAl").value;
-    $("#oCo").textContent = "£" + co; $("#oAl").textContent = al >= 1 ? "off" : al.toFixed(2);
-    let mand = 0, opt = 0, skip = 0, risk = 0;
-    const dots = s.p.map((p, k) => {
-      const m = p > al, o = !m && p * co > s.ratio[k];
-      if (m) mand++; else if (o) opt++; else { skip++; risk += p; }
-      return `<circle cx="${X(p).toFixed(1)}" cy="${Y(s.ratio[k]).toFixed(1)}" r="2.6" fill="${m ? PAL.ink : o ? PAL.accent : PAL.line2}" opacity="${m || o ? .85 : .7}"/>`;
-    }).join("");
-    const bx0 = -4, bx1 = 0, line = [bx0, bx1].map(e => [X(10 ** e), Y(co * 10 ** e)]);
-    $("#mDec").innerHTML = [-4, -3, -2, -1, 0].map(e => `<line class="grid" x1="${X(10 ** e)}" x2="${X(10 ** e)}" y1="${t}" y2="${H - b}"/><text x="${X(10 ** e)}" y="${H - b + 14}" text-anchor="middle">${e === 0 ? "1" : "10" + "⁻" + "¹²³⁴"[-e - 1]}</text>`).join("") +
-      Array.from({ length: hi - lo + 1 }, (_, q) => lo + q).map(e => `<line class="grid" x1="${l}" x2="${W - r}" y1="${Y(10 ** e)}" y2="${Y(10 ** e)}"/><text x="${l - 6}" y="${Y(10 ** e) + 4}" text-anchor="end">£${10 ** e >= 1 ? fmt(10 ** e) : (10 ** e).toFixed(1)}</text>`).join("") +
-      dots +
-      `<line x1="${line[0][0]}" y1="${line[0][1]}" x2="${line[1][0]}" y2="${line[1][1]}" stroke="${PAL.accent}" stroke-width="2"/>` +
-      (al < 1 ? `<line x1="${X(al)}" x2="${X(al)}" y1="${t}" y2="${H - b}" stroke="${PAL.ink}" stroke-width="1.6" stroke-dasharray="5 3"/><text x="${X(al) - 4}" y="${t + 10}" text-anchor="end" style="fill:${PAL.ink}">p = α</text>` : "") +
-      `<text x="${(l + W - r) / 2}" y="${H - 4}" text-anchor="middle">overflow risk if skipped, p (log scale)</text><text transform="translate(12 ${(t + H - b) / 2}) rotate(-90)" text-anchor="middle">cost of going early, Δ/τ</text>`;
-    $("#decCounts").innerHTML = [[mand * scale, "must go (p > α)"], [opt * scale, "worth going (p·c_o > Δk/τ)"], [skip * scale, "skipped"]].map(([v, l_]) => `<div><b>${fmt(Math.round(v / 10) * 10)}</b><span>${l_}</span></div>`).join("") +
-      `<div style="grid-column:1/-1"><span>Expected overflows among skipped stops: <b style="display:inline;font-size:15px">${fmt(risk * scale, 1)}</b> · each dot is one of ${s.p.length} stops (every 5th), counts scaled to all ${fmt(n)}</span></div>`;
+    const floor = +$("#mFloor").value, fleet = +$("#mTrucks").value;
+    $("#oFloor").textContent = floor + " %"; $("#oTrucks").textContent = fleet;
+    const r_ = BS.choose({ floor, fleet }), nc = r_.cand.length, ns = r_.sel.length;
+    const over = r_.cand.slice(ns).filter(i => S.pred[i] >= 100).length;
+    const area = pts.filter(([k]) => k < ns).map(([k, v], j) => `${j ? "L" : "M"}${X(k).toFixed(1)},${Y(v).toFixed(1)}`).join("");
+    $("#mDec").innerHTML = svgAxisY(l, W - r, Y, [0, 50, 100, 150], v => v + "%") +
+      (ns > 1 ? `<path d="${area} L${X(ns - 1)},${Y(0)} L${X(0)},${Y(0)} Z" fill="${PAL.accent}" opacity=".16"/>` : "") +
+      `<path d="${line}" fill="none" stroke="${PAL.ink}" stroke-width="1.8"/>` +
+      `<line x1="${l}" x2="${W - r}" y1="${Y(floor)}" y2="${Y(floor)}" stroke="${PAL.ink}" stroke-dasharray="5 3"/><text x="${W - r}" y="${Y(floor) - 5}" text-anchor="end">floor ${floor} %</text>` +
+      `<line x1="${l}" x2="${W - r}" y1="${Y(100)}" y2="${Y(100)}" stroke="${PAL.bad}" stroke-dasharray="2 3" opacity=".7"/>` +
+      (ns ? `<line x1="${X(ns - 1)}" x2="${X(ns - 1)}" y1="${t}" y2="${Y(0)}" stroke="${PAL.accent}" stroke-width="1.8"/><text x="${X(ns - 1) + 5}" y="${t + 12}" style="fill:${PAL.accent};font-weight:600">${ns < nc ? "fleet out of time" : "all above the floor fit"}</text>` : "") +
+      `<text x="${(l + W - r) / 2}" y="${H - 6}" text-anchor="middle">all ${fmt(n)} stops, fullest first</text><text transform="translate(11 ${(t + H - b) / 2}) rotate(-90)" text-anchor="middle">projected fill ŷ</text>`;
+    $("#decCounts").innerHTML = [[nc, `at or above ${floor} %`], [ns, "fit the fleet’s time"], [nc - ns, "wait for the next day"]].map(([v, l_]) => `<div><b>${fmt(v)}</b><span>${l_}</span></div>`).join("") +
+      `<div style="grid-column:1/-1"><span>${over ? `<b style="display:inline;font-size:15px">${fmt(over)}</b> of the waiting stops are projected past 100 %.` : "No stop projected past 100 % has to wait."} Estimate from the model’s own time per stop; routing has the final say.</span></div>`;
   };
-  $("#mCo").oninput = draw; $("#mAl").oninput = draw; draw();
-  const dm = M.decide, rd = dm.rounds;
-  $("#decNote").textContent = `Tomorrow: ${fmt(dm.mand)} stops are above α and must go; the cost rule adds ${fmt(dm.optional)} more, ${fmt(dm.chosen)} in all. ` +
-    `Over ${rd.length} rounds of choosing and routing: ${rd.map(r => fmt(r.chosen) + " stops, " + fmt(r.minutes / 60) + " truck-hours" + (r.lambda > 0 ? ` at λ = £${fmt(r.lambda, 2)}/min` : "")).join(" → ")}.`;
+  $("#mFloor").oninput = draw; $("#mTrucks").oninput = draw; draw();
+  $("#decNote").textContent = `Tomorrow: ${fmt(dm.risky)} stops are projected at ${fmt(dm.floor)} % or more. Fullest first, ${fmt(dm.chosen)} fit the time of ${fmt(fleet0)} trucks; after routing, ${fmt(dm.served)} are emptied.`;
 }
 
 /* 4 · toy routing demo */
@@ -183,36 +163,22 @@ function mathsRoute(M) {
   $$("#toyBtns button").forEach(b => b.onclick = () => draw(b.dataset.a));
   draw("nn");
   const R = M.route;
-  $("#routeNote").textContent = `Tomorrow’s ${fmt(R.stops)} stops: savings £${fmt(R.cw)} → local search £${fmt(R.ls)} → annealing £${fmt(R.sa)}, in ${R.trips} trips on ${R.trucks} trucks, solved in ${fmt(R.seconds, 1)} s.`;
+  $("#routeNote").textContent = `Tomorrow’s ${fmt(R.stops)} stops: start £${fmt(R.start)} → annealed £${fmt(R.final)} after ${fmt(R.iterations)} tried changes, in ${R.trips} trips on ${R.trucks} trucks, solved in ${fmt(R.seconds, 1)} s. Rain slowdown θ = ${fmt(R.theta, 3)}.`;
 }
 
-/* 5 · validation, bound, fleet, Pareto, sensitivity */
+/* 5 · before and after: the three policies */
 function mathsCheck(M) {
-  const V = M.route.validation, S = V.summary, K = M.check;
-  const lbl = { nn: "Nearest neighbour", cw: "Clarke–Wright savings", ls: "Savings + local search", ours: "Full heuristic (+ annealing)" };
-  $("#valTable").innerHTML = `<thead><tr><th>Method</th><th class="n">Mean gap</th><th class="n">Worst gap</th><th class="n">Optimal</th></tr></thead><tbody style="cursor:default">` +
-    ["nn", "cw", "ls", "ours"].map(k => `<tr><td>${k === "ours" ? "<b>" + lbl[k] + "</b>" : lbl[k]}</td><td class="n">${fmt(S[k].mean_gap, 2)} %</td><td class="n">${fmt(S[k].max_gap, 1)} %</td><td class="n">${S[k].optimal} / ${V.instances.length}</td></tr>`).join("") + "</tbody>";
-  const lb = K.lower_bound, base = K.base;
-  $("#lbText").innerHTML = `Tomorrow’s routes cost <b>£${fmt(base.cost)}</b> in driving: the routing objective, £${D.site.fleet.cost_km}/km plus £${D.site.fleet.cost_hour} per hour at the wheel. (Lifting and tipping take the same time whatever the order, so they sit outside the objective; with them the day costs £${fmt(D.site.fleet.cost_km * D.site.plan.road_km + D.site.fleet.cost_hour * D.site.plan.hours)}.) The best bound is £${fmt(lb.bound)} (radial £${fmt(lb.radial)}, Held–Karp £${fmt(lb.held_karp)}), so the plan is <b>at most ${fmt(100 * K.gap_max, 1)} %</b> above the true optimum. That is a proof, not an estimate, and a loose one: the gap is mostly the bound’s weakness, as the exact tests suggest. HiGHS proved ${V.proven} of ${V.instances.length} small optima in ${fmt(V.t_exact_mean, 1)} s on average; the heuristic takes ${fmt(V.t_ours_mean, 2)} s.`;
-  const fl = K.fleet;
-  $("#fleetText").textContent = `With unlimited trucks, tomorrow’s ${fmt(fl.chosen)} chosen stops need ${fl.needed} trucks. No plan can manage with fewer than ${fl.lower_bound}: lifting time, plus the shortest way out of every stop, plus tipping, divided by an 8-hour shift. We assume ${fl.fleet}; the plan uses ${fl.used_in_plan}.`;
-  // Pareto
-  const pts = K.pareto.slice().sort((a, b) => a.c_o - b.c_o);
-  const ag = D.site.experiments.aggregate, pol = { timetable: "Timetable", reactive: "Reactive", binsight: "BinSight" };
-  const all = pts.map(p => [p.route_cost_day, p.overflow_events_day]).concat(ag.map(a => [a.route_cost_day, a.overflow_events_day]));
+  const ex = D.site.experiments, ag = ex.aggregate, P = M.params, pol = { timetable: "Timetable", reactive: "Reactive", binsight: "BinSight" };
+  const tt = ag.find(a => a.policy === "timetable"), bs = ag.find(a => a.policy === "binsight");
+  $("#calText").textContent = tt ? `On the test days the every-${P.COLLECT_EVERY_DAYS}-days timetable overflowed on ${fmt(100 * tt.overflow_events_day / tt.collections_day, 2)} % of its collections (target ${fmt(100 * P.TARGET_OVERFLOW)} %), and bins were ${fmt(tt.fill_at_collection)} % full on average when it emptied them (about 44 % expected).` : "";
+  $("#checkSub").textContent = `${ex.eval_days} test days × ${ex.seeds.length} seeds, mean per day`;
+  const all = ag.map(a => [a.route_cost_day, a.overflow_events_day]);
   const W = 520, H = 300, l = 52, r = 14, t = 14, b = 36;
-  const x0 = Math.min(...all.map(p => p[0])) * .92, x1 = Math.max(...all.map(p => p[0])) * 1.04, y1 = Math.max(...all.map(p => p[1])) * 1.1;
+  const x0 = Math.min(...all.map(p => p[0])) * .85, x1 = Math.max(...all.map(p => p[0])) * 1.1, y1 = Math.max(...all.map(p => p[1])) * 1.15 || 1;
   const X = v => l + (v - x0) / (x1 - x0) * (W - l - r), Y = v => t + (1 - v / y1) * (H - t - b);
-  const yt = [0, y1 / 3, 2 * y1 / 3].map(v => Math.round(v / 10) * 10), xt = [x0, (x0 + x1) / 2, x1].map(v => Math.round(v / 1000) * 1000);
-  $("#mPareto").innerHTML = svgAxisY(l, W - r, Y, yt, v => fmt(v)) + xt.map(v => `<text x="${X(v)}" y="${H - b + 15}" text-anchor="middle">£${fmt(v / 1000)}k</text>`).join("") +
-    `<path d="${pts.map((p, k) => `${k ? "L" : "M"}${X(p.route_cost_day)},${Y(p.overflow_events_day)}`).join("")}" fill="none" stroke="${PAL.accent}" stroke-width="1.8"/>` +
-    pts.map(p => `<circle cx="${X(p.route_cost_day)}" cy="${Y(p.overflow_events_day)}" r="4" fill="${PAL.accent}"/><text x="${X(p.route_cost_day) + 6}" y="${Y(p.overflow_events_day) - 6}">£${p.c_o}</text>`).join("") +
-    ag.map(a => `<rect x="${X(a.route_cost_day) - 5}" y="${Y(a.overflow_events_day) - 5}" width="10" height="10" rx="2" fill="${a.policy === "binsight" ? PAL.ink : PAL.f[3]}"/><text class="lbl" x="${X(a.route_cost_day) + 9}" y="${Y(a.overflow_events_day) + 4}">${pol[a.policy]}${a.policy === "binsight" ? " (α 0.2, £60)" : ""}</text>`).join("") +
+  const yt = [0, y1 / 3, 2 * y1 / 3, y1].map(v => y1 > 30 ? Math.round(v / 10) * 10 : Math.round(v)), xt = [x0, (x0 + x1) / 2, x1].map(v => Math.round(v / 1000) * 1000);
+  $("#mCheck").innerHTML = svgAxisY(l, W - r, Y, yt, v => fmt(v)) + xt.map(v => `<text x="${X(v)}" y="${H - b + 15}" text-anchor="middle">£${fmt(v / 1000)}k</text>`).join("") +
+    ag.map(a => `<rect x="${X(a.route_cost_day) - 6}" y="${Y(a.overflow_events_day) - 6}" width="12" height="12" rx="2" fill="${a.policy === "binsight" ? PAL.accent : a.policy === "timetable" ? PAL.ink : PAL.f[3]}"/><text class="lbl" x="${X(a.route_cost_day) + 10}" y="${Y(a.overflow_events_day) + 4}">${pol[a.policy]}</text>`).join("") +
     `<text x="${(l + W - r) / 2}" y="${H - 4}" text-anchor="middle">route cost per day (driving + crew time)</text><text transform="translate(12 ${(t + H - b) / 2}) rotate(-90)" text-anchor="middle">overflows per day</text>`;
-  const best = pts.reduce((a, q) => q.overflow_events_day < a.overflow_events_day ? q : a, pts[0]);
-  $("#paretoNote").textContent = `Green: the cost rule alone (α off) for overflow costs from £${pts[0].c_o} to £${pts[pts.length - 1].c_o}. Raising c_o from £${pts[0].c_o} buys fewer overflows for more driving, down to ${fmt(best.overflow_events_day, 1)} a day at £${best.c_o}. Beyond that the curve turns back: the rule only looks one day ahead, so a high c_o makes every small risk today worth a detour, and the fleet’s hours go on stops that could have waited while tomorrow’s urgent ones are pushed out. That is why BinSight pairs a moderate c_o with the hard α rule. Squares: the three policies in the main experiment.`;
-  // sensitivity
-  const rows = [{ variant: "Tomorrow’s plan (base)", ...base }].concat(K.sensitivity);
-  $("#sensTable").innerHTML = `<thead><tr><th>Change</th><th class="n">Stops</th><th class="n">Trucks</th><th class="n">km</th><th class="n">£ driving</th><th class="n">E[overflow]</th></tr></thead><tbody style="cursor:default">` +
-    rows.map((r_, q) => `<tr><td>${q ? esc(r_.variant) : "<b>" + r_.variant + "</b>"}</td><td class="n">${fmt(r_.served)}</td><td class="n">${r_.trucks}</td><td class="n">${fmt(r_.km)}</td><td class="n">${fmt(r_.cost)}</td><td class="n">${fmt(r_.exp_overflow, 1)}</td></tr>`).join("") + "</tbody>";
+  $("#checkNote").textContent = tt && bs ? `BinSight: ${fmt(bs.overflow_events_day, 1)} overflows a day against ${fmt(tt.overflow_events_day, 1)} for the timetable, for £${fmt(bs.route_cost_day)} of driving and crew time against £${fmt(tt.route_cost_day)}. Down and to the left is better. The comparison is relative: absolute numbers depend on the simulated city.` : "";
 }

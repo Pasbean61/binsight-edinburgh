@@ -1,19 +1,30 @@
 """
-Layer 2: how communal bins fill (the council does not publish sensor data, so this is simulated).
+Layer 1: how communal bins fill (the council does not publish sensor data, so this is simulated).
 
-Each stop i receives household deposits as a compound Poisson process. In hour t
+How fast each stop fills comes from how the council runs the service:
+communal general-waste bins are emptied every K = 2 days (City of Edinburgh Council), so a stop's
+capacity is sized for about K days of its households' waste. If a stop is on average a share U full
+when the truck comes, it fills a share
 
-    N_it ~ Poisson(λ_it),     V ~ Gamma(k, θ) per deposit,     X_it = V_1 + … + V_N   (litres)
-    λ_it = (D_i / v̄) · a(hour, weekday) · w_t · c_it / 24
+    ρ_i = U / K · e^{σ Z_i},   Z_i ~ N(0, 1)
 
-  D_i   litres a day at stop i:  D_i = cap_i · ρ_i,  ρ_i ~ LogNormal(log 0.27, 0.35)
-  a     hour-of-week profile, mean 1 (morning and evening peaks, busier weekends)
-  w_t   real Edinburgh weather:  exp(−0.15 · 1[rain ≥ 0.5 mm]) · (1 + 0.01 (T − 10 °C))
-  c_it  1.25 on Friday–Sunday in the City Centre ward (visitors and short lets), else 1
+of its capacity a day. σ spreads the stops (some serve more flats than others). U is calibrated
+(calibrate.py): on the council's every-K-days timetable, overflows match the reported complaint rate.
 
-A sum of N gamma(k, θ) volumes is gamma(N·k, θ), which makes the simulation one vectorised draw.
+Households drop one kitchen-bin bag (30 L) at a time. In hour t stop i receives
+
+    N_it ~ Poisson(λ_it),   X_it = 30 L · N_it,   λ_it = (D_i / 30 L) · a(hour) · w_t / 24,   D_i = cap_i · ρ_i
+
+where a is an hour-of-day profile with mean 1 (quiet at night, morning and evening peaks) and w_t the
+weather and holiday factor (factor(), mean 1 over the month):
+
+    w_t ∝ exp(β_rain · 1[rain ≥ 0.5 mm]) · (1 + β_temp · (T − 10 °C)) · (1 + β_hol · 1[holiday])
+
+The weather and the holidays are real; the sizes β are assumptions (config.py). The same factor
+enters the route model's load constraint (decide.demand).
+
 Fill in litres F_it grows by X_it; at or above capacity the bin overflows. A truck empties it.
-Sensors report min(100, 100·F/cap) + N(0, 1.5²) percentage points.
+Sensors report min(100, 100·F/cap) + N(0, σ_s²) percentage points.
 """
 import csv
 import datetime as dt
@@ -24,7 +35,6 @@ from . import config as C
 
 HOUR_W = np.array([.25, .15, .1, .1, .12, .3, .7, 1.5, 1.7, 1.3, 1.05, 1.0,
                    1.05, 1.0, .95, .95, 1.1, 1.5, 1.8, 1.7, 1.4, 1.05, .7, .45])
-DAY_W = np.array([1.05, .95, .95, .95, 1.0, 1.1, 1.15])        # Monday … Sunday
 
 
 def clock(hours=C.HOURS):
@@ -40,33 +50,47 @@ def weather(hours=C.HOURS):
     return temp, rain
 
 
+def holidays(hours=C.HOURS):
+    """True for every hour on a council public holiday or school holiday (a forecast input)."""
+    days = set(dt.date.fromisoformat(d) for d in C.PUBLIC_HOLIDAYS)
+    for a, b in C.SCHOOL_HOLIDAYS:
+        d, end = dt.date.fromisoformat(a), dt.date.fromisoformat(b)
+        while d <= end:
+            days.add(d)
+            d += dt.timedelta(days=1)
+    _, _, ts = clock(hours)
+    return np.array([t.date() in days for t in ts])
+
+
 def profile():
-    a = np.outer(DAY_W, HOUR_W).ravel()        # index = weekday * 24 + hour
-    return a / a.mean()
+    return HOUR_W / HOUR_W.mean()
 
 
-def true_rates(st, seed):
+def factor(hours=C.HOURS):
+    """w_t, the weather and holiday multiplier of hourly deposits, rescaled to mean 1.
+
+    w_t = exp(β_rain · 1[rain ≥ 0.5 mm]) · (1 + β_temp · (T − 10 °C)) · (1 + β_hol · 1[holiday])"""
+    temp, rain = weather(hours)
+    w = (np.exp(C.RAIN_EFFECT * (rain >= .5)) * (1 + C.TEMP_EFFECT * (temp - 10))
+         * (1 + C.HOLIDAY_EFFECT * holidays(hours)))
+    return w / w.mean()
+
+
+def true_rates(st, seed, U=None):
+    """Litres a day at every stop: cap · U/K · lognormal spread."""
+    U = C.FILL_AT_COLLECTION if U is None else U
     rng = np.random.default_rng(1000 + seed)
-    rho = np.clip(C.DAILY_FILL_MEDIAN * np.exp(C.DAILY_FILL_SPREAD * rng.standard_normal(len(st["cap"]))), .07, .9)
-    return st["cap"] * rho
+    rho = U / C.COLLECT_EVERY_DAYS * np.exp(C.DAILY_FILL_SPREAD * rng.standard_normal(len(st["cap"])))
+    return st["cap"] * np.clip(rho, .03, 1.0)
 
 
-def deposits(st, seed, hours=C.HOURS):
+def deposits(st, seed, hours=C.HOURS, U=None):
     """Litres deposited at every stop in every hour: array (stops, hours)."""
     rng = np.random.default_rng(seed)
-    hour, wd, _ = clock(hours)
-    temp, rain = weather(hours)
-    a = profile()[wd * 24 + hour]
-    w = np.exp(C.RAIN_EFFECT * (rain >= .5)) * (1 + C.TEMP_EFFECT * (temp - 10))
-    centre = np.array([w_["name"] == "City Centre" for w_ in st["wards"]])[st["ward"]]
-    c = np.where(centre[:, None] & (wd[None, :] >= 4), C.WEEKEND_CENTRE, 1.0)
-    D = true_rates(st, seed)
-    lam = (D / C.BAG_L)[:, None] * (a * w)[None, :] * c / 24
-    N = rng.poisson(lam)
-    X = np.zeros(N.shape, np.float32)
-    m = N > 0
-    X[m] = rng.gamma(N[m] * C.BAG_SHAPE, C.BAG_L / C.BAG_SHAPE)
-    return X
+    hour, _, _ = clock(hours)
+    a = profile()[hour] * factor(hours)
+    lam = (true_rates(st, seed, U) / C.BAG_L)[:, None] * a[None, :] / 24
+    return (C.BAG_L * rng.poisson(lam)).astype(np.float32)
 
 
 class Bins:

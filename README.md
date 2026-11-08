@@ -14,7 +14,7 @@
 
 ### Tomorrow’s shift, replayed
 
-24 trucks leave Seafield at 06:00 and drive real Edinburgh streets to the 1,171 stops the plan serves. The last one is back at 14:00, inside the 8-hour shift. [Watch it live on the site →](https://pasbean61.github.io/binsight-edinburgh/#console)
+34 trucks leave Seafield at 06:00 and drive real Edinburgh streets to the 2,127 stops the plan serves. The last one is back just before 14:00, inside the 8-hour shift. [Watch it live on the site →](https://pasbean61.github.io/binsight-edinburgh/#console)
 
 <p align="center">
   <a href="https://pasbean61.github.io/binsight-edinburgh/#console"><img src="docs/replay.gif" alt="Replay of tomorrow's collection shift on the Edinburgh street map" width="100%"></a>
@@ -30,7 +30,7 @@ The map is a real street map of Edinburgh. Zoom in to see every building, street
 
 ## About
 
-BinSight forecasts how full each of Edinburgh’s general-waste communal bins will be tomorrow and plans the shortest truck routes that reach only the bins that need emptying. This repository holds the public website and the model behind it, written from scratch by the team: a stochastic fill model, a probabilistic forecast, a chance-constrained decision rule, a routing heuristic, and checks against exact optima. The maths is explained on the site and in [`model/README.md`](model/README.md).
+BinSight forecasts how full each of Edinburgh’s general-waste communal bins will be tomorrow and plans the shortest truck routes that reach only the bins that need emptying. This repository holds the public website and the model behind it, written from scratch by the team: a stochastic fill model, a random-forest fill forecast, a fullest-first decision rule, a routing heuristic, and a before-and-after comparison with the council timetable. The maths is explained on the site and in [`model/README.md`](model/README.md).
 
 A project by **EMS Group 6, University of Edinburgh**.
 
@@ -42,8 +42,8 @@ One page, in this order:
 |---|---|
 | **Problem** | Edinburgh’s communal-bin problem in sourced numbers, plus an interactive “timetable vs BinSight” fortnight |
 | **How it works** | Sense → Predict → Optimise → Collect, with the real formulas and methods |
-| **Live map** | A real street map of Edinburgh you can zoom from the whole city down to single buildings and house numbers, with all 4,532 real stops in their real wards, plus a replay of tomorrow’s shift: 24 trucks leave Seafield at 06:00, drive their routes on real streets and empty each flagged bin while trails, counters and the clock run. Follow any truck, hover and open wards, search streets, switch to overflow risk or the council’s full 17,713-asset register; driver view, alerts, sensor health and real weather below the map |
-| **The maths** | Five interactive tabs: the fill simulator, the forecast, the decision rule, the routing and the exact checks |
+| **Live map** | A real street map of Edinburgh you can zoom from the whole city down to single buildings and house numbers, with all 4,532 real stops in their real wards, plus a replay of tomorrow’s shift: 34 trucks leave Seafield at 06:00, drive their routes on real streets and empty each flagged bin while trails, counters and the clock run. Follow any truck, hover and open wards, search streets, switch to overflow risk or the council’s full 17,713-asset register; driver view, alerts, sensor health and real weather below the map |
+| **The maths** | Five interactive tabs: the calibrated fill simulator, the random-forest forecast, the fullest-first rule, the routing and the before-and-after check |
 | **Results** | Three collection strategies (timetable, reactive, BinSight) over a 7-day × 2-seed replay, forecast accuracy, the overflow-cost trade-off and a 12-way sensitivity check |
 | **Planner** | Change the threshold, fleet, shift and lift time; distance is estimated with the Beardwood–Halton–Hammersley law calibrated to the optimised plan |
 | **Business** | Three-partner model, revenue models A–G, gain-share calculator, go-to-market, evidence and risks |
@@ -60,7 +60,7 @@ One page, in this order:
 | Hourly temperature and rain (4 Oct – 2 Nov 2026), and the 7-day forecast issued on 2 Nov | Real | Open-Meteo |
 | Problem, market and policy statistics | Real, cited | See the Sources section |
 | Fill levels, collections, sensor battery and signal | **Simulated** | The council does not publish its sensor feed |
-| Fleet and costs (24 trucks × 60 m³, 8-hour shift, 2 min a stop + 1 min a bin, £1.45/km, £75/truck-hour, £60 per overflow) | Assumed | `model/config.py` |
+| Fleet and costs (the trucks the timetable needs on its busiest round × 60 m³, 8-hour shift, 2 min a stop + 1 min a bin, £1.45/km, £75/truck-hour, £60 per overflow) | Assumed | `model/config.py` |
 
 ## Repository layout
 
@@ -68,14 +68,14 @@ One page, in this order:
 index.html                  the website (GitHub Pages), built from src/
 src/                        page source: body.html, style.css, app.js, maths.js
 data/                       site data written by the model
-model/                      the BinSight model (Python: numpy, scipy, pyproj)
+model/                      the BinSight model (Python: numpy, scipy, scikit-learn, pyproj)
   network.py                real stops, wards and the OpenStreetMap road graph
-  simulate.py               compound-Poisson fill simulator
-  forecast.py               probabilistic forecast
-  decide.py                 chance-constrained, capacity-priced decision rule
+  simulate.py               fill simulator (council collection frequency, 30 L bags)
+  calibrate.py              calibrates the simulator to the council complaint rate
+  predict.py                random-forest fill forecast
+  decide.py                 fullest-first decision rule
   route.py                  Clarke–Wright, local search, simulated annealing, shift packing
-  exact.py                  exact MILP (HiGHS) and lower bounds
-  experiment.py             rolling-horizon experiment with common random numbers
+  experiment.py             before and after: timetable vs reactive vs BinSight
   export.py, run.py         site data and the entry point
 scripts/build_page.py       src/ → index.html and site/binsight.html
 docs/                       README images
