@@ -127,10 +127,7 @@ Each policy has 15 days of timetable warm-up and 14 days of its own; the last 7 
 
 ## Data not in git
 
-`data/cache/` is too big for git (188 MB). Download it with `python scripts/fetch_cache.py`, which fetches the zip attached to the GitHub release [`road-cache-v1`](https://github.com/Pasbean61/binsight-edinburgh/releases/tag/road-cache-v1). It holds:
-- `osm_roads.json`: Overpass query for `highway` ~ motorway…service inside the bounding box in `config.py`, excluding private access, parking aisles and driveways;
-- `osm_basemap.json`: major roads, rivers and parks for the light fallback map;
-- `matrix.npz`: shortest-path driving distance and time between every stop and the depot (`network.RoadGraph.matrices`, Dijkstra on the street graph).
+`data/cache/` is too big for git (188 MB). Download it with `python scripts/fetch_cache.py`, which fetches the zip attached to the GitHub release [`road-cache-v1`](https://github.com/Pasbean61/binsight-edinburgh/releases/tag/road-cache-v1). It holds `osm_roads.json` (Overpass query for `highway` ~ motorway…service inside the bounding box in `config.py`, excluding private access, parking aisles and driveways), `osm_basemap.json` (major roads, rivers and parks for the light fallback map) and `matrix.npz` (shortest-path driving distance and time between every stop and the depot: `network.RoadGraph.matrices`, Dijkstra on the street graph).
 
 ## Acknowledgement
 
