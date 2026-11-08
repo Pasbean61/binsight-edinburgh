@@ -177,7 +177,7 @@
     <button type="button" role="tab" data-m="0" class="on"><span class="k">1</span>Simulate<small>stochastic process</small></button>
     <button type="button" role="tab" data-m="1"><span class="k">2</span>Predict<small>random forest</small></button>
     <button type="button" role="tab" data-m="2"><span class="k">3</span>Decide<small>fullest first</small></button>
-    <button type="button" role="tab" data-m="3"><span class="k">4</span>Route<small>optimisation</small></button>
+    <button type="button" role="tab" data-m="3"><span class="k">4</span>Route<small>simulated annealing</small></button>
     <button type="button" role="tab" data-m="4"><span class="k">5</span>Check<small>before and after</small></button>
   </div>
 
@@ -258,25 +258,39 @@
   <div class="card m-pane" data-m="3" hidden>
     <div class="m-grid">
       <div class="m-text">
-        <h3>Routing: one model, one algorithm</h3>
-        <p>On the road graph (<span data-mk="roadKm">–</span> km of Edinburgh streets from OpenStreetMap, shortest paths by Dijkstra), truck <var>k</var> makes trips <var>r</var>; <var>x<sub>ijkr</sub></var> = 1 if it drives <var>i</var> → <var>j</var>, <var>z<sub>ikr</sub></var> = 1 if it empties stop <var>i</var>, <var>u<sub>kr</sub></var> = 1 if the trip is made. Cost <var>c<sub>ij</sub></var> = £1.45·km + £75·θ·hours; leaving stop <var>i</var> out costs its prize <var>π<sub>i</sub></var> = £60 × <var>ŷ<sub>i</sub></var>/100, its share of an overflow.</p>
-        <div class="eq left">min &nbsp; Σ <var>c<sub>ij</sub> x<sub>ijkr</sub></var> + Σ<sub><var>i</var></sub> <var>π<sub>i</sub></var>(1 − Σ<sub><var>kr</var></sub> <var>z<sub>ikr</sub></var>)<br>
-          s.t. &nbsp; Σ<sub><var>kr</var></sub> <var>z<sub>ikr</sub></var> ≤ 1 &nbsp; (each stop at most once)<br>
-          &emsp;&emsp; Σ<sub><var>i</var></sub> <var>q<sub>i</sub></var> <var>z<sub>ikr</sub></var> ≤ <var>Q</var> <var>u<sub>kr</sub></var>, &nbsp; <var>Q</var> = 60 m³ per trip, then tip at the depot<br>
-          &emsp;&emsp; Σ<sub><var>r</var></sub> (θ·drive + lift + 25 min tip) ≤ 480 min per truck, <span data-mk="fleet">24</span> trucks<br>
-          &emsp;&emsp; flow in = flow out, no subtours, &nbsp; <var>x</var>, <var>z</var>, <var>u</var> ∈ {0, 1}</div>
-        <p><b>Weather and holidays sit in the constraints.</b> The load <var>q<sub>i</sub></var>(<var>w</var>) = cap<sub><var>i</var></sub> · min(1, (<var>y<sub>i</sub></var> + <var>b<sub>i</sub></var> Σ<sub><var>h</var></sub> <var>w<sub>h</sub></var>) / 100) grows with the hourly factor <var>w<sub>h</sub></var> = e<sup>−0.15·rain</sup> · (1 + 0.01(<var>T</var> − 10)) · (1 + 0.10·holiday) until the truck arrives. Rain also slows driving: θ = 1 + 0.10 × the share of the shift’s hours with rain. All four effect sizes are assumptions.</p>
-        <p>This is NP-hard, and tomorrow has <b data-mk="nStops">–</b> stops, so we solve it with <b>simulated annealing</b>: start by filling truck after truck with the nearest stop that still fits; then, again and again, change the plan a little (move a stop, swap two, reverse part of a trip, swap the ends of two trips, drop or add a stop) and keep the change if it lowers the objective, or with probability e<sup>−Δ/<var>T</var></sup> if it raises it, cooling <var>T</var> geometrically. A change that breaks a constraint is never made.</p>
+        <h3>Routing: one model, solved by simulated annealing</h3>
+        <p>Step 3 chose tomorrow’s stops. This step decides which truck empties each one, in what order, and when it drives back to Seafield to tip.</p>
+        <p><b>The model.</b> On the road graph (<span data-mk="roadKm">–</span> km of Edinburgh streets from OpenStreetMap, shortest paths by Dijkstra), truck <var>k</var> makes trips <var>r</var>. Driving <var>i</var> → <var>j</var> costs <var>c<sub>ij</sub></var> = £1.45·km + £75·θ·hours. Leaving stop <var>i</var> out costs its prize <var>π<sub>i</sub></var> = £60 × <var>ŷ<sub>i</sub></var>/100, its share of an overflow.</p>
+        <div class="eq left eq-lines">
+          <div>min &nbsp; Σ <var>c<sub>ij</sub> x<sub>ijkr</sub></var> + Σ<sub><var>i</var></sub> <var>π<sub>i</sub></var>(1 − Σ<sub><var>kr</var></sub> <var>z<sub>ikr</sub></var>)</div>
+          <div class="in st">Σ<sub><var>kr</var></sub> <var>z<sub>ikr</sub></var> ≤ 1 &emsp; each stop at most once</div>
+          <div class="in">Σ<sub><var>i</var></sub> <var>q<sub>i</sub> z<sub>ikr</sub></var> ≤ <var>Q</var> = 60 m³ &emsp; one load per trip</div>
+          <div class="in">Σ<sub><var>r</var></sub> (θ·drive + lift + tip) ≤ 480 min &emsp; each of <span data-mk="fleet">–</span> trucks</div>
+          <div class="in">flow in = flow out, no subtours, &nbsp;<var>x</var>, <var>z</var>, <var>u</var> ∈ {0, 1}</div>
+        </div>
+        <p><b>The algorithm: simulated annealing.</b> The model is NP-hard and tomorrow has <b data-mk="nStops">–</b> stops, so no exact solver finishes in minutes. Annealing searches instead:</p>
+        <div class="algo"><ol>
+          <li><b>Start.</b> Fill truck after truck, trip after trip, with the nearest stop that still fits.</li>
+          <li><b>Propose a small change.</b> Pick a stop <var>v</var> and one of its 20 nearest stops <var>w</var>, then: move <var>v</var> next to <var>w</var> · swap them · reverse the path between them (2-opt) · cross two trips at them (2-opt*) · drop <var>v</var> · give <var>v</var> a new trip. Changes that break a constraint are never made.</li>
+          <li><b>Accept or reject.</b> Δ = new cost − old cost. Keep the change if Δ ≤ 0; if it is worse, keep it anyway with probability <span class="eq inline">e<sup>−Δ/<var>T</var></sup></span>.</li>
+          <li><b>Cool.</b> The temperature <var>T</var> falls geometrically over the time budget. Early on, worse plans are often kept, so the search can climb out of a dead end. At the end it only goes downhill.</li>
+          <li><b>Return</b> the best plan seen.</li>
+        </ol></div>
+        <p><b>Weather and holidays sit in the constraints.</b> The load <var>q<sub>i</sub></var> grows with the hourly factor <var>w<sub>h</sub></var> (rain, temperature, holidays) until the truck arrives, and rain slows driving: θ = 1 + 0.10 × the share of the shift’s hours with rain. Both effect sizes are assumptions.</p>
         <p class="note" id="routeNote"></p>
       </div>
       <div class="m-widget">
-        <div class="m-head"><b>Try it on 12 real stops</b><span class="muted small" id="toySub"></span></div>
-        <div class="seg" id="toyBtns" style="margin:8px 0 10px">
-          <button type="button" data-a="nn" class="on">Nearest neighbour</button><button type="button" data-a="cw">Savings</button><button type="button" data-a="opt2">+ 2-opt</button><button type="button" data-a="hk">Exact (Held–Karp)</button>
+        <div class="m-head"><b>Watch it anneal 12 real stops</b><span class="muted small" id="toySub"></span></div>
+        <div class="m-row" style="margin:6px 0 4px">
+          <button class="btn primary sm" type="button" id="saPlay">Run</button>
+          <button class="btn ghost sm" type="button" id="saStep">One move</button>
+          <button class="btn ghost sm" type="button" id="saNew">New random start</button>
         </div>
-        <svg class="chart" id="mToy" viewBox="0 0 520 330" role="img" aria-label="One truck trip through 12 real stops"></svg>
+        <svg class="chart" id="mToy" viewBox="0 0 520 280" role="img" aria-label="The current route through 12 real stops"></svg>
+        <p class="sa-log" id="saLog" aria-live="polite"></p>
+        <svg class="chart" id="mSa" viewBox="0 0 520 170" role="img" aria-label="Route cost and temperature over the annealing moves"></svg>
         <div class="m-counts" id="toyOut"></div>
-        <p class="note">Held–Karp dynamic programming, <var>C</var>(<var>S</var>, <var>j</var>) = min<sub><var>i</var>∈<var>S</var></sub> <var>C</var>(<var>S</var> ∖ {<var>j</var>}, <var>i</var>) + <var>c<sub>ij</sub></var>, solves the tour exactly over 2<sup>12</sup> × 12 states, in your browser. Lines are straight; costs are road costs.</p>
+        <p class="note" id="saNote"></p>
       </div>
     </div>
   </div>

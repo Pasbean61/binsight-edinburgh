@@ -109,61 +109,124 @@ function mathsDecide(M) {
   $("#decNote").textContent = `Tomorrow: ${fmt(dm.risky)} stops are projected at ${fmt(dm.floor)} % or more. Fullest first, ${fmt(dm.chosen)} fit the time of ${fmt(fleet0)} trucks; after routing, ${fmt(dm.served)} are emptied.`;
 }
 
-/* 4 · toy routing demo */
+/* 4 · simulated annealing, live, on 12 real stops of one of tomorrow's trips */
 function mathsRoute(M) {
-  const toy = M.route.toy, C = toy.cost, K = toy.km, Tm = toy.min, n = toy.stops.length;
-  const pts = [[toy.depot.latitude, toy.depot.longitude], ...toy.stops.map(s => [s.lat, s.lon])];
-  const kx = Math.cos(55.95 * Math.PI / 180);
-  const xs = pts.map(p => p[1] * kx), ys = pts.map(p => p[0]);
-  const W = 520, H = 330, pad = 26, sx = (W - 2 * pad) / (Math.max(...xs) - Math.min(...xs)), sy = (H - 2 * pad) / (Math.max(...ys) - Math.min(...ys)), sc = Math.min(sx, sy);
-  const ox = (W - (Math.max(...xs) - Math.min(...xs)) * sc) / 2, oy = (H - (Math.max(...ys) - Math.min(...ys)) * sc) / 2;
-  const PX = k => ox + (xs[k] - Math.min(...xs)) * sc, PY = k => oy + (Math.max(...ys) - ys[k]) * sc;
-  const cost = tour => tour.slice(1).reduce((a, v, k) => a + C[tour[k]][v], 0), km = tour => tour.slice(1).reduce((a, v, k) => a + K[tour[k]][v], 0), mins = tour => tour.slice(1).reduce((a, v, k) => a + Tm[tour[k]][v], 0);
-  const nn = () => { const left = new Set(Array.from({ length: n }, (_, k) => k + 1)), t = [0]; let cur = 0; while (left.size) { let best = -1, bc = Infinity; for (const j of left) if (C[cur][j] < bc) { bc = C[cur][j]; best = j; } t.push(best); left.delete(best); cur = best; } t.push(0); return t; };
-  const cw = () => {
-    const route = new Map(), of = []; for (let i = 1; i <= n; i++) { route.set(i, [i]); of[i] = i; }
-    const sv = []; for (let i = 1; i <= n; i++) for (let j = i + 1; j <= n; j++) sv.push([C[0][i] + C[0][j] - C[i][j], i, j]);
-    sv.sort((a, b) => b[0] - a[0]);
-    for (const [, i, j] of sv) {
-      const ri = of[i], rj = of[j]; if (ri === rj) continue;
-      let A = route.get(ri), B = route.get(rj);
-      if ((A[0] !== i && A[A.length - 1] !== i) || (B[0] !== j && B[B.length - 1] !== j)) continue;
-      if (A[A.length - 1] !== i) A = A.reverse(); if (B[0] !== j) B = B.reverse();
-      const m = A.concat(B); route.set(ri, m); route.delete(rj); B.forEach(v => of[v] = ri);
-    }
-    return [0, ...[...route.values()][0], 0];
-  };
-  const opt2 = t => { t = t.slice(); let imp = true; while (imp) { imp = false; for (let a = 0; a < t.length - 3; a++) for (let b = a + 2; b < t.length - 1; b++) { const d = C[t[a]][t[b]] + C[t[a + 1]][t[b + 1]] - C[t[a]][t[a + 1]] - C[t[b]][t[b + 1]]; if (d < -1e-9) { const seg = t.slice(a + 1, b + 1).reverse(); t.splice(a + 1, seg.length, ...seg); imp = true; } } } return t; };
+  const toy = M.route.toy, C = toy.cost, K = toy.km, n = toy.stops.length;
+  const cost = t => { let s = 0; for (let k = 1; k < t.length; k++) s += C[t[k - 1]][t[k]]; return s; };
+  const km = t => t.slice(1).reduce((a, v, k) => a + K[t[k]][v], 0);
+  // the exact optimum (Held–Karp), for reference
   const hk = () => {
-    const S = 1 << n, dp = new Float64Array(S * n).fill(Infinity), par = new Int8Array(S * n).fill(-1);
+    const S = 1 << n, dp = new Float64Array(S * n).fill(Infinity);
     for (let j = 0; j < n; j++) dp[(1 << j) * n + j] = C[0][j + 1];
     for (let m = 1; m < S; m++) for (let j = 0; j < n; j++) {
       if (!(m & (1 << j))) continue; const cur = dp[m * n + j]; if (cur === Infinity) continue;
-      for (let k = 0; k < n; k++) { if (m & (1 << k)) continue; const nm = m | (1 << k), v = cur + C[j + 1][k + 1]; if (v < dp[nm * n + k]) { dp[nm * n + k] = v; par[nm * n + k] = j; } }
+      for (let k = 0; k < n; k++) { if (m & (1 << k)) continue; const nm = m | (1 << k), v = cur + C[j + 1][k + 1]; if (v < dp[nm * n + k]) dp[nm * n + k] = v; }
     }
-    let best = Infinity, end = -1; for (let j = 0; j < n; j++) { const v = dp[(S - 1) * n + j] + C[j + 1][0]; if (v < best) { best = v; end = j; } }
-    const t = []; let m = S - 1, j = end; while (j >= 0) { t.push(j + 1); const pj = par[m * n + j]; m &= ~(1 << j); j = pj; }
-    return [0, ...t.reverse(), 0];
+    let best = Infinity; for (let j = 0; j < n; j++) best = Math.min(best, dp[(S - 1) * n + j] + C[j + 1][0]);
+    return best;
   };
-  const t0 = performance.now(), opt = hk(), hkMs = performance.now() - t0;
-  const tours = { nn: nn(), cw: cw() }; tours.opt2 = opt2(tours.cw); tours.hk = opt;
-  const best = cost(opt);
-  $("#toySub").textContent = `${esc(toy.stops[0].site)} and nearby, from one of tomorrow’s trips`;
-  const draw = a => {
-    $$("#toyBtns button").forEach(b => b.classList.toggle("on", b.dataset.a === a));
-    const t = tours[a];
-    const path = t.map((v, k) => `${k ? "L" : "M"}${PX(v).toFixed(1)},${PY(v).toFixed(1)}`).join("");
-    $("#mToy").innerHTML = `<path d="${path}" fill="none" stroke="${a === "hk" ? PAL.accent : PAL.ink}" stroke-width="2" stroke-linejoin="round" opacity=".85"/>` +
-      t.slice(1, -1).map((v, k) => `<circle cx="${PX(v)}" cy="${PY(v)}" r="9" fill="${PAL.surface}" stroke="${PAL.ink}" stroke-width="1.4"><title>${esc(toy.stops[v - 1].site)} · ${toy.stops[v - 1].id}</title></circle><text x="${PX(v)}" y="${PY(v) + 4}" text-anchor="middle" style="fill:${PAL.ink};font-weight:600;font-size:10px">${k + 1}</text>`).join("") +
-      `<rect x="${PX(0) - 8}" y="${PY(0) - 8}" width="16" height="16" rx="3" fill="${PAL.ink}"/><text x="${PX(0) + 13}" y="${PY(0) + 4}" style="fill:${PAL.ink};font-weight:600">Seafield depot</text>`;
-    const c = cost(t), gap = 100 * (c / best - 1);
-    $("#toyOut").innerHTML = [[`£${fmt(c, 2)}`, "route cost"], [`${fmt(km(t), 1)} km · ${fmt(mins(t))} min`, "driving"], [gap < 1e-6 ? "optimal" : `+${fmt(gap, 1)} %`, "above the optimum"]].map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join("") +
-      (a === "hk" ? `<div style="grid-column:1/-1"><span>Exact optimum found in ${fmt(hkMs, 0)} ms over ${fmt((1 << n) * n)} states. Brute force would check ${fmt(479001600 / 2)} tours.</span></div>` : "");
+  const t0 = performance.now(), OPT = hk(), hkMs = performance.now() - t0;
+  const greedy = (() => { const left = new Set(Array.from({ length: n }, (_, k) => k + 1)), t = [0]; let cur = 0; while (left.size) { let b = -1, bc = Infinity; for (const j of left) if (C[cur][j] < bc) { bc = C[cur][j]; b = j; } t.push(b); left.delete(b); cur = b; } t.push(0); return t; })();
+  // annealing settings, as in route.py: T from 3 to 0.002 times the mean cost of one leg
+  let arcs = 0; for (let i = 0; i <= n; i++) for (let j = 0; j <= n; j++) if (i !== j) arcs += C[i][j];
+  const meanArc = arcs / (n * (n + 1)), T0 = 3 * meanArc, T1 = .002 * meanArc, N = 2000, NEAR = 5;
+  const near = Array.from({ length: n + 1 }, (_, v) => Array.from({ length: n }, (_, k) => k + 1).filter(w => w !== v).sort((a, b) => C[v][a] - C[v][b]).slice(0, NEAR));
+  const temp = k => T0 * Math.pow(T1 / T0, k / N);
+
+  // ── map: zoom to the stops; the depot sits off the edge, in its true direction ──
+  const W = 520, H = 280, pad = 30, kx = Math.cos(55.95 * Math.PI / 180);
+  const sx = toy.stops.map(s => s.lon * kx), sy = toy.stops.map(s => s.lat);
+  const x0 = Math.min(...sx), x1 = Math.max(...sx), y0 = Math.min(...sy), y1 = Math.max(...sy);
+  const sc = Math.min((W - 2 * pad - 150) / (x1 - x0 || 1e-9), (H - 2 * pad) / (y1 - y0 || 1e-9));
+  const ox = pad + 20 + ((W - 2 * pad - 150) - (x1 - x0) * sc) / 2, oy = pad + ((H - 2 * pad) - (y1 - y0) * sc) / 2;
+  const P = toy.stops.map((s, k) => [ox + (sx[k] - x0) * sc, oy + (y1 - sy[k]) * sc]);
+  for (let it = 0; it < 300; it++) for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) {   // nudge overlapping circles apart (display only)
+    const dx = P[b][0] - P[a][0], dy = P[b][1] - P[a][1], d = Math.hypot(dx, dy) || .01;
+    if (d < 23) { const m = (23 - d) / 2, ux = dx / d || 1, uy = dy / d; P[a][0] -= ux * m; P[a][1] -= uy * m; P[b][0] += ux * m; P[b][1] += uy * m; }
+  }
+  const cx = P.reduce((a, p) => a + p[0], 0) / n, cy = P.reduce((a, p) => a + p[1], 0) / n;
+  const dX = ox + (toy.depot.longitude * kx - x0) * sc - cx, dY = oy + (y1 - toy.depot.latitude) * sc - cy;
+  const DP = [W - 24, Math.max(52, Math.min(H - 60, cy + (W - 24 - cx) * dY / (Math.abs(dX) > 1e-9 ? dX : 1e-9)))];
+  const pt = v => v === 0 ? DP : P[v - 1];
+  const dist0 = Math.min(...Array.from({ length: n }, (_, k) => K[0][k + 1]));
+
+  const drawMap = (t, hl = []) => {
+    const legs = t.slice(1).map((v, k) => { const a = pt(t[k]), b = pt(v), dep = t[k] === 0 || v === 0; return `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="${PAL.ink}" stroke-width="${dep ? 1.4 : 2}" ${dep ? 'stroke-dasharray="5 4" opacity=".55"' : 'opacity=".85"'} stroke-linecap="round"/>`; }).join("");
+    $("#mToy").innerHTML = legs +
+      P.map((p, k) => { const on = hl.includes(k + 1); return `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="10" fill="${on ? PAL.accent : PAL.surface}" stroke="${on ? PAL.accent : PAL.ink}" stroke-width="1.4"><title>${esc(toy.stops[k].site)} · ${esc(toy.stops[k].id)}</title></circle><text x="${p[0].toFixed(1)}" y="${(p[1] + 3.8).toFixed(1)}" text-anchor="middle" style="fill:${on ? PAL.paper : PAL.ink};font-weight:650;font-size:10.5px">${k + 1}</text>`; }).join("") +
+      `<rect x="${DP[0] - 8}" y="${DP[1] - 8}" width="16" height="16" rx="3" fill="${PAL.ink}"/><text x="${DP[0] + 8}" y="${DP[1] - 28}" text-anchor="end" style="fill:${PAL.ink};font-weight:600">Seafield depot</text><text x="${DP[0] + 8}" y="${DP[1] - 14}" text-anchor="end">${fmt(dist0, 1)} km away by road</text>`;
   };
-  $$("#toyBtns button").forEach(b => b.onclick = () => draw(b.dataset.a));
-  draw("nn");
+
+  // ── chart: cost over the moves, best so far, the exact optimum, and the temperature ──
+  const CW = 520, CH = 170, l = 46, r = 12, tp = 10, bt = 26;
+  const drawChart = () => {
+    const ymax = Math.ceil(Math.max(...S.hist) / 5) * 5 + 2, ymin = Math.floor(OPT * .88);
+    const X = k => l + k / N * (CW - l - r), Y = v => tp + (1 - (v - ymin) / (ymax - ymin)) * (CH - tp - bt);
+    const step = Math.max(1, Math.floor(S.hist.length / 400));
+    const line = (arr) => arr.map((v, k) => (k % step && k !== arr.length - 1) ? "" : `${k ? "L" : "M"}${X(k).toFixed(1)},${Y(v).toFixed(1)}`).join("");
+    const Ty = k => tp + (1 - Math.log(temp(k) / T1) / Math.log(T0 / T1)) * (CH - tp - bt);
+    let tl = ""; for (let k = 0; k <= N; k += 50) tl += `${k ? "L" : "M"}${X(k).toFixed(1)},${Ty(k).toFixed(1)}`;
+    $("#mSa").innerHTML = svgAxisY(l, CW - r, Y, [ymin, Math.round((ymin + ymax) / 2), ymax], v => "£" + fmt(v)) +
+      `<path d="${tl}" fill="none" stroke="${PAL.f[3]}" stroke-width="1.2" stroke-dasharray="2 3"/><text x="${X(N * .3) + 6}" y="${Ty(N * .3) - 6}" style="fill:${PAL.f[3]}">temperature T (log scale)</text>` +
+      `<line x1="${l}" x2="${CW - r}" y1="${Y(OPT)}" y2="${Y(OPT)}" stroke="${PAL.ink}" stroke-dasharray="5 3" opacity=".7"/><text x="${X(N * .62)}" y="${Y(OPT) + 13}" text-anchor="middle" style="fill:${PAL.ink}">exact optimum (Held–Karp) £${fmt(OPT, 2)}</text>` +
+      `<path d="${line(S.hist)}" fill="none" stroke="${PAL.ink3}" stroke-width="1" opacity=".75"/>` +
+      `<path d="${line(S.bestHist)}" fill="none" stroke="${PAL.accent}" stroke-width="2.2"/>` +
+      `<text x="${l}" y="${CH - 7}">move 0</text><text x="${CW - r}" y="${CH - 7}" text-anchor="end">move ${fmt(N)}</text><text x="${(l + CW - r) / 2}" y="${CH - 7}" text-anchor="middle"><tspan style="fill:${PAL.accent};font-weight:600">best so far</tspan> · <tspan>current plan</tspan></text>`;
+  };
+
+  // ── the annealing state ──
+  let seed = 1, S, raf = 0;
+  const reset = () => {
+    cancelAnimationFrame(raf);
+    const u = rng32(seed * 7919 + 3), order = Array.from({ length: n }, (_, k) => k + 1);
+    for (let k = n - 1; k > 0; k--) { const j = Math.floor(u() * (k + 1)); [order[k], order[j]] = [order[j], order[k]]; }
+    const tour = [0, ...order, 0], c = cost(tour);
+    S = { u, tour, c, best: c, bestTour: tour.slice(), k: 0, up: 0, hist: [c], bestHist: [c], running: false, last: null };
+    paint();
+  };
+  const NAMES = ["move", "swap", "reverse"];
+  const step = () => {
+    if (S.k >= N) return false;
+    const u = S.u, T = temp(S.k), v = 1 + Math.floor(u() * n), w = near[v][Math.floor(u() * NEAR)], m = Math.floor(u() * 3);
+    const t = S.tour.slice(), a = t.indexOf(v), b = t.indexOf(w);
+    if (m === 0) { t.splice(a, 1); t.splice(t.indexOf(w) + 1, 0, v); }
+    else if (m === 1) { t[a] = w; t[b] = v; }
+    else { const i = Math.min(a, b), j = Math.max(a, b); const seg = t.slice(i, j + 1).reverse(); t.splice(i, seg.length, ...seg); }
+    const nc = cost(t), d = nc - S.c, p = d <= 0 ? 1 : Math.exp(-d / T), ok = d <= 1e-12 || u() < p;
+    if (ok) { if (d > 1e-9) S.up++; S.tour = t; S.c = nc; if (nc < S.best - 1e-9) { S.best = nc; S.bestTour = t.slice(); } }
+    S.k++; S.hist.push(S.c); S.bestHist.push(S.best);
+    S.last = { m, v, w, d, T, p, ok };
+    return true;
+  };
+  const moveText = L => L.m === 0 ? `move stop ${L.v} next to ${L.w}` : L.m === 1 ? `swap stops ${L.v} and ${L.w}` : `reverse the path between ${L.v} and ${L.w}`;
+  const paint = () => {
+    const L = S.last, done = S.k >= N;
+    drawMap(done ? S.bestTour : S.tour, L && !done ? [L.v, L.w] : []);
+    drawChart();
+    $("#saLog").innerHTML = !L ? `A random order through the 12 stops: £${fmt(S.c, 2)}. Press <b>Run</b>, or <b>One move</b> to see a single decision.`
+      : done ? `Done: the best plan seen costs <b>£${fmt(S.best, 2)}</b>, ${S.best <= OPT + 1e-6 ? "the exact optimum" : `${fmt(100 * (S.best / OPT - 1), 2)} % above the exact optimum`}. ${fmt(S.up)} of the ${fmt(N)} moves made the plan worse and were kept anyway.`
+      : `Move ${fmt(S.k)}: ${moveText(L)}. Δ = ${Math.abs(L.d) < .005 ? "" : L.d > 0 ? "+" : "−"}£${fmt(Math.abs(L.d), 2)}, <var>T</var> = £${fmt(L.T, 2)}. ` +
+        (L.d <= 1e-12 ? `Not worse, so <b>kept</b>.` : `Worse, so kept with probability e<sup>−Δ/<var>T</var></sup> = ${fmt(L.p, 2)}: <b>${L.ok ? "kept" : "rejected"}</b>.`);
+    $("#toyOut").innerHTML = [[`£${fmt(S.c, 2)}`, `current plan · ${fmt(km(S.tour), 1)} km`], [`£${fmt(S.best, 2)}`, S.best <= OPT + 1e-6 ? "best so far · optimal" : `best so far · +${fmt(100 * (S.best / OPT - 1), 1)} %`], [fmt(S.k), `of ${fmt(N)} moves · T = £${fmt(temp(Math.min(S.k, N)), 2)}`]].map(([v, l_]) => `<div><b>${v}</b><span>${l_}</span></div>`).join("");
+    $("#saPlay").textContent = S.running ? "Pause" : done ? "Run again" : S.k ? "Continue" : "Run";
+  };
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const run = () => {
+    if (S.k >= N) { seed++; reset(); }
+    S.running = true;
+    if (reduce) { while (step()); S.running = false; paint(); return; }
+    const frame = () => { if (!S.running) return; for (let j = 0; j < 3 && step(); j++); paint(); if (S.k < N) raf = requestAnimationFrame(frame); else { S.running = false; paint(); } };
+    raf = requestAnimationFrame(frame);
+  };
+  $("#saPlay").onclick = () => { if (S.running) { S.running = false; cancelAnimationFrame(raf); paint(); } else run(); };
+  $("#saStep").onclick = () => { S.running = false; cancelAnimationFrame(raf); if (S.k >= N) { seed++; reset(); } step(); paint(); };
+  $("#saNew").onclick = () => { seed++; reset(); };
+  $("#toySub").textContent = `${toy.stops[0].site} and nearby, from one of tomorrow’s trips`;
+  reset();
+  const gGap = 100 * (cost(greedy) / OPT - 1);
+  $("#saNote").innerHTML = `The demo starts from a random order so the search has work to do: on these stops, the greedy start used for the full plan is already ${gGap < .05 ? "at the optimum" : `${fmt(gGap, 1)} % above it`}. The three in-trip moves are shown (crossing trips, dropping a stop and opening a trip need more than one trip). <var>T</var> runs from 3 to 0.002 times the mean cost of one leg, as in the full model. The dashed line is the exact optimum by Held–Karp dynamic programming over ${fmt((1 << n) * n)} states, solved in your browser in ${fmt(hkMs, 0)} ms. Lines are straight; costs are road costs.`;
   const R = M.route;
-  $("#routeNote").textContent = `Tomorrow’s ${fmt(R.stops)} stops: start £${fmt(R.start)} → annealed £${fmt(R.final)} after ${fmt(R.iterations)} tried changes, in ${R.trips} trips on ${R.trucks} trucks, solved in ${fmt(R.seconds, 1)} s. Rain slowdown θ = ${fmt(R.theta, 3)}.`;
+  $("#routeNote").textContent = `Tomorrow’s ${fmt(R.stops)} stops: the greedy start costs £${fmt(R.start)}. Annealing tried ${fmt(R.iterations)} changes in ${fmt(R.seconds, 0)} s and ended at £${fmt(R.final)} (${fmt(100 * (1 - R.final / R.start), 1)} % less), in ${R.trips} trips on ${R.trucks} trucks. Rain slowdown θ = ${fmt(R.theta, 3)}.`;
 }
 
 /* 5 · before and after: the three policies */
