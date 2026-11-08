@@ -1354,7 +1354,7 @@ function initMap() {
   restyleStops();
   // depot
   const dep = [D.site.depot.latitude, D.site.depot.longitude];
-  L.circleMarker(dep, { renderer: canvas, radius: 8, color: PAL.surface, weight: 2, fillColor: PAL.ink, fillOpacity: 1 }).bindTooltip("Seafield depot · 24 trucks", { direction: "top" }).addTo(map);
+  L.circleMarker(dep, { renderer: canvas, radius: 8, color: PAL.surface, weight: 2, fillColor: PAL.ink, fillOpacity: 1 }).bindTooltip(`Seafield depot · ${D.site.fleet.trucks} trucks`, { direction: "top" }).addTo(map);
   highlight = L.layerGroup().addTo(map);
   map.on("zoomend", restyleStops);
   BS.map = map;

@@ -22,10 +22,10 @@
 
 ### Zoom to street level
 
-The map is a real street map of Edinburgh. Zoom in to see every building, street name and house number, with each truck’s route in its own colour (here: Haymarket, the West End and Dalry).
+The map is a real street map of Edinburgh. Zoom in to see every building, street name and house number, with each truck’s route in its own colour (here: Haymarket and the Dalry Colonies, at 11:00).
 
 <p align="center">
-  <a href="https://pasbean61.github.io/binsight-edinburgh/#console"><img src="docs/street.jpg" alt="Street-level view around Haymarket and the West End with truck routes and bin stops" width="100%"></a>
+  <a href="https://pasbean61.github.io/binsight-edinburgh/#console"><img src="docs/street.jpg" alt="Street-level view around Haymarket and the Dalry Colonies with truck routes and bin stops" width="100%"></a>
 </p>
 
 ## About
