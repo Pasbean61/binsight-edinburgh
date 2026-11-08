@@ -6,7 +6,7 @@ The model behind the website, written from scratch by EMS Group 6. One line:
 
 Run `python -m model.run` from the repository root; every number on the site comes from it. `python -m model.calibrate` re-derives the one calibrated parameter.
 
-**What is real:** the 4,533 general-waste communal bin stops (City of Edinburgh Council register, OGL), wards (ONS), the drivable street network (OpenStreetMap, ODbL), hourly weather (Open-Meteo), the council's collection frequency, public and school holidays, and the reported complaint rate.
+**What is real:** the 4,532 general-waste communal bin stops (City of Edinburgh Council register, OGL), wards (ONS), the drivable street network (OpenStreetMap, ODbL), hourly weather (Open-Meteo), the council's collection frequency, public and school holidays, and the reported complaint rate.
 **What is simulated:** fill levels, because the council does not publish sensor data.
 **What is assumed:** fleet, shift and costs, two structural assumptions about how bins fill, and the size of the weather and holiday effects, all in `config.py`. Every value there is labelled REAL, CALIBRATED or ASSUMPTION.
 

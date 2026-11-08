@@ -1,8 +1,7 @@
 """
 Assemble the website from src/ into:
   index.html          a complete document for GitHub Pages
-  site/binsight.html  the same page without the document skeleton (for a Claude artifact,
-                      where the AI twin can answer with Claude)
+  site/binsight.html  the same page without the document skeleton (for a Claude artifact)
 
     python scripts/build_page.py
 """
@@ -18,7 +17,7 @@ VER = hashlib.md5(b"".join(open(f, "rb").read() for f in sorted(glob.glob(os.pat
 
 TITLE = "BinSight Edinburgh"
 DESC = ("Forecast-driven waste collection for Edinburgh's communal bins: a live map of 4,533 real bin stops, "
-        "tomorrow's optimised routes, results, the business plan and an AI twin.")
+        "tomorrow's optimised routes, the maths, results and the business plan.")
 HEAD = f"""<title>{TITLE}</title>
 <meta name="description" content="{DESC}">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -31,9 +30,6 @@ HEAD = f"""<title>{TITLE}</title>
 SCRIPTS = f"""<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
 {src("app.js").replace("/*@MATHS@*/", src("maths.js")).replace("/*@VER@*/", VER)}
-</script>
-<script>
-{src("twin.js")}
 </script>"""
 
 fragment = f"{HEAD}\n{src('body.html')}\n{SCRIPTS}\n"
