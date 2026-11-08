@@ -14,7 +14,7 @@
 
 ### Tomorrow’s shift, replayed
 
-24 trucks leave Seafield at 06:00 and drive real Edinburgh streets to the 1,171 stops the plan serves. The last one is back at 14:00, inside the 8-hour shift. [Watch it live on the site →](https://pasbean61.github.io/binsight-edinburgh/#console)
+34 trucks leave Seafield at 06:00 and drive real Edinburgh streets to the 2,127 stops the plan serves. The last one is back just before 14:00, inside the 8-hour shift. [Watch it live on the site →](https://pasbean61.github.io/binsight-edinburgh/#console)
 
 <p align="center">
   <a href="https://pasbean61.github.io/binsight-edinburgh/#console"><img src="docs/replay.gif" alt="Replay of tomorrow's collection shift on the Edinburgh street map" width="100%"></a>
@@ -42,7 +42,7 @@ One page, in this order:
 |---|---|
 | **Problem** | Edinburgh’s communal-bin problem in sourced numbers, plus an interactive “timetable vs BinSight” fortnight |
 | **How it works** | Sense → Predict → Optimise → Collect, with the real formulas and methods |
-| **Live map** | A real street map of Edinburgh you can zoom from the whole city down to single buildings and house numbers, with all 4,532 real stops in their real wards, plus a replay of tomorrow’s shift: 24 trucks leave Seafield at 06:00, drive their routes on real streets and empty each flagged bin while trails, counters and the clock run. Follow any truck, hover and open wards, search streets, switch to overflow risk or the council’s full 17,713-asset register; driver view, alerts, sensor health and real weather below the map |
+| **Live map** | A real street map of Edinburgh you can zoom from the whole city down to single buildings and house numbers, with all 4,532 real stops in their real wards, plus a replay of tomorrow’s shift: 34 trucks leave Seafield at 06:00, drive their routes on real streets and empty each flagged bin while trails, counters and the clock run. Follow any truck, hover and open wards, search streets, switch to overflow risk or the council’s full 17,713-asset register; driver view, alerts, sensor health and real weather below the map |
 | **The maths** | Five interactive tabs: the calibrated fill simulator, the random-forest forecast, the fullest-first rule, the routing and the before-and-after check |
 | **Results** | Three collection strategies (timetable, reactive, BinSight) over a 7-day × 2-seed replay, forecast accuracy, the overflow-cost trade-off and a 12-way sensitivity check |
 | **Planner** | Change the threshold, fleet, shift and lift time; distance is estimated with the Beardwood–Halton–Hammersley law calibrated to the optimised plan |
