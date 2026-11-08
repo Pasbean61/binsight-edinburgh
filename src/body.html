@@ -261,7 +261,7 @@
         <h3>Routing: one model, solved by simulated annealing</h3>
         <p>Step 3 chose tomorrow’s stops. This step decides which truck empties each one, in what order, and when it drives back to Seafield to tip.</p>
         <p><b>The model.</b> On the road graph (<span data-mk="roadKm">–</span> km of Edinburgh streets from OpenStreetMap, shortest paths by Dijkstra), truck <var>k</var> makes trips <var>r</var>. Driving <var>i</var> → <var>j</var> costs <var>c<sub>ij</sub></var> = £1.45·km + £75·θ·hours. Leaving stop <var>i</var> out costs its prize <var>π<sub>i</sub></var> = £60 × <var>ŷ<sub>i</sub></var>/100, its share of an overflow.</p>
-        <div class="eq left eq-lines">
+        <div class="eq left eq-lines hl">
           <div>min &nbsp; Σ <var>c<sub>ij</sub> x<sub>ijkr</sub></var> + Σ<sub><var>i</var></sub> <var>π<sub>i</sub></var>(1 − Σ<sub><var>kr</var></sub> <var>z<sub>ikr</sub></var>)</div>
           <div class="in st">Σ<sub><var>kr</var></sub> <var>z<sub>ikr</sub></var> ≤ 1 &emsp; each stop at most once</div>
           <div class="in">Σ<sub><var>i</var></sub> <var>q<sub>i</sub> z<sub>ikr</sub></var> ≤ <var>Q</var> = 60 m³ &emsp; one load per trip</div>

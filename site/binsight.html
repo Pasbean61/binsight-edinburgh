@@ -494,6 +494,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 32px; justify-content: 
 .eq { font: 400 17px/1.55 "Source Serif 4", "STIX Two Text", Cambria, Georgia, serif; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin: 10px 0; overflow-x: auto; color: var(--ink); text-align: center; }
 .eq.left { text-align: left; }
 .eq.big { font-size: 19px; padding: 16px; border-color: var(--accent); background: var(--accent-soft); }
+.eq.hl { border-color: var(--accent); background: var(--accent-soft); }
 .eq.inline { display: inline; padding: 1px 6px; margin: 0; font-size: 15.5px; border-radius: 6px; }
 .eq var, .m-text var, .m-widget var { font-style: italic; }
 .eq sub, .eq sup { font-size: .72em; }
@@ -785,7 +786,7 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
         <h3>Routing: one model, solved by simulated annealing</h3>
         <p>Step 3 chose tomorrow’s stops. This step decides which truck empties each one, in what order, and when it drives back to Seafield to tip.</p>
         <p><b>The model.</b> On the road graph (<span data-mk="roadKm">–</span> km of Edinburgh streets from OpenStreetMap, shortest paths by Dijkstra), truck <var>k</var> makes trips <var>r</var>. Driving <var>i</var> → <var>j</var> costs <var>c<sub>ij</sub></var> = £1.45·km + £75·θ·hours. Leaving stop <var>i</var> out costs its prize <var>π<sub>i</sub></var> = £60 × <var>ŷ<sub>i</sub></var>/100, its share of an overflow.</p>
-        <div class="eq left eq-lines">
+        <div class="eq left eq-lines hl">
           <div>min &nbsp; Σ <var>c<sub>ij</sub> x<sub>ijkr</sub></var> + Σ<sub><var>i</var></sub> <var>π<sub>i</sub></var>(1 − Σ<sub><var>kr</var></sub> <var>z<sub>ikr</sub></var>)</div>
           <div class="in st">Σ<sub><var>kr</var></sub> <var>z<sub>ikr</sub></var> ≤ 1 &emsp; each stop at most once</div>
           <div class="in">Σ<sub><var>i</var></sub> <var>q<sub>i</sub> z<sub>ikr</sub></var> ≤ <var>Q</var> = 60 m³ &emsp; one load per trip</div>
