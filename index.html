@@ -1037,7 +1037,7 @@ const D = {};
 const UI = { layer: "pred", ward: -1, flagOnly: false, routes: false, selTruck: -1, selStop: -1, follow: -1, hoverWard: -1 };
 window.BS = { D, UI };
 
-const DATA_VER = "e94c83b42f";
+const DATA_VER = "f22f6ba4bc";
 async function getJSON(p) { const r = await fetch(p.startsWith("data/") ? p + "?v=" + DATA_VER : p); if (!r.ok) throw new Error(p + " " + r.status); return r.json(); }
 
 async function boot() {
