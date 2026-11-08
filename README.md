@@ -43,7 +43,7 @@ One page, in this order:
 | **Problem** | Edinburgh’s communal-bin problem in sourced numbers, plus an interactive “timetable vs BinSight” fortnight |
 | **How it works** | Sense → Predict → Optimise → Collect, with the real formulas and methods |
 | **Live map** | A real street map of Edinburgh you can zoom from the whole city down to single buildings and house numbers, with all 4,532 real stops in their real wards, plus a replay of tomorrow’s shift: 24 trucks leave Seafield at 06:00, drive their routes on real streets and empty each flagged bin while trails, counters and the clock run. Follow any truck, hover and open wards, search streets, switch to overflow risk or the council’s full 17,713-asset register; driver view, alerts, sensor health and real weather below the map |
-| **The maths** | Five interactive tabs: the fill simulator, the forecast, the decision rule, the routing and the exact checks |
+| **The maths** | Five interactive tabs: the calibrated fill simulator, the random-forest forecast, the fullest-first rule, the routing and the before-and-after check |
 | **Results** | Three collection strategies (timetable, reactive, BinSight) over a 7-day × 2-seed replay, forecast accuracy, the overflow-cost trade-off and a 12-way sensitivity check |
 | **Planner** | Change the threshold, fleet, shift and lift time; distance is estimated with the Beardwood–Halton–Hammersley law calibrated to the optimised plan |
 | **Business** | Three-partner model, revenue models A–G, gain-share calculator, go-to-market, evidence and risks |
@@ -60,7 +60,7 @@ One page, in this order:
 | Hourly temperature and rain (4 Oct – 2 Nov 2026), and the 7-day forecast issued on 2 Nov | Real | Open-Meteo |
 | Problem, market and policy statistics | Real, cited | See the Sources section |
 | Fill levels, collections, sensor battery and signal | **Simulated** | The council does not publish its sensor feed |
-| Fleet and costs (24 trucks × 60 m³, 8-hour shift, 2 min a stop + 1 min a bin, £1.45/km, £75/truck-hour, £60 per overflow) | Assumed | `model/config.py` |
+| Fleet and costs (the trucks the timetable needs on its busiest round × 60 m³, 8-hour shift, 2 min a stop + 1 min a bin, £1.45/km, £75/truck-hour, £60 per overflow) | Assumed | `model/config.py` |
 
 ## Repository layout
 

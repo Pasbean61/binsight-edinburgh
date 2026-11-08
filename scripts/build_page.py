@@ -16,7 +16,7 @@ src = lambda f: open(os.path.join(ROOT, "src", f), encoding="utf-8").read()
 VER = hashlib.md5(b"".join(open(f, "rb").read() for f in sorted(glob.glob(os.path.join(ROOT, "data", "*.json"))))).hexdigest()[:10]
 
 TITLE = "BinSight Edinburgh"
-DESC = ("Forecast-driven waste collection for Edinburgh's communal bins: a live map of 4,533 real bin stops, "
+DESC = ("Forecast-driven waste collection for Edinburgh's communal bins: a live map of 4,532 real bin stops, "
         "tomorrow's optimised routes, the maths, results and the business plan.")
 HEAD = f"""<title>{TITLE}</title>
 <meta name="description" content="{DESC}">
