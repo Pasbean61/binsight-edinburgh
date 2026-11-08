@@ -85,11 +85,12 @@ docs/                       README images
 
 ```bash
 pip install numpy scipy pyproj
+python scripts/fetch_cache.py       # once: downloads the road-network cache (131 MB) from the release road-cache-v1
 python -m model.run --experiments   # about 25 minutes on 10 cores; omit the flag to reuse cached experiments
 python scripts/build_page.py
 ```
 
-The road network (`model/data/cache/osm_roads.json`) and its distance matrix are cached and not committed; see `model/README.md` to fetch them.
+The road network (`model/data/cache/osm_roads.json`) and its distance matrix (`matrix.npz`, 164 MB) are too big for git, so they are attached to the GitHub release [`road-cache-v1`](https://github.com/Pasbean61/binsight-edinburgh/releases/tag/road-cache-v1). `python scripts/fetch_cache.py` downloads them into `model/data/cache/`.
 
 ## Acknowledgement
 
