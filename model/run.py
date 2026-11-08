@@ -1,5 +1,5 @@
 """
-BinSight, end to end:   python -m model.run [--experiments] [--skip-static]
+BinSight, end to end:   python3 -m model.run [--experiments] [--skip-static]
 
   1. real data: stops, wards, road graph and its distance/time matrices (cached)
   2. live run: 7 days on the timetable while the forecaster learns, then BinSight every day

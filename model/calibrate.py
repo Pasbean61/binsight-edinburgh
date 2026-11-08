@@ -6,7 +6,7 @@ on the simulator for a grid of U, and pick the U at which overflows are TARGET_O
 collections. No routing is needed: each stop is emptied at a fixed hour of the shift (06:00–13:00),
 the same every round, as a fixed route would.
 
-    python -m model.calibrate
+    python3 -m model.calibrate
 """
 import numpy as np
 

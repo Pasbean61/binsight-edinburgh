@@ -2,7 +2,7 @@
 BinSight model settings.
 
 Every number here is either REAL (from a published source), or an ASSUMPTION that the website
-labels as such. Change them and rerun `python -m model.run`.
+labels as such. Change them and rerun `python3 -m model.run`.
 """
 import os
 import datetime as dt

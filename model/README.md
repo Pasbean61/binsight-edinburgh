@@ -4,7 +4,7 @@ The model behind the website, written from scratch by EMS Group 6. One line:
 
 **simulate the bins (with weather and holidays) → a random forest projects each stop's fill → empty the fullest first until the trucks are full → route them with one optimisation model solved by simulated annealing → compare with today's timetable.**
 
-Run `python -m model.run` from the repository root; every number on the site comes from it. `python -m model.calibrate` re-derives the one calibrated parameter.
+Run `python3 -m model.run` from the repository root; every number on the site comes from it. `python3 -m model.calibrate` re-derives the one calibrated parameter.
 
 **What is real:** the 4,532 general-waste communal bin stops (City of Edinburgh Council register, OGL), wards (ONS), the drivable street network (OpenStreetMap, ODbL), hourly weather (Open-Meteo), the council's collection frequency, public and school holidays, and the reported complaint rate.
 **What is simulated:** fill levels, because the council does not publish sensor data.
@@ -127,7 +127,7 @@ Each policy has 15 days of timetable warm-up and 14 days of its own; the last 7 
 
 ## Data not in git
 
-`data/cache/` is too big for git (188 MB). Download it with `python scripts/fetch_cache.py`, which fetches the zip attached to the GitHub release [`road-cache-v1`](https://github.com/Pasbean61/binsight-edinburgh/releases/tag/road-cache-v1). It holds `osm_roads.json` (Overpass query for `highway` ~ motorway…service inside the bounding box in `config.py`, excluding private access, parking aisles and driveways), `osm_basemap.json` (major roads, rivers and parks for the light fallback map) and `matrix.npz` (shortest-path driving distance and time between every stop and the depot: `network.RoadGraph.matrices`, Dijkstra on the street graph).
+`data/cache/` is too big for git (188 MB). Download it with `python3 scripts/fetch_cache.py`, which fetches the zip attached to the GitHub release [`road-cache-v1`](https://github.com/Pasbean61/binsight-edinburgh/releases/tag/road-cache-v1). It holds `osm_roads.json` (Overpass query for `highway` ~ motorway…service inside the bounding box in `config.py`, excluding private access, parking aisles and driveways), `osm_basemap.json` (major roads, rivers and parks for the light fallback map) and `matrix.npz` (shortest-path driving distance and time between every stop and the depot: `network.RoadGraph.matrices`, Dijkstra on the street graph).
 
 ## Acknowledgement
 

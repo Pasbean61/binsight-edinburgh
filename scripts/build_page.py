@@ -3,7 +3,7 @@ Assemble the website from src/ into:
   index.html          a complete document for GitHub Pages
   site/binsight.html  the same page without the document skeleton (for a Claude artifact)
 
-    python scripts/build_page.py
+    python3 scripts/build_page.py
 """
 import glob
 import hashlib

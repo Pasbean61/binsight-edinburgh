@@ -1,7 +1,7 @@
 """Download the road-network cache the model needs into model/data/cache/.
 
-    python scripts/fetch_cache.py           # skips files that are already there
-    python scripts/fetch_cache.py --force   # download and overwrite
+    python3 scripts/fetch_cache.py           # skips files that are already there
+    python3 scripts/fetch_cache.py --force   # download and overwrite
 
 The cache (OpenStreetMap streets and the stop-to-stop distance/time matrix, 188 MB unzipped) is too
 big for the git repository, so it is attached to the GitHub release `road-cache-v1`:
