@@ -268,40 +268,7 @@ function initExplainer() {
 }
 
 /* ── steps ───────────────────────────────────────── */
-function initSteps() {
-  const f = D.site.fleet, p = D.site.plan, F = D.site.maths.forecast, dm = D.site.maths.decide, P = D.site.maths.params;
-  const top = Object.entries(F.importance).sort((a, b) => b[1] - a[1])[0];
-  const toMaths = k => `<button class="linkbtn" type="button" onclick="BS.mathsTab(${k});document.getElementById('maths').scrollIntoView()">See the maths</button>`;
-  const content = [
-    `<div><h4>A sensor that fits the bins Edinburgh already has</h4><p class="muted">An ultrasonic sensor in the lid measures the distance to the waste and converts it to a fill level, then reports it every hour.</p>
-      <ul><li>Universal mount for communal, trade and campus bins</li><li>Bin-level data only, no personal data (UK GDPR)</li><li>Fitted first where fill levels vary most</li><li>Works with sensors councils already own</li></ul></div>
-     <div><div class="formula">fill % = 100 × (1 − distance / bin depth)
-reading = true fill + noise,  noise ~ N(0, ${D.site.maths.params.SENSOR_NOISE}²)
-reported hourly, capped at 100 %</div><p class="note">On this site the readings are simulated by our fill model, calibrated to the council’s complaint rate (step 1 of the maths).</p></div>`,
-    `<div><h4>Forecast every stop until the next chance of a truck</h4><p class="muted">Every morning a random forest predicts how many points each stop will gain per hour over the next day, from what a real system knows: the latest reading, how fast the stop has been filling, the weekday, and the rain, temperature and holidays ahead. The fullest stops go first.</p>
-      <ul><li>${fmt(F.trees)} trees, retrained every morning on all past days: ${fmt(F.n_train)} stop-mornings for tomorrow</li><li>Most important input: ${esc(FEATURE_LABEL[top[0]] || top[0]).toLowerCase()} (${fmt(100 * top[1])} %)</li><li>Tomorrow: ${fmt(dm.risky)} stops projected at ${fmt(P.FLOOR)} % or more, ${fmt(dm.chosen)} fit the fleet</li><li>${toMaths(1)}</li></ul></div>
-     <div><div class="formula">ŷᵢ = yᵢ + ĝᵢ · hours
-(projected fill by 14:00 tomorrow)
-
-sort the stops by ŷᵢ, fullest first
-take them while the fleet has time
-never take a stop with ŷᵢ < ${fmt(P.FLOOR)} %</div></div>`,
-    `<div><h4>A multi-trip vehicle-routing problem, solved by simulated annealing</h4><p class="muted">Costs come from shortest paths on Edinburgh’s street graph. Each truck carries ${fmt(f.capacity_l / 1000)} m³ per load, tips at Seafield and goes out again, inside an ${fmt(f.shift_min / 60)}-hour shift. One simulated-annealing search builds and improves every truck’s trips together; rain lengthens driving times and the weather and holiday factor raises each stop’s load.</p>
-      <ul><li>${fmt(p.served)} stops in ${p.trips} trips by ${p.trucks_used} trucks, ${fmt(p.road_km)} km on real streets</li><li>Stops the fleet cannot fit are left out least full first, and reported</li><li>${toMaths(3)}</li></ul></div>
-     <div><div class="formula">minimise   Σ cᵢⱼ xᵢⱼ + Σ πᵢ (1 − served)
-cᵢⱼ = £${f.cost_km}/km + £${fmt(f.cost_hour)}/h,  πᵢ = £${fmt(f.cost_overflow)} × ŷᵢ/100
-subject to  each chosen stop visited at most once
-            load per trip ≤ ${fmt(f.capacity_l)} L
-            drive + lift + tip ≤ ${f.shift_min} min per truck
-            ${f.trucks} trucks from Seafield depot</div></div>`,
-    `<div><h4>Crews follow the plan; residents fill the gaps</h4><p class="muted">Each driver sees an ordered stop list with arrival times and a map for their truck, and marks stops as collected or reports a problem (blocked access, damaged bin). Residents report full or misused bins in the app with a photo; verified reports earn points for vouchers at local businesses.</p>
-      <ul><li>Only verified reports earn points, with a daily limit per person</li><li>Only the first report on a bin is rewarded</li><li>Reports act as human sensors for bins without one</li></ul></div>
-     <div><p class="muted small" style="margin-bottom:10px">Try it: open any truck’s driver view.</p><button class="btn ghost" type="button" onclick="BS.openTab('routes');document.getElementById('console').scrollIntoView()">Open the driver view</button></div>`,
-  ];
-  const show = k => { $("#stepDetail").innerHTML = content[k]; $$("#steps .step").forEach(s => s.classList.toggle("on", +s.dataset.step === k)); };
-  $$("#steps .step").forEach(s => s.onclick = () => show(+s.dataset.step));
-  show(0);
-}
+function initSteps() {}   // the four steps are plain cards now
 
 /* ── map ─────────────────────────────────────────── */
 let map, stopLayer, routeLayer, netLayer, wardLayer, markers = [], routeLines = [], wardShapes = [], highlight, baseLayers = [], basePal = "";
@@ -980,61 +947,30 @@ function drawWeather() {
 /*@MATHS@*/
 
 /* ── results ─────────────────────────────────────── */
-const METRICS = [
-  ["overflow_events_day", "Overflows", "Stops reaching 100 % (an overflow begins), per day", 0],
-  ["overflow_bin_hours_day", "Overflow bin-hours", "Hours stops spent overflowing, per day", 0],
-  ["km_day", "Distance (km)", "Kilometres driven per day, on real streets", 0],
-  ["truck_hours_day", "Truck-hours", "Crew hours per day: driving, lifting, tipping", 0],
-  ["collections_day", "Stops emptied", "Stops emptied per day", 0],
-  ["share_under_40", "Emptied under 40 %", "Share of collections made while the stop was under 40 % full", 1, 100],
-  ["fill_at_collection", "Fill when emptied (%)", "Mean true fill when a stop is emptied", 1],
-  ["cost_day", "Total cost (£)", "£1.45/km + £75/truck-hour + £60 per overflow, per day", 0],
-];
-const STRAT_LABEL = { timetable: "Timetable (every 2nd day)", reactive: "Reactive (reads ≥ 80 % at 05:00)", binsight: "BinSight (forecast + rule + routing)" };
 const POLICIES = ["timetable", "reactive", "binsight"];
+const STRAT_LABEL = { timetable: "Timetable", reactive: "Reactive", binsight: "BinSight" };
 function initResults() {
-  const ex = D.site.experiments, P = D.site.maths.params;
-  let metric = 0;
-  $("#metricPills").innerHTML = METRICS.map((m, k) => `<button type="button" data-k="${k}" class="${k ? "" : "on"}">${m[1]}</button>`).join("");
-  const draw = () => {
-    const [key, label, desc, dec, mul = 1] = METRICS[metric];
-    const rows = POLICIES.map(strat).filter(Boolean);
-    const vals = rows.map(r => r[key] * mul), sds = rows.map(r => (r[key + "_sd"] || 0) * mul);
-    const max = Math.max(...vals.map((v, k) => v + sds[k])) * 1.08 || 1;
-    const W = 640, x0 = 230, bw = W - x0 - 80;
-    $("#stratChart").innerHTML = `<text x="${x0}" y="14">${esc(desc)}</text>` + rows.map((r, k) => {
-      const y = 40 + k * 64, w = vals[k] / max * bw, sw = sds[k] / max * bw, best = r.policy === "binsight";
-      return `<text class="lbl" x="${x0 - 12}" y="${y + 19}" text-anchor="end">${esc(STRAT_LABEL[r.policy])}</text>
-        <rect x="${x0}" y="${y + 4}" width="${Math.max(2, w)}" height="26" rx="4" fill="${best ? PAL.accent : PAL.ink3}" opacity="${best ? 1 : .55}"/>
-        ${sw > 1 ? `<line x1="${x0 + w - sw}" x2="${x0 + w + sw}" y1="${y + 17}" y2="${y + 17}" stroke="${PAL.ink}" stroke-width="1.2"/><line x1="${x0 + w + sw}" x2="${x0 + w + sw}" y1="${y + 12}" y2="${y + 22}" stroke="${PAL.ink}" stroke-width="1.2"/>` : ""}
-        <text class="val" x="${x0 + w + Math.max(sw, 0) + 8}" y="${y + 22}">${fmt(vals[k], dec)}${mul === 100 ? " %" : ""}</text>`;
-    }).join("");
-    $("#stratNote").textContent = `Mean per day over ${ex.eval_days} test days (from ${fmtDate(ex.eval_start + "T00:00", { day: "numeric", month: "short" })}) × ${ex.seeds.length} random seeds, ±1 standard deviation across seeds. Same ${fmt(D.n)} stops, the same deposits and the same ${fmt(D.site.fleet.trucks)} trucks for all three: the fleet the timetable needs on its busiest round. Fill is simulated.`;
-    $$("#metricPills button").forEach(b => b.classList.toggle("on", +b.dataset.k === metric));
-  };
-  $$("#metricPills button").forEach(b => b.onclick = () => { metric = +b.dataset.k; draw(); });
-  draw();
-  const F = strat("timetable"), B = strat("binsight"), R = strat("reactive");
+  const ex = D.site.experiments, P = D.site.maths.params, F = strat("timetable"), R = strat("reactive"), B = strat("binsight");
   const ch = (a, b) => `${b <= a ? "−" : "+"}${fmt(Math.abs(100 * (b / a - 1)))} %`;
+  // 1 · three headline numbers, each with a before/after pair of bars
+  const pair = (a, b, f) => { const m = Math.max(a, b); return [["Timetable", a, 0], ["BinSight", b, 1]].map(([n, v, on]) =>
+    `<div class="pb${on ? " on" : ""}"><span>${n}</span><i><u style="width:${Math.max(1.5, 100 * v / m)}%"></u></i><b>${f(v)}</b></div>`).join(""); };
   $("#takeaways").innerHTML = [
-    [ch(F.overflow_events_day, B.overflow_events_day), `overflows against the timetable: ${fmt(B.overflow_events_day)} a day instead of ${fmt(F.overflow_events_day)}. Reacting to today’s reading alone gives ${fmt(R.overflow_events_day)}, because by the time a bin reads 80 % it is often too late.`],
-    [ch(F.cost_day, B.cost_day), `total daily cost, £${fmt(B.cost_day)} against £${fmt(F.cost_day)}, counting driving, crew time and overflows at £${P.COST_OVERFLOW} each.`],
-    [ch(F.km_day, B.km_day), `distance. BinSight drives ${fmt(B.km_day)} km a day against ${fmt(F.km_day)} km: the stops that need a truck are spread across the city, not packed into one round. Fewer overflows cost some extra driving.`],
-  ].map(([b, p]) => `<div class="card takeaway"><b>${b}</b><p>${p}</p></div>`).join("");
-  // fill when emptied
-  $("#modelTable").innerHTML = `<thead><tr><th>Policy</th><th class="n">Fill when emptied</th><th class="n">Emptied under 40 %</th></tr></thead><tbody style="cursor:default">` +
-    POLICIES.map(strat).map(r => `<tr><td>${r.policy === "binsight" ? "<b>" + STRAT_LABEL[r.policy] + "</b>" : STRAT_LABEL[r.policy]}</td><td class="n">${fmt(r.fill_at_collection)} %</td><td class="n">${fmt(100 * r.share_under_40)} %</td></tr>`).join("") + "</tbody>";
-  $("#modelNote").textContent = `The timetable empties every stop every ${P.COLLECT_EVERY_DAYS} days, so ${fmt(100 * F.share_under_40)} % of its trips find the bin under 40 % full. BinSight empties fewer stops a day, each fuller (${fmt(B.fill_at_collection)} % on average). The reactive rule waits for a reading of ${fmt(P.REACTIVE_AT)} %, so its bins are fullest of all, but many overflow before the truck arrives.`;
-  // limits
-  $("#realityText").innerHTML = `Fill levels are <b>simulated</b>, and the forecast is tested on the same simulator, so the forecast looks better than it would on real sensors. Routes ignore one-way streets and turn restrictions, assume tomorrow’s weather is known, and tip at Seafield (Edinburgh’s residual waste actually goes to Millerhill). Costs per km, per hour and per overflow are our assumptions. Every number here can be rerun with <span class="mono">python -m model.run</span>.`;
-  // cost breakdown
-  const rowsC = POLICIES.map(strat);
-  const parts = r => [P.COST_KM * r.km_day, P.COST_HOUR * r.truck_hours_day, P.COST_OVERFLOW * r.overflow_events_day];
-  const mx = Math.max(...rowsC.map(r => parts(r).reduce((a, b) => a + b, 0)));
-  const colsC = [PAL.ink3, PAL.ink, PAL.f[4]];
-  $("#ablationTable").innerHTML = `<thead><tr><th>Policy</th><th class="n">Driving</th><th class="n">Crew time</th><th class="n">Overflows</th><th class="n">Total / day</th><th style="width:34%"></th></tr></thead><tbody style="cursor:default">` +
-    rowsC.map(r => { const q = parts(r), tot = q.reduce((a, b) => a + b, 0); return `<tr><td>${r.policy === "binsight" ? "<b>" + STRAT_LABEL[r.policy] + "</b>" : STRAT_LABEL[r.policy]}</td>${q.map(v => `<td class="n">£${fmt(v)}</td>`).join("")}<td class="n"><b>£${fmt(tot)}</b></td><td><span style="display:flex;height:12px;border-radius:4px;overflow:hidden;width:${tot / mx * 100}%">${q.map((v, k) => `<span style="width:${v / tot * 100}%;background:${colsC[k]}"></span>`).join("")}</span></td></tr>`; }).join("") + "</tbody>";
-  $("#ablationNote").textContent = `Crew time dominates every policy. The comparison is relative: the absolute numbers depend on the simulated city and on our cost assumptions.`;
+    [ch(F.overflow_events_day, B.overflow_events_day), "overflowing bins", pair(F.overflow_events_day, B.overflow_events_day, v => fmt(v) + " a day")],
+    [ch(F.cost_day, B.cost_day), "cost", pair(F.cost_day, B.cost_day, v => "£" + fmt(v) + " a day")],
+    [ch(F.km_day, B.km_day), "distance driven", pair(F.km_day, B.km_day, v => fmt(v) + " km a day")],
+  ].map(([b, t, bars]) => `<div class="card takeaway"><b>${b}</b><h4>${t}</h4>${bars}</div>`).join("");
+  // 2 · the three methods side by side
+  const M = [
+    [F, "Today", "Every bin, every 2 days, full or not.", `${fmt(100 * F.share_under_40)} % of its visits find a bin less than 40 % full.`],
+    [R, "Sensors only", `Empty a bin once it reads ${fmt(P.REACTIVE_AT)} %.`, "Too late: the bin often overflows before the truck arrives."],
+    [B, "Sensors + forecast", "Empty the bins that will be full tomorrow.", "Sees the overflow coming and gets there first."],
+  ];
+  $("#methods").innerHTML = M.map(([r, tag, how, verdict]) => `<div class="card method${r.policy === "binsight" ? " on" : ""}">
+    <span class="eyebrow">${tag}</span><h4>${STRAT_LABEL[r.policy]}</h4><p class="how">${how}</p>
+    <div class="big"><b>${fmt(r.overflow_events_day)}</b><span>overflows a day</span></div>
+    <dl><dt>Cost a day</dt><dd>£${fmt(r.cost_day)}</dd><dt>Distance a day</dt><dd>${fmt(r.km_day)} km</dd></dl>
+    <p class="verdict">${verdict}</p></div>`).join("");
 }
 
 /* ── planner ─────────────────────────────────────── */

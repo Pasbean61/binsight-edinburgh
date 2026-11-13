@@ -60,8 +60,7 @@
 <!-- ── PROBLEM ────────────────────────────────────────── -->
 <section class="chapter wrap" id="problem">
   <div class="chapter-head">
-    <div><span class="eyebrow">The problem</span><h2>Fixed timetables meet waste that never arrives on schedule</h2></div>
-    <p>Edinburgh is a city of tenements and flats. Dozens of households share each on-street communal bin, and how much goes in changes every day. A timetable can’t see short-term lets, students moving out, the festivals or a busy Saturday, so it forces a bad choice: collect too often and waste money, or too rarely and live with overflow.</p>
+    <div><span class="eyebrow">The problem</span><h2>Bins fill at different speeds. A timetable can’t see that.</h2></div>
   </div>
   <div class="stats">
     <div class="card stat"><b>10,657</b><p>general-waste communal bins stand on Edinburgh’s streets at 4,532 stops, shared by the tenements and flats around them instead of a wheelie bin for each home.</p><span class="src">City of Edinburgh Council, <a href="https://data.edinburghcouncilmaps.info/datasets/283caa7cb2434db3874526d16efe8c67_27/about" target="_blank" rel="noopener">Communal Bins register</a> (open data)</span></div>
@@ -102,20 +101,13 @@
 <div class="band">
 <section class="chapter wrap" id="how">
   <div class="chapter-head">
-    <div><span class="eyebrow">How it works</span><h2>Sense, predict, optimise, collect</h2></div>
-    <p>BinSight adds sensors and software to the bins and trucks a city already owns. We don’t make bins or run trucks. Customers keep their vehicles and crews; we tell them where to go.</p>
+    <div><span class="eyebrow">Our answer</span><h2>Measure, forecast, route, collect</h2></div>
   </div>
   <div class="steps" id="steps">
-    <button class="card step on" type="button" data-step="0"><span class="k">1 · Sense</span><h3>Measure</h3><p>A battery-powered ultrasonic sensor clips inside any existing bin lid and reports how full it is.</p></button>
-    <button class="card step" type="button" data-step="1"><span class="k">2 · Predict</span><h3>Forecast</h3><p>A random forest forecasts how full each bin will be by the next chance of a truck, and the fullest go first.</p></button>
-    <button class="card step" type="button" data-step="2"><span class="k">3 · Optimise</span><h3>Route</h3><p>A vehicle-routing solver plans the shortest routes that cover only the bins that need emptying.</p></button>
-    <button class="card step" type="button" data-step="3"><span class="k">4 · Collect</span><h3>Act</h3><p>Crews follow the plan on a driver view; residents report problems in an app and earn local vouchers.</p></button>
-  </div>
-  <div class="card step-detail" id="stepDetail"></div>
-  <div class="products">
-    <div class="card"><span class="eyebrow">Product</span><h4 style="margin-top:8px">BinSight Sensor</h4><p>A small fill-level sensor that fits communal, trade and campus bins. No bin replacement needed.</p></div>
-    <div class="card"><span class="eyebrow">Product</span><h4 style="margin-top:8px">BinSight Platform</h4><p>Live fill map, fill-time forecasts, optimised daily routes, reports, and an API into the route-planning tools councils already use.</p></div>
-    <div class="card"><span class="eyebrow">Product</span><h4 style="margin-top:8px">BinSight Resident App</h4><p>Free for residents: report full or misused bins with a photo, earn points for verified reports, spend them at local businesses.</p></div>
+    <div class="card step"><span class="k">Step 1</span><h3>Measure</h3><p>A sensor in the lid reports how full the bin is, every hour.</p></div>
+    <div class="card step"><span class="k">Step 2</span><h3>Forecast</h3><p>A model forecasts how full each bin will be tomorrow.</p></div>
+    <div class="card step"><span class="k">Step 3</span><h3>Route</h3><p>Trucks get the shortest routes to the bins that need emptying.</p></div>
+    <div class="card step"><span class="k">Step 4</span><h3>Collect</h3><p>Crews follow the plan. Residents report problems in an app.</p></div>
   </div>
 </section>
 </div>
@@ -123,8 +115,7 @@
 <!-- ── CONSOLE ────────────────────────────────────────── -->
 <section class="chapter wrap console" id="console">
   <div class="chapter-head">
-    <div><span class="eyebrow">Live map</span><h2>Tomorrow’s plan, stop by stop</h2></div>
-    <p>Every dot is a real general-waste communal bin stop from the council’s register, placed in its real ward. Press play to watch tomorrow’s shift: <span data-k="trucksUsed">–</span> trucks leave Seafield at 06:00, drive real streets and empty each flagged bin. Hover a ward, click any stop, or follow a truck.</p>
+    <div><span class="eyebrow">See it working</span><h2>Tomorrow’s plan, stop by stop</h2></div>
   </div>
   <div class="consolekpis" id="consoleKpis"></div>
   <div class="toolbar">
@@ -170,8 +161,7 @@
 <div class="band">
 <section class="chapter wrap" id="maths">
   <div class="chapter-head">
-    <div><span class="eyebrow">The maths</span><h2>Five steps behind one plan</h2></div>
-    <p>Each step feeds the next: simulate how bins fill, forecast each stop, choose which to empty, route the trucks, then test the result. One core formula per step; the full detail is in <span class="mono">model/README.md</span>.</p>
+    <div><span class="eyebrow">How the plan is made</span><h2>Five steps behind the plan</h2></div>
   </div>
   <div class="m-tabs" role="tablist" id="mTabs">
     <button type="button" role="tab" data-m="0" class="on"><span class="k">1</span>Simulate<small>how bins fill</small></button>
@@ -319,43 +309,18 @@
 <!-- ── RESULTS ────────────────────────────────────────── -->
 <section class="chapter wrap" id="results">
   <div class="chapter-head">
-    <div><span class="eyebrow">Results</span><h2>Three ways to run a week of collections</h2></div>
-    <p>The same simulated city, the same deposits, weather and sensor noise are fed to three policies (common random numbers), with the same fleet. Each picks its stops at 05:00, our solver routes them inside 8-hour shifts, and trucks empty each stop in the hour they reach it. We score 7 days, 26 October to 1 November, for 2 random seeds.</p>
+    <div><span class="eyebrow">Does it work?</span><h2>Fewer overflows, lower cost</h2><span class="tag sim" style="margin-top:12px">Simulated week · same 34 trucks</span></div>
   </div>
-  <div class="results-grid">
-    <div class="card">
-      <div class="metric-pills" id="metricPills"></div>
-      <svg class="chart" id="stratChart" viewBox="0 0 640 250" role="img" aria-label="Strategy comparison chart"></svg>
-      <p class="note" id="stratNote"></p>
-    </div>
-    <div class="takeaways" id="takeaways"></div>
-  </div>
-  <div class="biz-grid" style="margin-top:14px">
-    <div class="card">
-      <h3 style="font-size:20px">How full is a bin when the truck comes?</h3>
-      <p class="muted small" style="margin-top:6px">True simulated fill at the moment each stop is emptied, over the 7 test days and 2 seeds. A fuller bin means a trip that was worth making.</p>
-      <div class="tablewrap" style="margin-top:14px"><table id="modelTable"></table></div>
-      <p class="note" id="modelNote"></p>
-    </div>
-    <div class="card callout" style="border-radius:0 var(--r) var(--r) 0">
-      <h4>What these results do not show</h4>
-      <p id="realityText">Loading…</p>
-    </div>
-  </div>
-  <div class="card" style="margin-top:14px">
-    <h3 style="font-size:20px">Where the money goes</h3>
-    <p class="muted small" style="margin-top:6px">Cost per day = £1.45 per km + £75 per truck-hour + £60 per overflow. The cost assumptions are ours; change them in <span class="mono">model/config.py</span> and rerun.</p>
-    <div class="tablewrap" style="margin-top:14px"><table id="ablationTable"></table></div>
-    <p class="note" id="ablationNote"></p>
-  </div>
+  <div class="takeaways3" id="takeaways"></div>
+  <h3 class="res-h">Why forecasting wins</h3>
+  <div class="methods" id="methods"></div>
 </section>
 
 <!-- ── PLANNER ────────────────────────────────────────── -->
 <div class="band">
 <section class="chapter wrap" id="planner">
   <div class="chapter-head">
-    <div><span class="eyebrow">Planner</span><h2>Plan tomorrow yourself</h2></div>
-    <p>Change the floor and the fleet. The choice of stops runs the model’s own rule on tomorrow’s projected fill and time estimate for all <span data-k="stops">4,532</span> stops: fullest first while the fleet has time. Distance is estimated with the Beardwood–Halton–Hammersley law, calibrated to the optimised plan, so this is a quick estimate, not a new routing run.</p>
+    <div><span class="eyebrow">Try it yourself</span><h2>What if the trucks or the threshold change?</h2></div>
   </div>
   <div class="planner">
     <div class="card">
@@ -378,8 +343,7 @@
 <!-- ── BUSINESS ───────────────────────────────────────── -->
 <section class="chapter wrap" id="business">
   <div class="chapter-head">
-    <div><span class="eyebrow">Business model</span><h2>Three partners, one service</h2></div>
-    <p>We sell sensors that fit onto existing bins and a platform that turns their data into better collection decisions. The council pays for the sensors and platform, residents add reports, and recycling facilities buy the forecasts. Each partner makes the service more valuable to the others.</p>
+    <div><span class="eyebrow">Who pays for it</span><h2>Three partners, one service</h2></div>
   </div>
   <div class="card partners" id="partners"></div>
   <div class="biz-grid" style="margin-top:14px">
@@ -440,8 +404,7 @@
 <div class="band">
 <section class="chapter wrap" id="sources">
   <div class="chapter-head">
-    <div><span class="eyebrow">Sources and method</span><h2>What is real, what is simulated</h2></div>
-    <p>Everything about places is real and traceable to an open source. The council does not publish live sensor readings, so fill levels come from a simulation driven by real Edinburgh weather and holidays. We label every simulated number on this site.</p>
+    <div><span class="eyebrow">Sources</span><h2>What is real, what is simulated</h2></div>
   </div>
   <div class="tablewrap"><table class="prov-table">
     <thead><tr><th>Data</th><th>Status</th><th>Source</th></tr></thead>
