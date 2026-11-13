@@ -572,6 +572,54 @@ div.card.step { cursor: default; }
 .chapter-head { grid-template-columns: minmax(0, 1fr); margin-bottom: 28px; }
 .chapter-head h2 { max-width: 26em; text-wrap: balance; }
 
+/* ── spoken script, sensor, echo demo (How it works) ── */
+:root { --stage-a: #ffffff; --stage-b: #e1e5e9; --bin-a: #2f6b4f; --bin-b: #24563f; --waste: #c9b796; --waste-2: #b9a57f; --sensor-blue: #1c4fa3; --sensor-can: #d5dade; --wave: #f3fbf6; }
+.chapter-head p.say { font-size: 18px; line-height: 1.7; color: var(--ink); max-width: 36em; }
+.chapter-head p.say b { font-weight: 650; }
+p.say.how-close { margin-top: 32px; font-size: 18px; text-align: center; color: var(--ink); text-wrap: balance; }
+.step p { font-size: 15px; color: var(--ink-2); }
+.sensor { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 48px; align-items: center; margin-top: 56px; }
+@media (max-width: 960px) { .sensor { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
+.stage { position: relative; aspect-ratio: 1.12; max-width: 100%; border-radius: 22px; overflow: hidden; border: 1px solid var(--line);
+  background: radial-gradient(120% 90% at 50% 30%, var(--stage-a) 0%, var(--stage-b) 100%); box-shadow: var(--shadow); touch-action: pan-y; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
+.stage.grabbing canvas { cursor: grabbing; }
+.hotspots { position: absolute; inset: 0; pointer-events: none; }
+.hs { position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: 8px; font: 600 12.5px var(--body); color: var(--ink);
+  background: color-mix(in srgb, var(--raised) 86%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--line); border-radius: 99px; padding: 5px 11px 5px 6px; white-space: nowrap; box-shadow: 0 4px 14px rgba(0, 0, 0, .08);
+  transition: opacity .25s; opacity: 0; will-change: transform; }
+.hs i { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); flex: none; }
+.stage-tag { position: absolute; left: 18px; top: 16px; font: 500 12px var(--mono); color: var(--ink-3); letter-spacing: .02em; }
+.stage-hint { position: absolute; right: 18px; bottom: 16px; font-size: 12.5px; color: var(--ink-3); transition: opacity .4s; }
+.stage-fallback { position: absolute; inset: auto 18px 18px; font-size: 14px; color: var(--ink-3); }
+.sensor-copy h3 { font-size: clamp(26px, 3vw, 36px); margin: 12px 0 14px; letter-spacing: -.02em; }
+.sensor-copy p.say { font-size: 17.5px; line-height: 1.7; color: var(--ink); }
+.formula { margin-top: 18px; display: grid; gap: 6px; font: 500 14.5px/1.5 var(--mono); color: var(--ink-2); background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+.formula span { color: var(--accent); font-weight: 600; }
+.cost { margin-top: 14px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+.cost-n { font: 760 48px/1 var(--display); letter-spacing: -.03em; color: var(--accent); }
+.cost-n small { font-size: 20px; letter-spacing: 0; }
+.cost p { font-size: 14.5px; color: var(--ink-2); }
+.cost b { color: var(--ink); }
+@media (max-width: 420px) { .cost { grid-template-columns: minmax(0, 1fr); gap: 8px; } }
+.echo { margin-top: 28px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; align-items: center; background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 26px 30px; }
+@media (max-width: 700px) { .echo { grid-template-columns: minmax(0, 1fr); padding: 22px 18px; gap: 18px; } .echo svg { max-width: 190px; margin-inline: auto; } }
+.echo svg { width: 100%; height: auto; display: block; }
+.echo h3 { font-size: 24px; margin: 10px 0 8px; }
+.echo-copy > p { color: var(--ink-2); max-width: 62ch; }
+.echo-field { margin-top: 18px; }
+.echo-field label { display: flex; justify-content: space-between; gap: 10px; font-weight: 600; margin-bottom: 8px; }
+.echo-field output { font: 600 16px var(--mono); color: var(--accent); }
+.echo-field input[type=range] { width: 100%; accent-color: var(--accent); }
+.echo-out { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 16px 0 12px; }
+.echo-out div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+.echo-out b { display: block; font: 650 22px/1.2 var(--mono); }
+.echo-out span { font-size: 12.5px; color: var(--ink-3); }
+@media (max-width: 420px) { .echo-out b { font-size: 18px; } }
+@keyframes ping { from { opacity: .95; } to { opacity: 0; } }
+#echoWaves path { animation: ping 1.4s ease-out infinite; }
+
 </style>
 <div class="shell">
 <header class="top" id="top">
@@ -636,19 +684,20 @@ div.card.step { cursor: default; }
 <section class="chapter wrap" id="problem">
   <div class="chapter-head">
     <div><span class="eyebrow">The problem</span><h2>Bins fill at different speeds. A timetable can’t see that.</h2></div>
+    <p class="say">Edinburgh is a city of tenements. Instead of a wheelie bin for every home, <b>10,657 communal bins</b> stand on its streets, each shared by the flats around it. Every bin fills at its own speed, yet the trucks still follow a fixed timetable. So some bins overflow before the truck arrives, while others are emptied half full. In one summer quarter, people reported <b>6,006</b> full or overflowing bins. And money is tight: collection now costs <b>£1.35 million</b> more a year, and the council must find <b>£20.2 million</b> of savings this year. A better timetable won’t fix this. The city needs to see inside its bins.</p>
   </div>
   <div class="stats">
-    <div class="card stat"><b>10,657</b><p>general-waste communal bins stand on Edinburgh’s streets at 4,532 stops, shared by the tenements and flats around them instead of a wheelie bin for each home.</p><span class="src">City of Edinburgh Council, <a href="https://data.edinburghcouncilmaps.info/datasets/283caa7cb2434db3874526d16efe8c67_27/about" target="_blank" rel="noopener">Communal Bins register</a> (open data)</span></div>
-    <div class="card stat"><b>6,006</b><p>reports of full or overflowing bins in one summer quarter (Q2 2019/20), up 13 % on the year before. The council linked part of the rise to short-term lets.</p><span class="src">Edinburgh Evening News, <a href="https://www.edinburghnews.scotsman.com/news/politics/council/edinburgh-council-blames-increase-in-overflowing-bins-on-explosion-of-airbnb-style-short-term-lets-1331605" target="_blank" rel="noopener">2019</a></span></div>
-    <div class="card stat"><b>37.5 %</b><p>of Edinburgh’s household waste was recycled in 2024, 28th of Scotland’s 32 councils and below the Scottish average of 44.3 %.</p><span class="src"><a href="https://shiny.data.gov.scot/sepa/waste/household.html" target="_blank" rel="noopener">SEPA household waste data 2024</a>; <a href="https://beta.sepa.scot/news/2025/small-rise-in-scottish-household-recycling-rate-but-big-gains-are-still-go/" target="_blank" rel="noopener">SEPA</a> (2025)</span></div>
-    <div class="card stat"><b>52 %</b><p>of what goes into general household bins in Scotland could have been recycled, so general bins fill and overflow faster than they need to.</p><span class="src">Zero Waste Scotland via <a href="https://beta.sepa.scot/news/2025/small-rise-in-scottish-household-recycling-rate-but-big-gains-are-still-go/" target="_blank" rel="noopener">SEPA</a> (2025)</span></div>
-    <div class="card stat"><b>£1.35m</b><p>more a year spent on collection: the net cost rose £5.07 per premise in 2024/25 across 266,612 premises.</p><span class="src">City of Edinburgh Council, <a href="https://www.edinburgh.gov.uk/downloads/file/40593/environment-lgbf-2024-25" target="_blank" rel="noopener">Environment LGBF 2024/25</a></span></div>
-    <div class="card stat"><b>£20.2m</b><p>of recurring savings the council must find in 2026/27, rising to £94.2m over the four years to 2029/30.</p><span class="src">City of Edinburgh Council, <a href="https://www.edinburgh.gov.uk/downloads/file/38260/council-budget-key-facts-and-figures-2025--2026" target="_blank" rel="noopener">Budget key facts 2025–26</a></span></div>
+    <div class="card stat"><b>10,657</b><p>communal bins on the streets, at 4,532 stops</p><span class="src">City of Edinburgh Council, <a href="https://data.edinburghcouncilmaps.info/datasets/283caa7cb2434db3874526d16efe8c67_27/about" target="_blank" rel="noopener">Communal Bins register</a> (open data)</span></div>
+    <div class="card stat"><b>6,006</b><p>full or overflowing bins reported in one summer quarter, up 13 %</p><span class="src">Edinburgh Evening News, <a href="https://www.edinburghnews.scotsman.com/news/politics/council/edinburgh-council-blames-increase-in-overflowing-bins-on-explosion-of-airbnb-style-short-term-lets-1331605" target="_blank" rel="noopener">2019</a></span></div>
+    <div class="card stat"><b>37.5 %</b><p>of household waste recycled in 2024: 28th of Scotland’s 32 councils</p><span class="src"><a href="https://shiny.data.gov.scot/sepa/waste/household.html" target="_blank" rel="noopener">SEPA household waste data 2024</a>; <a href="https://beta.sepa.scot/news/2025/small-rise-in-scottish-household-recycling-rate-but-big-gains-are-still-go/" target="_blank" rel="noopener">SEPA</a> (2025)</span></div>
+    <div class="card stat"><b>52 %</b><p>of what goes in the general bin could have been recycled</p><span class="src">Zero Waste Scotland via <a href="https://beta.sepa.scot/news/2025/small-rise-in-scottish-household-recycling-rate-but-big-gains-are-still-go/" target="_blank" rel="noopener">SEPA</a> (2025)</span></div>
+    <div class="card stat"><b>£1.35m</b><p>more a year spent on collection in 2024/25</p><span class="src">City of Edinburgh Council, <a href="https://www.edinburgh.gov.uk/downloads/file/40593/environment-lgbf-2024-25" target="_blank" rel="noopener">Environment LGBF 2024/25</a></span></div>
+    <div class="card stat"><b>£20.2m</b><p>of savings the council must find in 2026/27</p><span class="src">City of Edinburgh Council, <a href="https://www.edinburgh.gov.uk/downloads/file/38260/council-budget-key-facts-and-figures-2025--2026" target="_blank" rel="noopener">Budget key facts 2025–26</a></span></div>
   </div>
   <div class="policy">
-    <div class="card"><span class="when">2025→</span><div><h4>Packaging EPR pays for efficiency</h4><p>Edinburgh receives about £17.3m in 2026/27 from packaging producers, and up to 20 % can be withheld from services judged inefficient.</p></div></div>
-    <div class="card"><span class="when">1 Jan 2028</span><div><h4>Landfill ban, fully enforced</h4><p>Biodegradable municipal waste can no longer go to landfill. SEPA enforces the ban in full from 2028.</p></div></div>
-    <div class="card"><span class="when">2030→</span><div><h4>Circular Economy (Scotland) Act 2024</h4><p>A statutory recycling code, council-level targets and penalties for persistent contamination.</p></div></div>
+    <div class="card"><span class="when">2025→</span><div><h4>Packaging EPR</h4><p>Up to 20 % of £17.3m can be withheld from inefficient services.</p></div></div>
+    <div class="card"><span class="when">2028</span><div><h4>Landfill ban</h4><p>Biodegradable waste can no longer go to landfill.</p></div></div>
+    <div class="card"><span class="when">2030→</span><div><h4>Circular Economy Act</h4><p>Council recycling targets, and penalties for contamination.</p></div></div>
   </div>
 
   <div class="card explainer" id="explainer">
@@ -677,13 +726,75 @@ div.card.step { cursor: default; }
 <section class="chapter wrap" id="how">
   <div class="chapter-head">
     <div><span class="eyebrow">Our answer</span><h2>Measure, forecast, route, collect</h2></div>
+    <p class="say">BinSight gives the city that view. It works in four steps, and it starts with a sensor that costs two pounds.</p>
   </div>
   <div class="steps" id="steps">
-    <div class="card step"><span class="k">Step 1</span><h3>Measure</h3><p>A sensor in the lid reports how full the bin is, every hour.</p></div>
-    <div class="card step"><span class="k">Step 2</span><h3>Forecast</h3><p>A model forecasts how full each bin will be tomorrow.</p></div>
-    <div class="card step"><span class="k">Step 3</span><h3>Route</h3><p>Trucks get the shortest routes to the bins that need emptying.</p></div>
-    <div class="card step"><span class="k">Step 4</span><h3>Collect</h3><p>Crews follow the plan. Residents report problems in an app.</p></div>
+    <div class="card step"><span class="k">Step 1</span><h3>Measure</h3><p>A small sensor under the lid measures how full the bin is, every hour.</p></div>
+    <div class="card step"><span class="k">Step 2</span><h3>Forecast</h3><p>A model combines those readings with the weather, the day of the week and holidays, and predicts how full each bin will be tomorrow.</p></div>
+    <div class="card step"><span class="k">Step 3</span><h3>Route</h3><p>Bins forecast to reach 80 % go on tomorrow’s list, fullest first, and the trucks get the shortest routes to them.</p></div>
+    <div class="card step"><span class="k">Step 4</span><h3>Collect</h3><p>Crews follow the plan, and residents can report a problem in an app.</p></div>
   </div>
+
+  <div class="sensor" id="sensor">
+    <div class="stage" id="stage">
+      <canvas id="sensor3d" role="img" aria-label="3D model of the sensor: an HC-SR04 ultrasonic module with two round transducers on a blue circuit board"></canvas>
+      <div class="hotspots" aria-hidden="true">
+        <span class="hs" data-hs="t"><i></i>Sends the ping</span>
+        <span class="hs" data-hs="r"><i></i>Hears the echo</span>
+        <span class="hs" data-hs="x"><i></i>Crystal keeps time</span>
+        <span class="hs" data-hs="p"><i></i>Power and data</span>
+      </div>
+      <span class="stage-tag">HC-SR04 · actual size 45 × 20 mm</span>
+      <span class="stage-hint" id="stageHint">Drag to turn it</span>
+      <p class="stage-fallback" id="stageFallback" hidden>The 3D model needs an internet connection to load.</p>
+    </div>
+    <div class="sensor-copy">
+      <span class="eyebrow">Step 1, up close</span>
+      <h3>The sensor works like a bat</h3>
+      <p class="say">It sits under the lid and sends a short pulse of ultrasound down into the bin. Then it listens for the echo bouncing back off the rubbish. Sound travels at about 343 metres a second, so the time the echo takes tells us the distance. We halve it, because the sound goes down and comes back up. The fuller the bin, the shorter the distance, and the faster the echo returns. Take that distance away from the depth of the bin, and you have the fill level.</p>
+      <div class="formula" aria-label="Formulas">
+        <div><span>distance</span> = 343 m/s × echo time ÷ 2</div>
+        <div><span>fill</span> = 1 − distance ÷ bin depth</div>
+      </div>
+      <div class="cost">
+        <div class="cost-n">£2<small>.00</small></div>
+        <p><b>The whole sensing part.</b> It is an HC-SR04, a standard ultrasonic module sold for £2.00 at <a href="https://thepihut.com/products/ultrasonic-distance-sensor-hcsr04" target="_blank" rel="noopener">The Pi Hut</a>. It fits the bins the city already has.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="echo">
+    <svg id="echoSvg" viewBox="0 0 240 280" aria-hidden="true">
+      <defs>
+        <linearGradient id="binG" x1="0" x2="1"><stop offset="0" stop-color="var(--bin-a)"/><stop offset="1" stop-color="var(--bin-b)"/></linearGradient>
+        <clipPath id="binClip"><path d="M44 58h152l-10 196a10 10 0 0 1-10 9H64a10 10 0 0 1-10-9z"/></clipPath>
+      </defs>
+      <path d="M44 58h152l-10 196a10 10 0 0 1-10 9H64a10 10 0 0 1-10-9z" fill="url(#binG)" stroke="var(--line-2)"/>
+      <g clip-path="url(#binClip)"><rect id="echoWaste" x="40" y="160" width="160" height="110" fill="var(--waste)"/><path id="echoTop" d="" fill="var(--waste-2)"/></g>
+      <rect x="34" y="44" width="172" height="14" rx="5" fill="var(--ink)"/>
+      <rect x="108" y="58" width="24" height="8" rx="2" fill="var(--sensor-blue)"/>
+      <circle cx="114" cy="66" r="3.4" fill="var(--sensor-can)"/><circle cx="126" cy="66" r="3.4" fill="var(--sensor-can)"/>
+      <g id="echoWaves" fill="none" stroke="var(--wave)" stroke-width="2.2" stroke-linecap="round"></g>
+      <line id="echoLine" x1="210" y1="66" x2="210" y2="160" stroke="var(--ink-3)" stroke-dasharray="3 3"/>
+      <path id="echoArrA" d="" fill="var(--ink-3)"/><path id="echoArrB" d="" fill="var(--ink-3)"/>
+    </svg>
+    <div class="echo-copy">
+      <span class="eyebrow">Sensor demo</span>
+      <h3>Fill the bin, watch the echo</h3>
+      <p>Drag the slider. As the rubbish rises, the echo comes back sooner and the reading goes up.</p>
+      <div class="echo-field">
+        <label for="eFill">How full is the bin? <output id="oFill" class="num">65 %</output></label>
+        <input type="range" id="eFill" min="0" max="100" step="1" value="65">
+      </div>
+      <div class="echo-out">
+        <div><b id="eTime" class="num">–</b><span>echo time</span></div>
+        <div><b id="eDist" class="num">–</b><span>to the rubbish</span></div>
+        <div><b id="ePct" class="num">–</b><span>fill reading</span></div>
+      </div>
+      <p class="small muted">Example bin 1.2 m deep. Module data: 40 kHz pulse, 2 cm to 4 m range, about 3 mm resolution.</p>
+    </div>
+  </div>
+  <p class="say how-close">Every reading feeds tomorrow’s forecast. Next, you can watch tomorrow’s plan play out on the live map.</p>
 </section>
 </div>
 
@@ -2392,6 +2503,224 @@ function initNav() {
   };
   addEventListener("scroll", onScroll, { passive: true }); onScroll();
 }
+
+/* ── the sensor (Step 1, up close): copied from the BinSight business demo ── */
+(function initSensor() {
+  /* ---------- the sensor: a 3D model of the HC-SR04 module, to scale in millimetres ---------- */
+  const THREE_JS = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+  const stage = $("#stage");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+  if (stage) {
+  let sensorStarted = false;
+  new IntersectionObserver((es, ob) => {
+    if (!es[0].isIntersecting || sensorStarted) return;
+    sensorStarted = true; ob.disconnect();
+    const go = () => { try { buildSensor(); } catch (e) { $("#stageFallback").hidden = false; } };
+    if (window.THREE) go();
+    else { const s = document.createElement("script"); s.src = THREE_JS; s.onload = go; s.onerror = () => { $("#stageFallback").hidden = false; }; document.head.appendChild(s); }
+  }, { rootMargin: "300px" }).observe(stage);
+
+  function buildSensor() {
+    const T3 = window.THREE, cvs = $("#sensor3d");
+    const renderer = new T3.WebGLRenderer({ canvas: cvs, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    renderer.outputEncoding = T3.sRGBEncoding;
+    renderer.toneMapping = T3.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+    renderer.physicallyCorrectLights = true;
+    const scene = new T3.Scene();
+    const camera = new T3.PerspectiveCamera(28, 1, 1, 1000);
+    camera.position.set(0, 4, 118);
+
+    // a soft studio for the metal to reflect: a grey room with three light panels
+    const pm = new T3.PMREMGenerator(renderer);
+    const room = new T3.Scene();
+    room.add(new T3.Mesh(new T3.BoxGeometry(100, 100, 100), new T3.MeshBasicMaterial({ color: 0x6f7773, side: T3.BackSide })));
+    const panel = (w, h, x, y, z, ry, rx, k) => { const m = new T3.Mesh(new T3.PlaneGeometry(w, h), new T3.MeshBasicMaterial({ color: new T3.Color(k, k, k), side: T3.DoubleSide })); m.position.set(x, y, z); m.rotation.set(rx, ry, 0); room.add(m); };
+    panel(60, 20, 0, 45, 0, 0, Math.PI / 2, 5);
+    panel(30, 40, -48, 5, 10, Math.PI / 2, 0, 3);
+    panel(30, 40, 48, 0, 20, -Math.PI / 2, 0, 1.8);
+    panel(60, 30, 0, 0, 49, Math.PI, 0, 1.4);
+    scene.environment = pm.fromScene(room, .035).texture;
+    const key = new T3.DirectionalLight(0xffffff, 2.2); key.position.set(-30, 50, 80); scene.add(key);
+    scene.add(new T3.HemisphereLight(0xffffff, 0x8899aa, .6));
+
+    const tex = (w, h, draw) => { const c = document.createElement("canvas"); c.width = w; c.height = h; draw(c.getContext("2d"), w, h); const t = new T3.CanvasTexture(c); t.encoding = T3.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t; };
+    const PX = 40;                                           // texture pixels per millimetre
+    const BLUE = "#1d4fa6", BLUE_D = "#173f87";
+    const hole = (g, x, y) => {                               // a plated mounting hole at board coordinates (mm, origin centre, y up)
+      const cx = (x + 22.5) * PX, cy = (10 - y) * PX;
+      g.fillStyle = "#d4b25a"; g.beginPath(); g.arc(cx, cy, 1.1 * PX, 0, 7); g.fill();
+      g.fillStyle = "#1b1d1f"; g.beginPath(); g.arc(cx, cy, .6 * PX, 0, 7); g.fill();
+    };
+    const traces = (g, seed) => {
+      g.strokeStyle = BLUE_D; g.lineWidth = .35 * PX; g.lineCap = "round"; g.lineJoin = "round";
+      let r = seed; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
+      for (let k = 0; k < 22; k++) {
+        let x = rnd() * 45 * PX, y = rnd() * 20 * PX; g.beginPath(); g.moveTo(x, y);
+        for (let s = 0; s < 3; s++) { if (rnd() < .5) x += (rnd() - .5) * 14 * PX; else y += (rnd() - .5) * 8 * PX; g.lineTo(x, y); }
+        g.stroke();
+      }
+    };
+    const front = tex(45 * PX, 20 * PX, (g, w, h) => {
+      const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, "#2257b1"); gr.addColorStop(1, BLUE); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+      traces(g, 7);
+      [[-21, 8.5], [21, 8.5], [-21, -8.5], [21, -8.5]].forEach(([x, y]) => hole(g, x, y));
+      g.fillStyle = "#f4f6f8"; g.textAlign = "center"; g.textBaseline = "middle";
+      g.font = `700 ${2.1 * PX}px Arial, sans-serif`; g.fillText("HC-SR04", 22.5 * PX, 3.2 * PX);
+      g.font = `700 ${1.6 * PX}px Arial, sans-serif`; g.fillText("T", 3.2 * PX, 18.2 * PX); g.fillText("R", 41.8 * PX, 18.2 * PX);
+      g.save(); g.translate(22.5 * PX, 14.8 * PX); g.font = `600 ${1.05 * PX}px Arial, sans-serif`;
+      ["Vcc", "Trig", "Echo", "Gnd"].forEach((t, k) => { g.save(); g.translate((k - 1.5) * 2.54 * PX, 0); g.rotate(-Math.PI / 2); g.fillText(t, 0, 0); g.restore(); });
+      g.restore();
+      // solder pads for the four header pins
+      for (let k = 0; k < 4; k++) { g.fillStyle = "#cfd3d6"; g.beginPath(); g.arc((22.5 + (k - 1.5) * 2.54) * PX, 18.6 * PX, .75 * PX, 0, 7); g.fill(); }
+    });
+    const back = tex(45 * PX, 20 * PX, (g, w, h) => {
+      g.fillStyle = BLUE; g.fillRect(0, 0, w, h); traces(g, 19);
+      [[-21, 8.5], [21, 8.5], [-21, -8.5], [21, -8.5]].forEach(([x, y]) => hole(g, -x, y));
+      g.fillStyle = "#f4f6f8"; g.textAlign = "center"; g.font = `600 ${1.2 * PX}px Arial, sans-serif`; g.fillText("BinSight firmware", 22.5 * PX, 18.6 * PX);
+    });
+    const edge = new T3.MeshStandardMaterial({ color: 0x1a4796, roughness: .6 });
+    const pcb = new T3.Mesh(new T3.BoxGeometry(45, 20, 1.6), [edge, edge, edge, edge,
+      new T3.MeshStandardMaterial({ map: front, roughness: .48, metalness: .05 }), new T3.MeshStandardMaterial({ map: back, roughness: .5 })]);
+    const board = new T3.Group(); board.add(pcb);
+
+    const metal = new T3.MeshStandardMaterial({ color: 0xdfe3e7, metalness: 1, roughness: .26 });
+    const plastic = new T3.MeshStandardMaterial({ color: 0x1b1d1f, roughness: .55 });
+    const mesh = tex(512, 512, (g, w, h) => {
+      g.fillStyle = "#1d1f22"; g.fillRect(0, 0, w, h);
+      g.strokeStyle = "rgba(205,210,215,.55)"; g.lineWidth = 2.2;
+      for (let k = -w; k < 2 * w; k += 11) { g.beginPath(); g.moveTo(k, 0); g.lineTo(k + h, h); g.stroke(); g.beginPath(); g.moveTo(k + h, 0); g.lineTo(k, h); g.stroke(); }
+      const v = g.createRadialGradient(w / 2, h / 2, w * .2, w / 2, h / 2, w * .5); v.addColorStop(0, "rgba(0,0,0,0)"); v.addColorStop(1, "rgba(0,0,0,.55)"); g.fillStyle = v; g.fillRect(0, 0, w, h);
+    });
+    const grille = new T3.MeshStandardMaterial({ map: mesh, metalness: .6, roughness: .45 });
+    const cyl = (r, h, mat, open) => { const m = new T3.Mesh(new T3.CylinderGeometry(r, r, h, 72, 1, open), mat); m.rotation.x = Math.PI / 2; return m; };
+    const can = x => {
+      const g = new T3.Group(); g.position.set(x, 1, .8);
+      const foot = cyl(8.25, 1, plastic); foot.position.z = .5; g.add(foot);
+      const body = cyl(8, 11.6, metal, true); body.position.z = 1 + 5.8; g.add(body);
+      const lip = new T3.Mesh(new T3.TorusGeometry(7.65, .42, 16, 72), metal); lip.position.z = 12.55; g.add(lip);
+      const face = new T3.Mesh(new T3.CircleGeometry(7.5, 72), grille); face.position.z = 12.1; g.add(face);
+      const inner = new T3.Mesh(new T3.RingGeometry(7.2, 7.6, 72), new T3.MeshStandardMaterial({ color: 0x0e0f10, roughness: .8 })); inner.position.z = 12.15; g.add(inner);
+      board.add(g);
+    };
+    can(-13); can(13);
+    // the crystal oscillator (HC-49/S): a rounded metal can lying between the transducers
+    const xs = new T3.Shape(), L = 5.5, Rr = 2.3;
+    xs.moveTo(-L + Rr, -Rr); xs.lineTo(L - Rr, -Rr); xs.absarc(L - Rr, 0, Rr, -Math.PI / 2, Math.PI / 2, false); xs.lineTo(-L + Rr, Rr); xs.absarc(-L + Rr, 0, Rr, Math.PI / 2, Math.PI * 1.5, false);
+    const xtal = new T3.Mesh(new T3.ExtrudeGeometry(xs, { depth: 3, bevelEnabled: true, bevelSize: .35, bevelThickness: .35, bevelSegments: 4, curveSegments: 24 }), metal);
+    xtal.position.set(0, 6.4, .8 + .35); board.add(xtal);
+    // the four header pins and their plastic spacer, sticking out of the bottom edge
+    const spacer = new T3.Mesh(new T3.BoxGeometry(10.16, 2.5, 2.5), plastic); spacer.position.set(0, -11.25, 0); board.add(spacer);
+    const pinMat = new T3.MeshStandardMaterial({ color: 0xd8c27a, metalness: 1, roughness: .3 });
+    for (let k = 0; k < 4; k++) { const p = new T3.Mesh(new T3.BoxGeometry(.64, 8.6, .64), pinMat); p.position.set((k - 1.5) * 2.54, -13.6, 0); board.add(p); }
+    // chips on the back
+    [[-9, 2, 6, 4], [3, 2, 6, 4], [12.5, -3, 4.5, 4]].forEach(([x, y, w, h]) => {
+      const c = new T3.Mesh(new T3.BoxGeometry(w, h, 1.5), plastic); c.position.set(x, y, -.8 - .75); board.add(c);
+      for (let k = 0; k < Math.round(w / 1.27); k++) [-1, 1].forEach(s => { const l = new T3.Mesh(new T3.BoxGeometry(.4, .9, .3), metal); l.position.set(x - w / 2 + .6 + k * 1.27, y + s * (h / 2 + .35), -.95); board.add(l); });
+    });
+    const pivot = new T3.Group(); pivot.add(board); board.position.set(0, 1.5, -6); scene.add(pivot);
+    // a soft contact shadow on the floor
+    const shTex = tex(256, 256, (g, w, h) => { const r = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); r.addColorStop(0, "rgba(0,0,0,.32)"); r.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = r; g.fillRect(0, 0, w, h); });
+    shTex.encoding = T3.LinearEncoding;
+    const shadow = new T3.Mesh(new T3.PlaneGeometry(70, 26), new T3.MeshBasicMaterial({ map: shTex, transparent: true, depthWrite: false }));
+    shadow.rotation.x = -Math.PI / 2; shadow.position.y = -24; scene.add(shadow);
+
+    // hotspots follow points on the model
+    const spots = { t: new T3.Vector3(-21, 1, 9), r: new T3.Vector3(21, 1, 9), x: new T3.Vector3(2.5, 8.6, 3.5), p: new T3.Vector3(0, -17.8, 0) };
+    const spotEls = $$(".hs", stage);
+    const nrm = new T3.Vector3(), tmp = new T3.Vector3(), camDir = new T3.Vector3();
+
+    // turning: drag to spin, it settles back into a gentle sway
+    let yaw = -.55, pitch = .32, vy = 0, vp = 0, drag = null, idle = 0, t0 = performance.now(), dirty = true;
+    const still = reduce.matches;
+    cvs.addEventListener("pointerdown", e => { drag = [e.clientX, e.clientY]; cvs.setPointerCapture(e.pointerId); stage.classList.add("grabbing"); $("#stageHint").style.opacity = 0; });
+    cvs.addEventListener("pointermove", e => {
+      if (!drag) return;
+      const dx = e.clientX - drag[0], dy = e.clientY - drag[1]; drag = [e.clientX, e.clientY];
+      vy = dx * .012; vp = dy * .008; yaw += vy; pitch = Math.max(-.9, Math.min(1.1, pitch + vp)); idle = 0; dirty = true;
+    });
+    const up = () => { drag = null; stage.classList.remove("grabbing"); };
+    cvs.addEventListener("pointerup", up); cvs.addEventListener("pointercancel", up);
+
+    let W3 = 0, H3 = 0;
+    const size = () => {
+      const r = stage.getBoundingClientRect(); W3 = r.width; H3 = r.height;
+      renderer.setSize(W3, H3, false); camera.aspect = W3 / H3;
+      camera.position.z = W3 / H3 < .9 ? 185 : 140;                // phones: step back a little
+      camera.updateProjectionMatrix(); dirty = true;
+    };
+    new ResizeObserver(size).observe(stage); size();
+    let onScreen = true;
+    new IntersectionObserver(es => { onScreen = es[0].isIntersecting; if (onScreen) loop(); }).observe(stage);
+    let running = false;
+    function loop() {
+      if (running) return; running = true;
+      const step = now => {
+        if (!onScreen) { running = false; return; }
+        const dt = Math.min(.05, (now - t0) / 1000); t0 = now; idle += dt;
+        if (!drag) {
+          yaw += vy; pitch = Math.max(-.9, Math.min(1.1, pitch + vp)); vy *= .94; vp *= .9;
+          if (!still && idle > 2.5) { yaw += (-.55 + Math.sin(now / 2600) * .45 - yaw) * .012; pitch += (.32 - pitch) * .015; }
+          if (Math.abs(vy) > 1e-4 || Math.abs(vp) > 1e-4 || (!still && idle > 2.5)) dirty = true;
+        }
+        if (dirty) {
+          pivot.rotation.set(pitch, yaw, 0); pivot.position.y = still ? 0 : Math.sin(now / 1800) * .6;
+          renderer.render(scene, camera);
+          pivot.updateMatrixWorld();
+          nrm.set(0, 0, 1).transformDirection(board.matrixWorld);
+          camera.getWorldDirection(camDir);
+          const facing = -nrm.dot(camDir);
+          spotEls.forEach(el => {
+            const k = el.dataset.hs;
+            tmp.copy(spots[k]).applyMatrix4(board.matrixWorld).project(camera);
+            const x = (tmp.x + 1) / 2 * W3, y = (1 - tmp.y) / 2 * H3;
+            const show = k === "p" ? 1 : Math.max(0, Math.min(1, (facing - .25) * 3));
+            el.style.opacity = W3 < 380 && k === "x" ? 0 : show;
+            const right = k === "r" || k === "x" ? true : k === "t" ? false : x > W3 * .5;
+            el.style.transform = `translate(${right ? x - 5 : x - el.offsetWidth + 5}px, ${y - el.offsetHeight / 2}px)`;
+            el.style.flexDirection = right ? "row" : "row-reverse";
+            el.style.padding = right ? "5px 11px 5px 6px" : "5px 6px 5px 11px";
+          });
+          dirty = still ? false : dirty;
+        }
+        requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
+    loop();
+  }
+
+  }
+
+  /* ---------- how the sensor measures: time the echo, get the distance, get the fill ---------- */
+  {
+    const DEPTH = 1.2, LID = 66, FLOOR = 262, SOUND = 343;     // an example bin 1.2 m deep, drawn from y=66 (sensor) to y=262 (floor)
+    const fillIn = $("#eFill");
+    if (fillIn) {
+    const upd = () => {
+      const f = +fillIn.value / 100;
+      const dist = Math.max(.02, DEPTH * (1 - f));
+      const top = LID + (FLOOR - LID) * (dist / DEPTH);
+      $("#oFill").textContent = Math.round(f * 100) + " %";
+      $("#eTime").textContent = (2 * dist / SOUND * 1000).toFixed(1) + " ms";
+      $("#eDist").textContent = dist.toFixed(2) + " m";
+      $("#ePct").textContent = Math.round((1 - dist / DEPTH) * 100) + " %";
+      const w = $("#echoWaste"); w.setAttribute("y", top); w.setAttribute("height", FLOOR + 10 - top);
+      $("#echoTop").setAttribute("d", `M40 ${top + 2} q 20 -7 40 -2 t 40 -1 t 40 -3 t 40 2 V ${top + 6} H 40 z`);
+      $("#echoLine").setAttribute("y2", top - 2);
+      $("#echoArrA").setAttribute("d", `M206 72 l4 -6 l4 6 z`);
+      $("#echoArrB").setAttribute("d", `M206 ${top - 8} l4 6 l4 -6 z`);
+      const span = top - LID - 4, n = Math.max(1, Math.min(4, Math.floor(span / 26)));
+      $("#echoWaves").innerHTML = Array.from({ length: n }, (_, k) => {
+        const y = LID + 10 + (span - 12) * (k + .5) / n, half = 10 + (y - LID) * .27;
+        return `<path d="M${120 - half} ${y} Q 120 ${y + 9} ${120 + half} ${y}" style="animation-delay:${(k * .35).toFixed(2)}s"/>`;
+      }).join("");
+    };
+    fillIn.addEventListener("input", upd); upd();
+    }
+  }
+
+})();
 
 boot().catch(err => {
   console.error(err);

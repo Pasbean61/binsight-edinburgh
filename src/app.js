@@ -1126,6 +1126,224 @@ function initNav() {
   addEventListener("scroll", onScroll, { passive: true }); onScroll();
 }
 
+/* ── the sensor (Step 1, up close): copied from the BinSight business demo ── */
+(function initSensor() {
+  /* ---------- the sensor: a 3D model of the HC-SR04 module, to scale in millimetres ---------- */
+  const THREE_JS = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+  const stage = $("#stage");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+  if (stage) {
+  let sensorStarted = false;
+  new IntersectionObserver((es, ob) => {
+    if (!es[0].isIntersecting || sensorStarted) return;
+    sensorStarted = true; ob.disconnect();
+    const go = () => { try { buildSensor(); } catch (e) { $("#stageFallback").hidden = false; } };
+    if (window.THREE) go();
+    else { const s = document.createElement("script"); s.src = THREE_JS; s.onload = go; s.onerror = () => { $("#stageFallback").hidden = false; }; document.head.appendChild(s); }
+  }, { rootMargin: "300px" }).observe(stage);
+
+  function buildSensor() {
+    const T3 = window.THREE, cvs = $("#sensor3d");
+    const renderer = new T3.WebGLRenderer({ canvas: cvs, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    renderer.outputEncoding = T3.sRGBEncoding;
+    renderer.toneMapping = T3.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+    renderer.physicallyCorrectLights = true;
+    const scene = new T3.Scene();
+    const camera = new T3.PerspectiveCamera(28, 1, 1, 1000);
+    camera.position.set(0, 4, 118);
+
+    // a soft studio for the metal to reflect: a grey room with three light panels
+    const pm = new T3.PMREMGenerator(renderer);
+    const room = new T3.Scene();
+    room.add(new T3.Mesh(new T3.BoxGeometry(100, 100, 100), new T3.MeshBasicMaterial({ color: 0x6f7773, side: T3.BackSide })));
+    const panel = (w, h, x, y, z, ry, rx, k) => { const m = new T3.Mesh(new T3.PlaneGeometry(w, h), new T3.MeshBasicMaterial({ color: new T3.Color(k, k, k), side: T3.DoubleSide })); m.position.set(x, y, z); m.rotation.set(rx, ry, 0); room.add(m); };
+    panel(60, 20, 0, 45, 0, 0, Math.PI / 2, 5);
+    panel(30, 40, -48, 5, 10, Math.PI / 2, 0, 3);
+    panel(30, 40, 48, 0, 20, -Math.PI / 2, 0, 1.8);
+    panel(60, 30, 0, 0, 49, Math.PI, 0, 1.4);
+    scene.environment = pm.fromScene(room, .035).texture;
+    const key = new T3.DirectionalLight(0xffffff, 2.2); key.position.set(-30, 50, 80); scene.add(key);
+    scene.add(new T3.HemisphereLight(0xffffff, 0x8899aa, .6));
+
+    const tex = (w, h, draw) => { const c = document.createElement("canvas"); c.width = w; c.height = h; draw(c.getContext("2d"), w, h); const t = new T3.CanvasTexture(c); t.encoding = T3.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t; };
+    const PX = 40;                                           // texture pixels per millimetre
+    const BLUE = "#1d4fa6", BLUE_D = "#173f87";
+    const hole = (g, x, y) => {                               // a plated mounting hole at board coordinates (mm, origin centre, y up)
+      const cx = (x + 22.5) * PX, cy = (10 - y) * PX;
+      g.fillStyle = "#d4b25a"; g.beginPath(); g.arc(cx, cy, 1.1 * PX, 0, 7); g.fill();
+      g.fillStyle = "#1b1d1f"; g.beginPath(); g.arc(cx, cy, .6 * PX, 0, 7); g.fill();
+    };
+    const traces = (g, seed) => {
+      g.strokeStyle = BLUE_D; g.lineWidth = .35 * PX; g.lineCap = "round"; g.lineJoin = "round";
+      let r = seed; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
+      for (let k = 0; k < 22; k++) {
+        let x = rnd() * 45 * PX, y = rnd() * 20 * PX; g.beginPath(); g.moveTo(x, y);
+        for (let s = 0; s < 3; s++) { if (rnd() < .5) x += (rnd() - .5) * 14 * PX; else y += (rnd() - .5) * 8 * PX; g.lineTo(x, y); }
+        g.stroke();
+      }
+    };
+    const front = tex(45 * PX, 20 * PX, (g, w, h) => {
+      const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, "#2257b1"); gr.addColorStop(1, BLUE); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+      traces(g, 7);
+      [[-21, 8.5], [21, 8.5], [-21, -8.5], [21, -8.5]].forEach(([x, y]) => hole(g, x, y));
+      g.fillStyle = "#f4f6f8"; g.textAlign = "center"; g.textBaseline = "middle";
+      g.font = `700 ${2.1 * PX}px Arial, sans-serif`; g.fillText("HC-SR04", 22.5 * PX, 3.2 * PX);
+      g.font = `700 ${1.6 * PX}px Arial, sans-serif`; g.fillText("T", 3.2 * PX, 18.2 * PX); g.fillText("R", 41.8 * PX, 18.2 * PX);
+      g.save(); g.translate(22.5 * PX, 14.8 * PX); g.font = `600 ${1.05 * PX}px Arial, sans-serif`;
+      ["Vcc", "Trig", "Echo", "Gnd"].forEach((t, k) => { g.save(); g.translate((k - 1.5) * 2.54 * PX, 0); g.rotate(-Math.PI / 2); g.fillText(t, 0, 0); g.restore(); });
+      g.restore();
+      // solder pads for the four header pins
+      for (let k = 0; k < 4; k++) { g.fillStyle = "#cfd3d6"; g.beginPath(); g.arc((22.5 + (k - 1.5) * 2.54) * PX, 18.6 * PX, .75 * PX, 0, 7); g.fill(); }
+    });
+    const back = tex(45 * PX, 20 * PX, (g, w, h) => {
+      g.fillStyle = BLUE; g.fillRect(0, 0, w, h); traces(g, 19);
+      [[-21, 8.5], [21, 8.5], [-21, -8.5], [21, -8.5]].forEach(([x, y]) => hole(g, -x, y));
+      g.fillStyle = "#f4f6f8"; g.textAlign = "center"; g.font = `600 ${1.2 * PX}px Arial, sans-serif`; g.fillText("BinSight firmware", 22.5 * PX, 18.6 * PX);
+    });
+    const edge = new T3.MeshStandardMaterial({ color: 0x1a4796, roughness: .6 });
+    const pcb = new T3.Mesh(new T3.BoxGeometry(45, 20, 1.6), [edge, edge, edge, edge,
+      new T3.MeshStandardMaterial({ map: front, roughness: .48, metalness: .05 }), new T3.MeshStandardMaterial({ map: back, roughness: .5 })]);
+    const board = new T3.Group(); board.add(pcb);
+
+    const metal = new T3.MeshStandardMaterial({ color: 0xdfe3e7, metalness: 1, roughness: .26 });
+    const plastic = new T3.MeshStandardMaterial({ color: 0x1b1d1f, roughness: .55 });
+    const mesh = tex(512, 512, (g, w, h) => {
+      g.fillStyle = "#1d1f22"; g.fillRect(0, 0, w, h);
+      g.strokeStyle = "rgba(205,210,215,.55)"; g.lineWidth = 2.2;
+      for (let k = -w; k < 2 * w; k += 11) { g.beginPath(); g.moveTo(k, 0); g.lineTo(k + h, h); g.stroke(); g.beginPath(); g.moveTo(k + h, 0); g.lineTo(k, h); g.stroke(); }
+      const v = g.createRadialGradient(w / 2, h / 2, w * .2, w / 2, h / 2, w * .5); v.addColorStop(0, "rgba(0,0,0,0)"); v.addColorStop(1, "rgba(0,0,0,.55)"); g.fillStyle = v; g.fillRect(0, 0, w, h);
+    });
+    const grille = new T3.MeshStandardMaterial({ map: mesh, metalness: .6, roughness: .45 });
+    const cyl = (r, h, mat, open) => { const m = new T3.Mesh(new T3.CylinderGeometry(r, r, h, 72, 1, open), mat); m.rotation.x = Math.PI / 2; return m; };
+    const can = x => {
+      const g = new T3.Group(); g.position.set(x, 1, .8);
+      const foot = cyl(8.25, 1, plastic); foot.position.z = .5; g.add(foot);
+      const body = cyl(8, 11.6, metal, true); body.position.z = 1 + 5.8; g.add(body);
+      const lip = new T3.Mesh(new T3.TorusGeometry(7.65, .42, 16, 72), metal); lip.position.z = 12.55; g.add(lip);
+      const face = new T3.Mesh(new T3.CircleGeometry(7.5, 72), grille); face.position.z = 12.1; g.add(face);
+      const inner = new T3.Mesh(new T3.RingGeometry(7.2, 7.6, 72), new T3.MeshStandardMaterial({ color: 0x0e0f10, roughness: .8 })); inner.position.z = 12.15; g.add(inner);
+      board.add(g);
+    };
+    can(-13); can(13);
+    // the crystal oscillator (HC-49/S): a rounded metal can lying between the transducers
+    const xs = new T3.Shape(), L = 5.5, Rr = 2.3;
+    xs.moveTo(-L + Rr, -Rr); xs.lineTo(L - Rr, -Rr); xs.absarc(L - Rr, 0, Rr, -Math.PI / 2, Math.PI / 2, false); xs.lineTo(-L + Rr, Rr); xs.absarc(-L + Rr, 0, Rr, Math.PI / 2, Math.PI * 1.5, false);
+    const xtal = new T3.Mesh(new T3.ExtrudeGeometry(xs, { depth: 3, bevelEnabled: true, bevelSize: .35, bevelThickness: .35, bevelSegments: 4, curveSegments: 24 }), metal);
+    xtal.position.set(0, 6.4, .8 + .35); board.add(xtal);
+    // the four header pins and their plastic spacer, sticking out of the bottom edge
+    const spacer = new T3.Mesh(new T3.BoxGeometry(10.16, 2.5, 2.5), plastic); spacer.position.set(0, -11.25, 0); board.add(spacer);
+    const pinMat = new T3.MeshStandardMaterial({ color: 0xd8c27a, metalness: 1, roughness: .3 });
+    for (let k = 0; k < 4; k++) { const p = new T3.Mesh(new T3.BoxGeometry(.64, 8.6, .64), pinMat); p.position.set((k - 1.5) * 2.54, -13.6, 0); board.add(p); }
+    // chips on the back
+    [[-9, 2, 6, 4], [3, 2, 6, 4], [12.5, -3, 4.5, 4]].forEach(([x, y, w, h]) => {
+      const c = new T3.Mesh(new T3.BoxGeometry(w, h, 1.5), plastic); c.position.set(x, y, -.8 - .75); board.add(c);
+      for (let k = 0; k < Math.round(w / 1.27); k++) [-1, 1].forEach(s => { const l = new T3.Mesh(new T3.BoxGeometry(.4, .9, .3), metal); l.position.set(x - w / 2 + .6 + k * 1.27, y + s * (h / 2 + .35), -.95); board.add(l); });
+    });
+    const pivot = new T3.Group(); pivot.add(board); board.position.set(0, 1.5, -6); scene.add(pivot);
+    // a soft contact shadow on the floor
+    const shTex = tex(256, 256, (g, w, h) => { const r = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); r.addColorStop(0, "rgba(0,0,0,.32)"); r.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = r; g.fillRect(0, 0, w, h); });
+    shTex.encoding = T3.LinearEncoding;
+    const shadow = new T3.Mesh(new T3.PlaneGeometry(70, 26), new T3.MeshBasicMaterial({ map: shTex, transparent: true, depthWrite: false }));
+    shadow.rotation.x = -Math.PI / 2; shadow.position.y = -24; scene.add(shadow);
+
+    // hotspots follow points on the model
+    const spots = { t: new T3.Vector3(-21, 1, 9), r: new T3.Vector3(21, 1, 9), x: new T3.Vector3(2.5, 8.6, 3.5), p: new T3.Vector3(0, -17.8, 0) };
+    const spotEls = $$(".hs", stage);
+    const nrm = new T3.Vector3(), tmp = new T3.Vector3(), camDir = new T3.Vector3();
+
+    // turning: drag to spin, it settles back into a gentle sway
+    let yaw = -.55, pitch = .32, vy = 0, vp = 0, drag = null, idle = 0, t0 = performance.now(), dirty = true;
+    const still = reduce.matches;
+    cvs.addEventListener("pointerdown", e => { drag = [e.clientX, e.clientY]; cvs.setPointerCapture(e.pointerId); stage.classList.add("grabbing"); $("#stageHint").style.opacity = 0; });
+    cvs.addEventListener("pointermove", e => {
+      if (!drag) return;
+      const dx = e.clientX - drag[0], dy = e.clientY - drag[1]; drag = [e.clientX, e.clientY];
+      vy = dx * .012; vp = dy * .008; yaw += vy; pitch = Math.max(-.9, Math.min(1.1, pitch + vp)); idle = 0; dirty = true;
+    });
+    const up = () => { drag = null; stage.classList.remove("grabbing"); };
+    cvs.addEventListener("pointerup", up); cvs.addEventListener("pointercancel", up);
+
+    let W3 = 0, H3 = 0;
+    const size = () => {
+      const r = stage.getBoundingClientRect(); W3 = r.width; H3 = r.height;
+      renderer.setSize(W3, H3, false); camera.aspect = W3 / H3;
+      camera.position.z = W3 / H3 < .9 ? 185 : 140;                // phones: step back a little
+      camera.updateProjectionMatrix(); dirty = true;
+    };
+    new ResizeObserver(size).observe(stage); size();
+    let onScreen = true;
+    new IntersectionObserver(es => { onScreen = es[0].isIntersecting; if (onScreen) loop(); }).observe(stage);
+    let running = false;
+    function loop() {
+      if (running) return; running = true;
+      const step = now => {
+        if (!onScreen) { running = false; return; }
+        const dt = Math.min(.05, (now - t0) / 1000); t0 = now; idle += dt;
+        if (!drag) {
+          yaw += vy; pitch = Math.max(-.9, Math.min(1.1, pitch + vp)); vy *= .94; vp *= .9;
+          if (!still && idle > 2.5) { yaw += (-.55 + Math.sin(now / 2600) * .45 - yaw) * .012; pitch += (.32 - pitch) * .015; }
+          if (Math.abs(vy) > 1e-4 || Math.abs(vp) > 1e-4 || (!still && idle > 2.5)) dirty = true;
+        }
+        if (dirty) {
+          pivot.rotation.set(pitch, yaw, 0); pivot.position.y = still ? 0 : Math.sin(now / 1800) * .6;
+          renderer.render(scene, camera);
+          pivot.updateMatrixWorld();
+          nrm.set(0, 0, 1).transformDirection(board.matrixWorld);
+          camera.getWorldDirection(camDir);
+          const facing = -nrm.dot(camDir);
+          spotEls.forEach(el => {
+            const k = el.dataset.hs;
+            tmp.copy(spots[k]).applyMatrix4(board.matrixWorld).project(camera);
+            const x = (tmp.x + 1) / 2 * W3, y = (1 - tmp.y) / 2 * H3;
+            const show = k === "p" ? 1 : Math.max(0, Math.min(1, (facing - .25) * 3));
+            el.style.opacity = W3 < 380 && k === "x" ? 0 : show;
+            const right = k === "r" || k === "x" ? true : k === "t" ? false : x > W3 * .5;
+            el.style.transform = `translate(${right ? x - 5 : x - el.offsetWidth + 5}px, ${y - el.offsetHeight / 2}px)`;
+            el.style.flexDirection = right ? "row" : "row-reverse";
+            el.style.padding = right ? "5px 11px 5px 6px" : "5px 6px 5px 11px";
+          });
+          dirty = still ? false : dirty;
+        }
+        requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
+    loop();
+  }
+
+  }
+
+  /* ---------- how the sensor measures: time the echo, get the distance, get the fill ---------- */
+  {
+    const DEPTH = 1.2, LID = 66, FLOOR = 262, SOUND = 343;     // an example bin 1.2 m deep, drawn from y=66 (sensor) to y=262 (floor)
+    const fillIn = $("#eFill");
+    if (fillIn) {
+    const upd = () => {
+      const f = +fillIn.value / 100;
+      const dist = Math.max(.02, DEPTH * (1 - f));
+      const top = LID + (FLOOR - LID) * (dist / DEPTH);
+      $("#oFill").textContent = Math.round(f * 100) + " %";
+      $("#eTime").textContent = (2 * dist / SOUND * 1000).toFixed(1) + " ms";
+      $("#eDist").textContent = dist.toFixed(2) + " m";
+      $("#ePct").textContent = Math.round((1 - dist / DEPTH) * 100) + " %";
+      const w = $("#echoWaste"); w.setAttribute("y", top); w.setAttribute("height", FLOOR + 10 - top);
+      $("#echoTop").setAttribute("d", `M40 ${top + 2} q 20 -7 40 -2 t 40 -1 t 40 -3 t 40 2 V ${top + 6} H 40 z`);
+      $("#echoLine").setAttribute("y2", top - 2);
+      $("#echoArrA").setAttribute("d", `M206 72 l4 -6 l4 6 z`);
+      $("#echoArrB").setAttribute("d", `M206 ${top - 8} l4 6 l4 -6 z`);
+      const span = top - LID - 4, n = Math.max(1, Math.min(4, Math.floor(span / 26)));
+      $("#echoWaves").innerHTML = Array.from({ length: n }, (_, k) => {
+        const y = LID + 10 + (span - 12) * (k + .5) / n, half = 10 + (y - LID) * .27;
+        return `<path d="M${120 - half} ${y} Q 120 ${y + 9} ${120 + half} ${y}" style="animation-delay:${(k * .35).toFixed(2)}s"/>`;
+      }).join("");
+    };
+    fillIn.addEventListener("input", upd); upd();
+    }
+  }
+
+})();
+
 boot().catch(err => {
   console.error(err);
   const n = $("#mapNote"); if (n) n.textContent = "Data failed to load: " + err.message;
