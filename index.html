@@ -338,23 +338,12 @@ tbody tr:last-child td { border-bottom: 0; }
 .callout h4 { font-size: 17px; }
 .callout p { color: var(--ink-2); font-size: 15px; margin-top: 6px; }
 
-/* planner */
-.planner { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 14px; }
-@media (max-width: 900px) { .planner { grid-template-columns: 1fr; } }
+/* sliders (maths) */
 .slider { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
 .slider .top { display: flex; justify-content: space-between; font-size: 14px; }
 .slider output { font: 600 14px var(--mono); }
 .slider input { width: 100%; accent-color: var(--accent); }
 .slider small { color: var(--ink-3); font-size: 12px; }
-.plan-out { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-@media (max-width: 640px) { .plan-out { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.po { background: var(--paper); border-radius: 12px; padding: 14px; min-width: 0; }
-.po b { display: block; font: 700 26px/1.05 var(--display); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-.po span { font-size: 12px; color: var(--ink-3); }
-.feas { margin-top: 14px; border-radius: 12px; padding: 14px 16px; font-size: 15px; display: flex; gap: 12px; align-items: flex-start; }
-.feas.ok { background: var(--accent-soft); }
-.feas.no { background: color-mix(in srgb, var(--bad) 10%, var(--surface)); }
-.feas b { font-family: var(--display); }
 .hours { margin-top: 14px; }
 .hours .track { position: relative; height: 26px; background: var(--paper); border-radius: 8px; overflow: hidden; }
 .hours .seg2 { position: absolute; top: 0; bottom: 0; }
@@ -414,7 +403,7 @@ tbody tr:last-child td { border-bottom: 0; }
   .playbar { grid-template-columns: auto auto minmax(0, 1fr); grid-template-areas: "play time speed" "range range range" "stats stats stats"; bottom: 10px; padding: 8px 10px; }
   .legend { display: none; }
 }
-.step-detail > div, .explainer > div, .results-grid > *, .biz-grid > *, .planner > * { min-width: 0; }
+.step-detail > div, .explainer > div, .results-grid > *, .biz-grid > * { min-width: 0; }
 @media (max-width: 640px) {
   .legend { padding: 8px 10px; font-size: 11px; }
   .legend .row { display: inline-flex; margin: 2px 8px 2px 0; }
@@ -629,6 +618,31 @@ p.say.how-close { margin-top: 32px; font-size: 18px; text-align: center; color: 
 @keyframes ping { from { opacity: .95; } to { opacity: 0; } }
 #echoWaves path { animation: ping 1.4s ease-out infinite; }
 
+/* ── cover ── */
+.hero { position: relative; padding-block: 64px 32px; isolation: isolate; }
+.hero::before { content: ""; position: absolute; inset: -60px 0 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(560px 420px at 78% 42%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 70%),
+    radial-gradient(circle, color-mix(in srgb, var(--ink) 13%, transparent) 1px, transparent 1.4px) 0 0 / 22px 22px;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%); mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%); }
+.hero-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px; }
+.hero h1 { font-size: clamp(40px, 5.2vw, 68px); line-height: .98; letter-spacing: -.035em; }
+.hero h1 em { display: block; margin-top: .06em; }
+.hero .lede.say { margin-top: 26px; font-size: 19px; line-height: 1.68; color: var(--ink); max-width: 31em; }
+.hero .lede.say b { font-weight: 650; color: var(--accent); font-variant-numeric: tabular-nums; }
+.hero .cta { margin-top: 30px; }
+.hero .btn { padding: 13px 22px; }
+.hero .btn.primary { box-shadow: 0 6px 18px rgba(27, 32, 38, .18); }
+.hero .provenance { gap: 8px; margin-top: 26px; }
+.hero .prov { padding: 5px 11px 5px 9px; border: 1px solid var(--line); border-radius: 99px; background: color-mix(in srgb, var(--surface) 70%, transparent); font-size: 12.5px; }
+.hero-visual { position: relative; }
+.hero-visual::before { content: ""; position: absolute; inset: 18px -14px -14px 18px; border-radius: 28px; border: 1px solid var(--line-2); z-index: -1; }
+.hero-map { border-radius: 26px; border: 1px solid color-mix(in srgb, var(--raised) 80%, transparent); box-shadow: 0 2px 6px rgba(27, 32, 38, .06), 0 30px 70px rgba(27, 32, 38, .16); }
+.hero-map .chip-card { border-radius: 14px; }
+.hero .kpis { margin-top: 56px; border-radius: 18px; box-shadow: var(--shadow); }
+@media (max-width: 980px) { .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 36px; } .hero-visual::before { display: none; } }
+@media (max-width: 560px) { .hero { padding-block: 36px 24px; } .hero .lede.say { font-size: 17.5px; } }
+
 </style>
 </head>
 <body>
@@ -645,7 +659,6 @@ p.say.how-close { margin-top: 32px; font-size: 18px; text-align: center; color: 
       <a href="#console">Live map</a>
       <a href="#maths">The maths</a>
       <a href="#results">Results</a>
-      <a href="#planner">Planner</a>
       <a href="#business">Business</a>
       <a href="#sources">Sources</a>
     </nav>
@@ -656,21 +669,21 @@ p.say.how-close { margin-top: 32px; font-size: 18px; text-align: center; color: 
 <!-- ── HERO ───────────────────────────────────────────── -->
 <section class="hero wrap">
   <div class="hero-grid">
-    <div>
+    <div class="hero-copy">
       <span class="eyebrow">Smarter bins, cleaner streets · Edinburgh</span>
       <h1>Empty the bins that are full. <em>Skip the ones that aren’t.</em></h1>
-      <p class="lede">Edinburgh’s communal bins are emptied on fixed timetables, so some overflow while others are collected half-empty. BinSight forecasts how full each of the city’s <b class="num" data-k="stops">4,532</b> general-waste communal bin stops will be tomorrow, then plans the shortest truck routes that reach only the bins that need emptying.</p>
+      <p class="lede say">Edinburgh empties its communal bins on a fixed timetable, so some overflow while others go out half empty. BinSight puts a two-pound sensor in every bin, forecasts how full each of the city’s <b data-k="stops">4,532</b> bin stops will be tomorrow, and sends the trucks only where they are needed. In a simulated week, that cut overflows by <b data-k="overflowCutWord">82&nbsp;%</b> and costs by <b data-k="costCutWord">29&nbsp;%</b>.</p>
       <div class="cta">
-        <a class="btn primary" href="#console">Explore tomorrow’s plan</a>
-        <a class="btn ghost" href="#maths">See the maths</a>
+        <a class="btn primary" href="#console">Explore tomorrow’s plan <span aria-hidden="true">→</span></a>
+        <a class="btn ghost" href="#how">How it works</a>
       </div>
       <div class="provenance" aria-label="Data provenance">
-        <span class="prov real"><i></i>Real: council bin register, wards, streets, weather</span>
-        <span class="prov sim"><i></i>Simulated: sensor fill levels</span>
-        <span class="prov asm"><i></i>Assumed: fleet size and shift</span>
+        <span class="prov real"><i></i>Real: council bins, wards, streets, weather</span>
+        <span class="prov sim"><i></i>Simulated: fill levels</span>
+        <span class="prov asm"><i></i>Assumed: fleet and shift</span>
       </div>
     </div>
-    <div class="hero-map" id="heroMap" role="img" aria-label="Map of Edinburgh's 17 wards with every general-waste communal bin stop coloured by tomorrow's forecast fill level">
+    <div class="hero-visual"><div class="hero-map" id="heroMap" role="img" aria-label="Map of Edinburgh's 17 wards with every general-waste communal bin stop coloured by tomorrow's forecast fill level">
       <canvas id="heroCanvas"></canvas>
       <div class="chip-card c1"><div class="muted small">Forecast for</div><div class="big" data-k="forecastShort">3 Nov</div></div>
       <div class="chip-card c2">
@@ -679,7 +692,7 @@ p.say.how-close { margin-top: 32px; font-size: 18px; text-align: center; color: 
         <div class="muted" style="display:flex;justify-content:space-between;font-size:11px;margin-top:3px"><span>empty</span><span>80 %</span><span>full</span></div>
       </div>
       <div class="hero-tip" id="heroTip"></div>
-    </div>
+    </div></div>
   </div>
 
   <div class="kpis">
@@ -1013,31 +1026,8 @@ p.say.how-close { margin-top: 32px; font-size: 18px; text-align: center; color: 
   <div class="methods" id="methods"></div>
 </section>
 
-<!-- ── PLANNER ────────────────────────────────────────── -->
-<div class="band">
-<section class="chapter wrap" id="planner">
-  <div class="chapter-head">
-    <div><span class="eyebrow">Try it yourself</span><h2>What if the trucks or the threshold change?</h2></div>
-  </div>
-  <div class="planner">
-    <div class="card">
-      <div class="slider"><div class="top"><label for="pFloor">Floor</label><output id="oFloor2">80 %</output></div><input type="range" id="pFloor" min="50" max="100" step="1" value="80"><small>Never take a stop projected below this by the next chance of a truck.</small></div>
-      <div class="slider"><div class="top"><label for="pFleet">Trucks available</label><output id="oFleet">24</output></div><input type="range" id="pFleet" min="6" max="60" step="1" value="24"></div>
-      <div class="slider"><div class="top"><label for="pShift">Shift length</label><output id="oShift">8.0 h</output></div><input type="range" id="pShift" min="6" max="12" step="0.5" value="8"></div>
-      <div class="slider"><div class="top"><label for="pSvc">Minutes per container</label><output id="oSvc">1.0 min</output></div><input type="range" id="pSvc" min="0.5" max="4" step="0.1" value="1"><small>Plus 2 minutes per stop to pull up and walk to the bin store.</small></div>
-      <div class="slider"><div class="top"><label for="pSpeed">Traffic</label><output id="oSpeed">× 1.00</output></div><input type="range" id="pSpeed" min="0.6" max="1.4" step="0.05" value="1"><small>Scales the road speeds (OpenStreetMap road classes).</small></div>
-    </div>
-    <div class="card">
-      <div class="plan-out" id="planOut"></div>
-      <div class="hours" id="planHours"></div>
-      <div class="feas" id="planFeas"></div>
-      <p class="note" id="planNote"></p>
-    </div>
-  </div>
-</section>
-</div>
-
 <!-- ── BUSINESS ───────────────────────────────────────── -->
+<div class="band">
 <section class="chapter wrap" id="business">
   <div class="chapter-head">
     <div><span class="eyebrow">Who pays for it</span><h2>Three partners, one service</h2></div>
@@ -1096,9 +1086,9 @@ p.say.how-close { margin-top: 32px; font-size: 18px; text-align: center; color: 
     <div class="risks" style="margin-top:8px" id="risks"></div>
   </div>
 </section>
+</div>
 
 <!-- ── SOURCES ────────────────────────────────────────── -->
-<div class="band">
 <section class="chapter wrap" id="sources">
   <div class="chapter-head">
     <div><span class="eyebrow">Sources</span><h2>What is real, what is simulated</h2></div>
@@ -1110,7 +1100,6 @@ p.say.how-close { margin-top: 32px; font-size: 18px; text-align: center; color: 
   <h3 style="font-size:20px;margin:40px 0 16px">References</h3>
   <ul class="refs" id="refs"></ul>
 </section>
-</div>
 </main>
 
 <footer>
@@ -1183,7 +1172,6 @@ async function boot() {
   initConsole();
   initMaths();
   initResults();
-  initPlanner();
   initBusiness();
   initSources();
   initNav();
@@ -1269,6 +1257,8 @@ function fillKeys() {
     stops: fmt(t.stops), assets: fmt(t.assets), gwRecords: fmt(t.general_waste_records), flagged: fmt(p.flagged),
     planKm: fmt(p.road_km) + " km", trucksUsed: fmt(p.trucks_used), wardsN: String(s.wards.length),
     overflowCut: fixed && bs ? "−" + fmt(100 * (1 - bs.overflow_events_day / fixed.overflow_events_day)) + " %" : "–",
+    overflowCutWord: fixed && bs ? fmt(100 * (1 - bs.overflow_events_day / fixed.overflow_events_day)) + "\u00a0%" : "–",
+    costCutWord: fixed && bs ? fmt(100 * (1 - bs.cost_day / fixed.cost_day)) + "\u00a0%" : "–",
     forecastShort: fmtDate(s.plan_day + "T06:00", { day: "numeric", month: "short" }),
     generated: "Data built " + fmtDate(s.generated, { day: "numeric", month: "long", year: "numeric" }),
   };
@@ -2362,48 +2352,6 @@ function initResults() {
     <p class="verdict">${verdict}</p></div>`).join("");
 }
 
-/* ── planner ─────────────────────────────────────── */
-BS.planCalc = ({ floor = 80, fleet = 24, shift = 8, svc = 1, speed = 1 } = {}) => {
-  const S = D.S, f = D.site.fleet;
-  const c = BS.choose({ floor, fleet, shift, svc, speed }), sel = c.sel, litres = c.litres;
-  const inSel = new Set(sel), waiting = c.cand.filter(i => !inSel.has(i)), waitOver = waiting.filter(i => S.pred[i] >= 100).length;
-  let lift = 0; for (const i of sel) lift += f.service_base_min + svc * S.nb[i];
-  const trips = Math.ceil(litres / (D.R.capacity_l * D.bhh.util));
-  const g = geomOf(sel);
-  const km = sel.length ? Math.max(0, 2 * trips * g.rbar + D.bhh.k * Math.sqrt(sel.length * g.area)) : 0;
-  lift /= 60;
-  const drive = km / (D.bhh.kmh * speed), tip = trips * f.tip_min / 60, need = lift + drive + tip, have = fleet * shift;
-  const cost = f.cost_km * km + f.cost_hour * need;
-  return { floor, fleet, shift, svc, speed, sel, n: sel.length, cand: c.cand.length, waiting: waiting.length, waitOver, litres, trips, g, km, co2: km * f.fuel_l_per_km * f.co2_kg_per_l, lift, drive, tip, need, have, cost };
-};
-function initPlanner() {
-  const ids = ["pFloor", "pFleet", "pShift", "pSvc", "pSpeed"];
-  $("#pFleet").max = Math.max(60, 2 * D.site.fleet.trucks); $("#pFleet").value = D.site.fleet.trucks;
-  const upd = () => {
-    const floor = +$("#pFloor").value, fleet = +$("#pFleet").value, shift = +$("#pShift").value, svc = +$("#pSvc").value, speed = +$("#pSpeed").value;
-    $("#oFloor2").textContent = floor + " %"; $("#oFleet").textContent = fleet; $("#oShift").textContent = shift.toFixed(1) + " h"; $("#oSvc").textContent = svc.toFixed(1) + " min"; $("#oSpeed").textContent = "× " + speed.toFixed(2);
-    const r = BS.planCalc({ floor, fleet, shift, svc, speed });
-    $("#planOut").innerHTML = [
-      [fmt(r.n), "stops to empty"], [fmt(r.litres / 1000) + " m³", "waste to collect"], [fmt(r.trips), "truck loads"],
-      [fmt(r.km) + " km", "estimated distance"], ["£" + fmt(r.cost), "route cost (km + crew time)"], [fmt(r.waiting), `stops at or above ${floor} % that wait`],
-    ].map(([b, s_]) => `<div class="po"><b>${b}</b><span>${s_}</span></div>`).join("");
-    const pc = v => clamp(v / Math.max(r.need, r.have) * 100, 0, 100);
-    $("#planHours").innerHTML = `<div class="track"><span class="seg2" style="left:0;width:${pc(r.lift)}%;background:var(--ink)"></span><span class="seg2" style="left:${pc(r.lift)}%;width:${pc(r.drive)}%;background:var(--f2)"></span><span class="seg2" style="left:${pc(r.lift + r.drive)}%;width:${pc(r.tip)}%;background:var(--f1)"></span><span class="cap" style="left:${pc(r.have)}%"></span></div>
-      <div class="keys"><span><i style="background:var(--ink)"></i>Lifting ${fmt(r.lift)} h</span><span><i style="background:var(--f2)"></i>Driving ${fmt(r.drive)} h</span><span><i style="background:var(--f1)"></i>Tipping ${fmt(r.tip)} h</span><span><i style="background:var(--ink);width:2px"></i>Fleet time ${fmt(r.have)} h (${fleet} × ${shift} h)</span></div>`;
-    const ok = r.waiting === 0 && r.need <= r.have;
-    $("#planFeas").className = "feas " + (ok ? "ok" : "no");
-    $("#planFeas").innerHTML = ok
-      ? `<span>✓</span><span><b>Every stop above the floor fits.</b> ${fmt(r.n)} stops projected at ${floor} % or more, about ${fmt(r.need)} of ${fmt(r.have)} crew-hours (${fmt(r.need / r.have * 100)} %).</span>`
-      : r.waiting === 0
-      ? `<span>!</span><span><b>Tight.</b> The rule’s own time estimate fits all ${fmt(r.n)} stops above ${floor} %, but the distance estimate needs about ${fmt(r.need)} of ${fmt(r.have)} crew-hours (${fmt(r.need / r.have * 100)} %). The router would leave out the least full stops first.</span>`
-      : `<span>!</span><span><b>The fleet runs out of time.</b> Fullest first, ${fmt(r.n)} of the ${fmt(r.cand)} stops above ${floor} % fit; ${fmt(r.waiting)} wait for the next day${r.waitOver ? `, <b>${fmt(r.waitOver)}</b> of them projected past 100 %` : ""}. Add trucks or lengthen the shift.</span>`;
-    $("#planNote").textContent = `Stops are chosen with the model’s rule and time estimate. Distance = 2 × loads × mean depot distance + k·√(n·A), where n is stops, A the area they cover (${fmt(r.g.area)} km²) and k = ${D.bhh.k.toFixed(3)} fitted so the formula reproduces tomorrow’s routed plan (${fmt(D.site.plan.road_km)} km for ${fmt(D.site.plan.served)} stops). Driving at the plan’s average ${fmt(D.bhh.kmh, 1)} km/h. A quick estimate: the real plan comes from the router.`;
-  };
-  ids.forEach(id => $("#" + id).addEventListener("input", upd));
-  upd();
-  BS.planner = (o = {}) => { if (o.floor != null) $("#pFloor").value = o.floor; if (o.fleet) $("#pFleet").value = o.fleet; if (o.shift) $("#pShift").value = o.shift; if (o.svc) $("#pSvc").value = o.svc; if (o.speed) $("#pSpeed").value = o.speed; upd(); };
-}
-
 /* ── business ────────────────────────────────────── */
 const MODELS = {
   A: ["Sensors and platform subscription", "Councils · core model", ["A one-off fee per sensor, covering hardware and installation on the council’s existing bins.", "An annual platform subscription per connected sensor: software, data, maintenance and battery replacement.", "Hardware as a service: no upfront fee, the sensor cost spread over a higher subscription, for councils with tight capital budgets.", "Route in: a funded pilot through CivTech, Zero Waste Scotland or Innovate UK, then a multi-year procurement contract."]],
@@ -2450,7 +2398,7 @@ function initBusiness() {
     ["Fake or duplicate reports", "Only verified reports earn points, with daily limits per user."],
     ["Too few businesses sponsor vouchers", "Start with a few partners near the pilot area; the council co-funds rewards at first."],
     ["Recycling facilities unwilling to pay at first", "Free data during the pilot to prove its value."],
-    ["Shift time (from our own model)", "Add a working-time constraint to the solver and size the fleet with the planner above."]];
+    ["Shift time (from our own model)", "Add a working-time constraint to the solver and size the fleet with the model."]];
   $("#risks").innerHTML = risks.map(([a, b]) => `<div class="risk"><b>${a}</b><span>${b}</span></div>`).join("");
 }
 

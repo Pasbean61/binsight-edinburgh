@@ -55,7 +55,6 @@ async function boot() {
   initConsole();
   initMaths();
   initResults();
-  initPlanner();
   initBusiness();
   initSources();
   initNav();
@@ -141,6 +140,8 @@ function fillKeys() {
     stops: fmt(t.stops), assets: fmt(t.assets), gwRecords: fmt(t.general_waste_records), flagged: fmt(p.flagged),
     planKm: fmt(p.road_km) + " km", trucksUsed: fmt(p.trucks_used), wardsN: String(s.wards.length),
     overflowCut: fixed && bs ? "−" + fmt(100 * (1 - bs.overflow_events_day / fixed.overflow_events_day)) + " %" : "–",
+    overflowCutWord: fixed && bs ? fmt(100 * (1 - bs.overflow_events_day / fixed.overflow_events_day)) + "\u00a0%" : "–",
+    costCutWord: fixed && bs ? fmt(100 * (1 - bs.cost_day / fixed.cost_day)) + "\u00a0%" : "–",
     forecastShort: fmtDate(s.plan_day + "T06:00", { day: "numeric", month: "short" }),
     generated: "Data built " + fmtDate(s.generated, { day: "numeric", month: "long", year: "numeric" }),
   };
@@ -973,48 +974,6 @@ function initResults() {
     <p class="verdict">${verdict}</p></div>`).join("");
 }
 
-/* ── planner ─────────────────────────────────────── */
-BS.planCalc = ({ floor = 80, fleet = 24, shift = 8, svc = 1, speed = 1 } = {}) => {
-  const S = D.S, f = D.site.fleet;
-  const c = BS.choose({ floor, fleet, shift, svc, speed }), sel = c.sel, litres = c.litres;
-  const inSel = new Set(sel), waiting = c.cand.filter(i => !inSel.has(i)), waitOver = waiting.filter(i => S.pred[i] >= 100).length;
-  let lift = 0; for (const i of sel) lift += f.service_base_min + svc * S.nb[i];
-  const trips = Math.ceil(litres / (D.R.capacity_l * D.bhh.util));
-  const g = geomOf(sel);
-  const km = sel.length ? Math.max(0, 2 * trips * g.rbar + D.bhh.k * Math.sqrt(sel.length * g.area)) : 0;
-  lift /= 60;
-  const drive = km / (D.bhh.kmh * speed), tip = trips * f.tip_min / 60, need = lift + drive + tip, have = fleet * shift;
-  const cost = f.cost_km * km + f.cost_hour * need;
-  return { floor, fleet, shift, svc, speed, sel, n: sel.length, cand: c.cand.length, waiting: waiting.length, waitOver, litres, trips, g, km, co2: km * f.fuel_l_per_km * f.co2_kg_per_l, lift, drive, tip, need, have, cost };
-};
-function initPlanner() {
-  const ids = ["pFloor", "pFleet", "pShift", "pSvc", "pSpeed"];
-  $("#pFleet").max = Math.max(60, 2 * D.site.fleet.trucks); $("#pFleet").value = D.site.fleet.trucks;
-  const upd = () => {
-    const floor = +$("#pFloor").value, fleet = +$("#pFleet").value, shift = +$("#pShift").value, svc = +$("#pSvc").value, speed = +$("#pSpeed").value;
-    $("#oFloor2").textContent = floor + " %"; $("#oFleet").textContent = fleet; $("#oShift").textContent = shift.toFixed(1) + " h"; $("#oSvc").textContent = svc.toFixed(1) + " min"; $("#oSpeed").textContent = "× " + speed.toFixed(2);
-    const r = BS.planCalc({ floor, fleet, shift, svc, speed });
-    $("#planOut").innerHTML = [
-      [fmt(r.n), "stops to empty"], [fmt(r.litres / 1000) + " m³", "waste to collect"], [fmt(r.trips), "truck loads"],
-      [fmt(r.km) + " km", "estimated distance"], ["£" + fmt(r.cost), "route cost (km + crew time)"], [fmt(r.waiting), `stops at or above ${floor} % that wait`],
-    ].map(([b, s_]) => `<div class="po"><b>${b}</b><span>${s_}</span></div>`).join("");
-    const pc = v => clamp(v / Math.max(r.need, r.have) * 100, 0, 100);
-    $("#planHours").innerHTML = `<div class="track"><span class="seg2" style="left:0;width:${pc(r.lift)}%;background:var(--ink)"></span><span class="seg2" style="left:${pc(r.lift)}%;width:${pc(r.drive)}%;background:var(--f2)"></span><span class="seg2" style="left:${pc(r.lift + r.drive)}%;width:${pc(r.tip)}%;background:var(--f1)"></span><span class="cap" style="left:${pc(r.have)}%"></span></div>
-      <div class="keys"><span><i style="background:var(--ink)"></i>Lifting ${fmt(r.lift)} h</span><span><i style="background:var(--f2)"></i>Driving ${fmt(r.drive)} h</span><span><i style="background:var(--f1)"></i>Tipping ${fmt(r.tip)} h</span><span><i style="background:var(--ink);width:2px"></i>Fleet time ${fmt(r.have)} h (${fleet} × ${shift} h)</span></div>`;
-    const ok = r.waiting === 0 && r.need <= r.have;
-    $("#planFeas").className = "feas " + (ok ? "ok" : "no");
-    $("#planFeas").innerHTML = ok
-      ? `<span>✓</span><span><b>Every stop above the floor fits.</b> ${fmt(r.n)} stops projected at ${floor} % or more, about ${fmt(r.need)} of ${fmt(r.have)} crew-hours (${fmt(r.need / r.have * 100)} %).</span>`
-      : r.waiting === 0
-      ? `<span>!</span><span><b>Tight.</b> The rule’s own time estimate fits all ${fmt(r.n)} stops above ${floor} %, but the distance estimate needs about ${fmt(r.need)} of ${fmt(r.have)} crew-hours (${fmt(r.need / r.have * 100)} %). The router would leave out the least full stops first.</span>`
-      : `<span>!</span><span><b>The fleet runs out of time.</b> Fullest first, ${fmt(r.n)} of the ${fmt(r.cand)} stops above ${floor} % fit; ${fmt(r.waiting)} wait for the next day${r.waitOver ? `, <b>${fmt(r.waitOver)}</b> of them projected past 100 %` : ""}. Add trucks or lengthen the shift.</span>`;
-    $("#planNote").textContent = `Stops are chosen with the model’s rule and time estimate. Distance = 2 × loads × mean depot distance + k·√(n·A), where n is stops, A the area they cover (${fmt(r.g.area)} km²) and k = ${D.bhh.k.toFixed(3)} fitted so the formula reproduces tomorrow’s routed plan (${fmt(D.site.plan.road_km)} km for ${fmt(D.site.plan.served)} stops). Driving at the plan’s average ${fmt(D.bhh.kmh, 1)} km/h. A quick estimate: the real plan comes from the router.`;
-  };
-  ids.forEach(id => $("#" + id).addEventListener("input", upd));
-  upd();
-  BS.planner = (o = {}) => { if (o.floor != null) $("#pFloor").value = o.floor; if (o.fleet) $("#pFleet").value = o.fleet; if (o.shift) $("#pShift").value = o.shift; if (o.svc) $("#pSvc").value = o.svc; if (o.speed) $("#pSpeed").value = o.speed; upd(); };
-}
-
 /* ── business ────────────────────────────────────── */
 const MODELS = {
   A: ["Sensors and platform subscription", "Councils · core model", ["A one-off fee per sensor, covering hardware and installation on the council’s existing bins.", "An annual platform subscription per connected sensor: software, data, maintenance and battery replacement.", "Hardware as a service: no upfront fee, the sensor cost spread over a higher subscription, for councils with tight capital budgets.", "Route in: a funded pilot through CivTech, Zero Waste Scotland or Innovate UK, then a multi-year procurement contract."]],
@@ -1061,7 +1020,7 @@ function initBusiness() {
     ["Fake or duplicate reports", "Only verified reports earn points, with daily limits per user."],
     ["Too few businesses sponsor vouchers", "Start with a few partners near the pilot area; the council co-funds rewards at first."],
     ["Recycling facilities unwilling to pay at first", "Free data during the pilot to prove its value."],
-    ["Shift time (from our own model)", "Add a working-time constraint to the solver and size the fleet with the planner above."]];
+    ["Shift time (from our own model)", "Add a working-time constraint to the solver and size the fleet with the model."]];
   $("#risks").innerHTML = risks.map(([a, b]) => `<div class="risk"><b>${a}</b><span>${b}</span></div>`).join("");
 }
 

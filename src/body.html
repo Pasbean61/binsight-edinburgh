@@ -11,7 +11,6 @@
       <a href="#console">Live map</a>
       <a href="#maths">The maths</a>
       <a href="#results">Results</a>
-      <a href="#planner">Planner</a>
       <a href="#business">Business</a>
       <a href="#sources">Sources</a>
     </nav>
@@ -22,21 +21,21 @@
 <!-- ── HERO ───────────────────────────────────────────── -->
 <section class="hero wrap">
   <div class="hero-grid">
-    <div>
+    <div class="hero-copy">
       <span class="eyebrow">Smarter bins, cleaner streets · Edinburgh</span>
       <h1>Empty the bins that are full. <em>Skip the ones that aren’t.</em></h1>
-      <p class="lede">Edinburgh’s communal bins are emptied on fixed timetables, so some overflow while others are collected half-empty. BinSight forecasts how full each of the city’s <b class="num" data-k="stops">4,532</b> general-waste communal bin stops will be tomorrow, then plans the shortest truck routes that reach only the bins that need emptying.</p>
+      <p class="lede say">Edinburgh empties its communal bins on a fixed timetable, so some overflow while others go out half empty. BinSight puts a two-pound sensor in every bin, forecasts how full each of the city’s <b data-k="stops">4,532</b> bin stops will be tomorrow, and sends the trucks only where they are needed. In a simulated week, that cut overflows by <b data-k="overflowCutWord">82&nbsp;%</b> and costs by <b data-k="costCutWord">29&nbsp;%</b>.</p>
       <div class="cta">
-        <a class="btn primary" href="#console">Explore tomorrow’s plan</a>
-        <a class="btn ghost" href="#maths">See the maths</a>
+        <a class="btn primary" href="#console">Explore tomorrow’s plan <span aria-hidden="true">→</span></a>
+        <a class="btn ghost" href="#how">How it works</a>
       </div>
       <div class="provenance" aria-label="Data provenance">
-        <span class="prov real"><i></i>Real: council bin register, wards, streets, weather</span>
-        <span class="prov sim"><i></i>Simulated: sensor fill levels</span>
-        <span class="prov asm"><i></i>Assumed: fleet size and shift</span>
+        <span class="prov real"><i></i>Real: council bins, wards, streets, weather</span>
+        <span class="prov sim"><i></i>Simulated: fill levels</span>
+        <span class="prov asm"><i></i>Assumed: fleet and shift</span>
       </div>
     </div>
-    <div class="hero-map" id="heroMap" role="img" aria-label="Map of Edinburgh's 17 wards with every general-waste communal bin stop coloured by tomorrow's forecast fill level">
+    <div class="hero-visual"><div class="hero-map" id="heroMap" role="img" aria-label="Map of Edinburgh's 17 wards with every general-waste communal bin stop coloured by tomorrow's forecast fill level">
       <canvas id="heroCanvas"></canvas>
       <div class="chip-card c1"><div class="muted small">Forecast for</div><div class="big" data-k="forecastShort">3 Nov</div></div>
       <div class="chip-card c2">
@@ -45,7 +44,7 @@
         <div class="muted" style="display:flex;justify-content:space-between;font-size:11px;margin-top:3px"><span>empty</span><span>80 %</span><span>full</span></div>
       </div>
       <div class="hero-tip" id="heroTip"></div>
-    </div>
+    </div></div>
   </div>
 
   <div class="kpis">
@@ -379,31 +378,8 @@
   <div class="methods" id="methods"></div>
 </section>
 
-<!-- ── PLANNER ────────────────────────────────────────── -->
-<div class="band">
-<section class="chapter wrap" id="planner">
-  <div class="chapter-head">
-    <div><span class="eyebrow">Try it yourself</span><h2>What if the trucks or the threshold change?</h2></div>
-  </div>
-  <div class="planner">
-    <div class="card">
-      <div class="slider"><div class="top"><label for="pFloor">Floor</label><output id="oFloor2">80 %</output></div><input type="range" id="pFloor" min="50" max="100" step="1" value="80"><small>Never take a stop projected below this by the next chance of a truck.</small></div>
-      <div class="slider"><div class="top"><label for="pFleet">Trucks available</label><output id="oFleet">24</output></div><input type="range" id="pFleet" min="6" max="60" step="1" value="24"></div>
-      <div class="slider"><div class="top"><label for="pShift">Shift length</label><output id="oShift">8.0 h</output></div><input type="range" id="pShift" min="6" max="12" step="0.5" value="8"></div>
-      <div class="slider"><div class="top"><label for="pSvc">Minutes per container</label><output id="oSvc">1.0 min</output></div><input type="range" id="pSvc" min="0.5" max="4" step="0.1" value="1"><small>Plus 2 minutes per stop to pull up and walk to the bin store.</small></div>
-      <div class="slider"><div class="top"><label for="pSpeed">Traffic</label><output id="oSpeed">× 1.00</output></div><input type="range" id="pSpeed" min="0.6" max="1.4" step="0.05" value="1"><small>Scales the road speeds (OpenStreetMap road classes).</small></div>
-    </div>
-    <div class="card">
-      <div class="plan-out" id="planOut"></div>
-      <div class="hours" id="planHours"></div>
-      <div class="feas" id="planFeas"></div>
-      <p class="note" id="planNote"></p>
-    </div>
-  </div>
-</section>
-</div>
-
 <!-- ── BUSINESS ───────────────────────────────────────── -->
+<div class="band">
 <section class="chapter wrap" id="business">
   <div class="chapter-head">
     <div><span class="eyebrow">Who pays for it</span><h2>Three partners, one service</h2></div>
@@ -462,9 +438,9 @@
     <div class="risks" style="margin-top:8px" id="risks"></div>
   </div>
 </section>
+</div>
 
 <!-- ── SOURCES ────────────────────────────────────────── -->
-<div class="band">
 <section class="chapter wrap" id="sources">
   <div class="chapter-head">
     <div><span class="eyebrow">Sources</span><h2>What is real, what is simulated</h2></div>
@@ -476,7 +452,6 @@
   <h3 style="font-size:20px;margin:40px 0 16px">References</h3>
   <ul class="refs" id="refs"></ul>
 </section>
-</div>
 </main>
 
 <footer>
