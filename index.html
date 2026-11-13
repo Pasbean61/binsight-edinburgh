@@ -206,7 +206,6 @@ section.chapter { padding-block: 88px 24px; }
 .step-detail h4 { font-size: 20px; margin-bottom: 10px; }
 .step-detail ul { margin: 10px 0 0; padding-left: 18px; color: var(--ink-2); }
 .step-detail li { margin: 6px 0; }
-.formula { font: 500 14px/1.6 var(--mono); background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; overflow-x: auto; white-space: pre; }
 .products { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
 @media (max-width: 860px) { .products { grid-template-columns: 1fr; } }
 .products h4 { font-size: 17px; }
@@ -574,42 +573,14 @@ div.card.step { cursor: default; }
 :root { --stage-a: #ffffff; --stage-b: #e1e5e9; --bin-a: #2f6b4f; --bin-b: #24563f; --waste: #c9b796; --waste-2: #b9a57f; --sensor-blue: #1c4fa3; --sensor-can: #d5dade; --wave: #f3fbf6; }
 .chapter-head p.say { font-size: 18px; line-height: 1.7; color: var(--ink); max-width: 36em; }
 .chapter-head p.say b { font-weight: 650; }
-p.say.how-close { margin-top: 32px; font-size: 18px; text-align: center; color: var(--ink); text-wrap: balance; }
 .step p { font-size: 15px; color: var(--ink-2); }
-.sensor { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 48px; align-items: center; margin-top: 56px; }
-@media (max-width: 960px) { .sensor { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
 .stage { position: relative; aspect-ratio: 1.12; max-width: 100%; border-radius: 22px; overflow: hidden; border: 1px solid var(--line);
   background: radial-gradient(120% 90% at 50% 30%, var(--stage-a) 0%, var(--stage-b) 100%); box-shadow: var(--shadow); touch-action: pan-y; }
 .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
 .stage.grabbing canvas { cursor: grabbing; }
-.hotspots { position: absolute; inset: 0; pointer-events: none; }
-.hs { position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: 8px; font: 600 12.5px var(--body); color: var(--ink);
-  background: color-mix(in srgb, var(--raised) 86%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--line); border-radius: 99px; padding: 5px 11px 5px 6px; white-space: nowrap; box-shadow: 0 4px 14px rgba(0, 0, 0, .08);
-  transition: opacity .25s; opacity: 0; will-change: transform; }
-.hs i { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); flex: none; }
 .stage-tag { position: absolute; left: 18px; top: 16px; font: 500 12px var(--mono); color: var(--ink-3); letter-spacing: .02em; }
 .stage-hint { position: absolute; right: 18px; bottom: 16px; font-size: 12.5px; color: var(--ink-3); transition: opacity .4s; }
 .stage-fallback { position: absolute; inset: auto 18px 18px; font-size: 14px; color: var(--ink-3); }
-.sensor-copy h3 { font-size: clamp(26px, 3vw, 36px); margin: 12px 0 14px; letter-spacing: -.02em; }
-.sensor-copy p.say { font-size: 17.5px; line-height: 1.7; color: var(--ink); }
-.formula { margin-top: 18px; display: grid; gap: 6px; font: 500 14.5px/1.5 var(--mono); color: var(--ink-2); background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
-.formula span { color: var(--accent); font-weight: 600; }
-.cost { margin-top: 14px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
-.cost-n { font: 760 48px/1 var(--display); letter-spacing: -.03em; color: var(--accent); }
-.cost-n small { font-size: 20px; letter-spacing: 0; }
-.cost p { font-size: 14.5px; color: var(--ink-2); }
-.cost b { color: var(--ink); }
-@media (max-width: 420px) { .cost { grid-template-columns: minmax(0, 1fr); gap: 8px; } }
-.echo { margin-top: 28px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; align-items: center; background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 26px 30px; }
-@media (max-width: 700px) { .echo { grid-template-columns: minmax(0, 1fr); padding: 22px 18px; gap: 18px; } .echo svg { max-width: 190px; margin-inline: auto; } }
-.echo svg { width: 100%; height: auto; display: block; }
-.echo h3 { font-size: 24px; margin: 10px 0 8px; }
-.echo-copy > p { color: var(--ink-2); max-width: 62ch; }
-.echo-field { margin-top: 18px; }
-.echo-field label { display: flex; justify-content: space-between; gap: 10px; font-weight: 600; margin-bottom: 8px; }
-.echo-field output { font: 600 16px var(--mono); color: var(--accent); }
-.echo-field input[type=range] { width: 100%; accent-color: var(--accent); }
 .echo-out { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 16px 0 12px; }
 .echo-out div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; min-width: 0; }
 .echo-out b { display: block; font: 650 22px/1.2 var(--mono); }
@@ -618,30 +589,59 @@ p.say.how-close { margin-top: 32px; font-size: 18px; text-align: center; color: 
 @keyframes ping { from { opacity: .95; } to { opacity: 0; } }
 #echoWaves path { animation: ping 1.4s ease-out infinite; }
 
-/* ── cover ── */
-.hero { position: relative; padding-block: 64px 32px; isolation: isolate; }
-.hero::before { content: ""; position: absolute; inset: -60px 0 0; z-index: -1; pointer-events: none;
-  background:
-    radial-gradient(560px 420px at 78% 42%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 70%),
-    radial-gradient(circle, color-mix(in srgb, var(--ink) 13%, transparent) 1px, transparent 1.4px) 0 0 / 22px 22px;
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%); mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%); }
-.hero-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 64px; }
-.hero h1 { font-size: clamp(40px, 5.2vw, 68px); line-height: .98; letter-spacing: -.035em; }
-.hero h1 em { display: block; margin-top: .06em; }
-.hero .lede.say { margin-top: 26px; font-size: 19px; line-height: 1.68; color: var(--ink); max-width: 31em; }
-.hero .lede.say b { font-weight: 650; color: var(--accent); font-variant-numeric: tabular-nums; }
-.hero .cta { margin-top: 30px; }
-.hero .btn { padding: 13px 22px; }
-.hero .btn.primary { box-shadow: 0 6px 18px rgba(27, 32, 38, .18); }
-.hero .provenance { gap: 8px; margin-top: 26px; }
-.hero .prov { padding: 5px 11px 5px 9px; border: 1px solid var(--line); border-radius: 99px; background: color-mix(in srgb, var(--surface) 70%, transparent); font-size: 12.5px; }
-.hero-visual { position: relative; }
-.hero-visual::before { content: ""; position: absolute; inset: 18px -14px -14px 18px; border-radius: 28px; border: 1px solid var(--line-2); z-index: -1; }
-.hero-map { border-radius: 26px; border: 1px solid color-mix(in srgb, var(--raised) 80%, transparent); box-shadow: 0 2px 6px rgba(27, 32, 38, .06), 0 30px 70px rgba(27, 32, 38, .16); }
-.hero-map .chip-card { border-radius: 14px; }
-.hero .kpis { margin-top: 56px; border-radius: 18px; box-shadow: var(--shadow); }
-@media (max-width: 980px) { .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 36px; } .hero-visual::before { display: none; } }
-@media (max-width: 560px) { .hero { padding-block: 36px 24px; } .hero .lede.say { font-size: 17.5px; } }
+
+/* ── cover: Edinburgh at night, almost no words ── */
+:root { --night: #0d1216; --night-land: #1a232a; --night-edge: #2b363e; --night-road: #34414b; --night-park: #1a2c24; --night-ink: #eef2f0; --night-ink-2: #9aa7a2; }
+.cover { padding-block: 20px 8px; }
+.cover-card { position: relative; height: min(84vh, 760px); min-height: 560px; border-radius: 30px; overflow: hidden; isolation: isolate;
+  background: radial-gradient(90% 80% at 70% 40%, #17211f 0%, var(--night) 70%); color: var(--night-ink);
+  box-shadow: 0 2px 6px rgba(14, 19, 23, .18), 0 40px 90px rgba(14, 19, 23, .28); }
+.cover-card canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 1.2s ease; }
+.cover-card canvas.on { opacity: 1; }
+.cover-card::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background: linear-gradient(90deg, rgba(13, 18, 22, .9) 0%, rgba(13, 18, 22, .5) 28%, rgba(13, 18, 22, 0) 48%), linear-gradient(0deg, rgba(13, 18, 22, .7) 0%, rgba(13, 18, 22, 0) 30%); }
+.cover-tag { position: absolute; z-index: 2; left: 44px; top: 36px; display: inline-flex; align-items: center; gap: 9px; font: 500 13px var(--mono); letter-spacing: .04em; color: var(--night-ink-2); }
+.cover-tag i { width: 8px; height: 8px; border-radius: 50%; background: #4fd1a1; box-shadow: 0 0 0 4px rgba(79, 209, 161, .18); animation: breathe 2.4s ease-in-out infinite; }
+@keyframes breathe { 50% { box-shadow: 0 0 0 7px rgba(79, 209, 161, .05); } }
+.cover-copy { position: absolute; z-index: 2; left: 44px; bottom: 44px; max-width: min(640px, 62%); pointer-events: none; }
+.cover h1 { font-size: clamp(42px, 6vw, 84px); font-weight: 720; line-height: .95; letter-spacing: -.04em; color: var(--night-ink); }
+.cover h1 em { display: block; font-style: normal; margin-top: .08em;
+  background: linear-gradient(90deg, #7fe0b6, #4fb58d); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.cover-btn { pointer-events: auto; margin-top: 30px; display: inline-flex; align-items: center; gap: 10px; padding: 14px 24px; border-radius: 99px;
+  background: var(--night-ink); color: var(--night); font-weight: 650; font-size: 15px; text-decoration: none; transition: transform .2s, background .2s; }
+.cover-btn:hover { transform: translateY(-1px); background: #ffffff; }
+.cover-btn span { transition: transform .2s; }
+.cover-btn:hover span { transform: translateX(3px); }
+.cover-stats { position: absolute; z-index: 2; right: 40px; bottom: 44px; margin: 0; display: flex; gap: 10px; }
+.cover-stats div { min-width: 112px; padding: 14px 16px; border-radius: 16px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.cover-stats dt { font: 700 26px/1 var(--display); letter-spacing: -.02em; color: var(--night-ink); }
+.cover-stats dd { margin: 6px 0 0; font-size: 12.5px; color: var(--night-ink-2); }
+.cover-stats small { font: 500 10px var(--mono); letter-spacing: .04em; color: #e2bd5f; border: 1px dashed currentColor; border-radius: 99px; padding: 0 5px; margin-left: 3px; }
+.cover .hero-tip { z-index: 3; background: var(--night-ink); color: var(--night); }
+@media (max-width: 900px) {
+  .cover-card { height: auto; min-height: 0; aspect-ratio: auto; display: flex; flex-direction: column; justify-content: flex-end; padding: 22px; padding-top: min(92vw, 520px); }
+  .cover-card::after { background: linear-gradient(0deg, rgba(14, 19, 23, .96) 0%, rgba(14, 19, 23, .8) 42%, rgba(14, 19, 23, 0) 70%); }
+  .cover-tag { left: 22px; top: 22px; }
+  .cover-copy, .cover-stats { position: relative; left: auto; right: auto; bottom: auto; max-width: none; }
+  .cover-stats { margin-top: 26px; }
+  .cover-stats div { flex: 1; min-width: 0; padding: 12px; }
+  .cover-stats dt { font-size: 21px; }
+}
+@media (max-width: 420px) { .cover-card { border-radius: 22px; } .cover-stats { gap: 7px; } .cover-stats dt { font-size: 18px; } }
+
+/* ── sensor + bin demo, side by side, no words ── */
+.sensor-demo { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, .8fr); gap: 16px; margin-top: 48px; }
+@media (max-width: 860px) { .sensor-demo { grid-template-columns: minmax(0, 1fr); } }
+.sensor-demo .stage { aspect-ratio: auto; min-height: 440px; }
+@media (max-width: 860px) { .sensor-demo .stage { min-height: 0; aspect-ratio: 1.15; } }
+.echo { display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 18px; background: var(--paper); border: 1px solid var(--line); border-radius: 22px; padding: 26px 24px; }
+.echo svg { width: 100%; max-width: 230px; height: auto; display: block; margin: 0 auto; }
+.echo input[type=range] { width: 100%; accent-color: var(--accent); }
+.echo-out { margin: 0; }
+.echo-out { gap: 8px; }
+.echo-out div { padding: 10px; }
+.echo-out b { font-size: 17px; white-space: nowrap; }
 
 </style>
 </head>
@@ -667,40 +667,20 @@ p.say.how-close { margin-top: 32px; font-size: 18px; text-align: center; color: 
 
 <main id="home">
 <!-- ── HERO ───────────────────────────────────────────── -->
-<section class="hero wrap">
-  <div class="hero-grid">
-    <div class="hero-copy">
-      <span class="eyebrow">Smarter bins, cleaner streets · Edinburgh</span>
-      <h1>Empty the bins that are full. <em>Skip the ones that aren’t.</em></h1>
-      <p class="lede say">Edinburgh empties its communal bins on a fixed timetable, so some overflow while others go out half empty. BinSight puts a two-pound sensor in every bin, forecasts how full each of the city’s <b data-k="stops">4,532</b> bin stops will be tomorrow, and sends the trucks only where they are needed. In a simulated week, that cut overflows by <b data-k="overflowCutWord">82&nbsp;%</b> and costs by <b data-k="costCutWord">29&nbsp;%</b>.</p>
-      <div class="cta">
-        <a class="btn primary" href="#console">Explore tomorrow’s plan <span aria-hidden="true">→</span></a>
-        <a class="btn ghost" href="#how">How it works</a>
-      </div>
-      <div class="provenance" aria-label="Data provenance">
-        <span class="prov real"><i></i>Real: council bins, wards, streets, weather</span>
-        <span class="prov sim"><i></i>Simulated: fill levels</span>
-        <span class="prov asm"><i></i>Assumed: fleet and shift</span>
-      </div>
+<section class="cover wrap" aria-labelledby="coverTitle">
+  <div class="cover-card" id="heroMap">
+    <canvas id="heroCanvas" role="img" aria-label="Edinburgh at night: every general-waste communal bin stop, coloured by how full it is forecast to be tomorrow"></canvas>
+    <span class="cover-tag"><i></i>Edinburgh · <span data-k="forecastShort">3 Nov</span></span>
+    <div class="cover-copy">
+      <h1 id="coverTitle">Empty the bins that are full. <em>Skip the ones that aren’t.</em></h1>
+      <a class="cover-btn" href="#problem">See how <span aria-hidden="true">→</span></a>
     </div>
-    <div class="hero-visual"><div class="hero-map" id="heroMap" role="img" aria-label="Map of Edinburgh's 17 wards with every general-waste communal bin stop coloured by tomorrow's forecast fill level">
-      <canvas id="heroCanvas"></canvas>
-      <div class="chip-card c1"><div class="muted small">Forecast for</div><div class="big" data-k="forecastShort">3 Nov</div></div>
-      <div class="chip-card c2">
-        <div><b class="num" data-k="flagged">–</b> stops flagged for collection · <span class="num" data-k="wardsN">17</span> wards</div>
-        <div class="ramp" aria-hidden="true"><span style="background:var(--f0)"></span><span style="background:var(--f1)"></span><span style="background:var(--f2)"></span><span style="background:var(--f3)"></span><span style="background:var(--f4)"></span></div>
-        <div class="muted" style="display:flex;justify-content:space-between;font-size:11px;margin-top:3px"><span>empty</span><span>80 %</span><span>full</span></div>
-      </div>
-      <div class="hero-tip" id="heroTip"></div>
-    </div></div>
-  </div>
-
-  <div class="kpis">
-    <div class="kpi"><b class="num" data-k="assets">17,713</b><span>communal bins and recycling banks in the council’s asset register</span><span class="tag real">Real</span></div>
-    <div class="kpi"><b class="num" data-k="stops">4,532</b><span>general-waste collection stops, merged from <span data-k="gwRecords">4,564</span> bin records</span><span class="tag real">Real</span></div>
-    <div class="kpi"><b class="num" data-k="flagged">–</b><span>stops forecast to need emptying tomorrow</span><span class="tag sim">Simulated</span></div>
-    <div class="kpi"><b class="num" data-k="planKm">–</b><span>of optimised routes for <span data-k="trucksUsed">–</span> trucks from Seafield depot</span><span class="tag sim">Simulated</span></div>
-    <div class="kpi"><b class="num" data-k="overflowCut">–</b><span>fewer overflow bin-hours than a fixed rota in the 7-day replay</span><span class="tag sim">Simulated</span></div>
+    <dl class="cover-stats">
+      <div><dt class="num" data-k="stops">4,532</dt><dd>bin stops</dd></div>
+      <div><dt class="num" data-k="overflowCut">−82 %</dt><dd>overflows <small>sim.</small></dd></div>
+      <div><dt class="num">£2</dt><dd>sensor</dd></div>
+    </dl>
+    <div class="hero-tip" id="heroTip"></div>
   </div>
 </section>
 
@@ -759,66 +739,37 @@ p.say.how-close { margin-top: 32px; font-size: 18px; text-align: center; color: 
     <div class="card step"><span class="k">Step 4</span><h3>Collect</h3><p>Crews follow the plan, and residents can report a problem in an app.</p></div>
   </div>
 
-  <div class="sensor" id="sensor">
+  <div class="sensor-demo" id="sensor">
     <div class="stage" id="stage">
       <canvas id="sensor3d" role="img" aria-label="3D model of the sensor: an HC-SR04 ultrasonic module with two round transducers on a blue circuit board"></canvas>
-      <div class="hotspots" aria-hidden="true">
-        <span class="hs" data-hs="t"><i></i>Sends the ping</span>
-        <span class="hs" data-hs="r"><i></i>Hears the echo</span>
-        <span class="hs" data-hs="x"><i></i>Crystal keeps time</span>
-        <span class="hs" data-hs="p"><i></i>Power and data</span>
-      </div>
-      <span class="stage-tag">HC-SR04 · actual size 45 × 20 mm</span>
-      <span class="stage-hint" id="stageHint">Drag to turn it</span>
+      <span class="stage-tag">HC-SR04 · 45 × 20 mm · £2</span>
+      <span class="stage-hint" id="stageHint">Drag to turn ↻</span>
       <p class="stage-fallback" id="stageFallback" hidden>The 3D model needs an internet connection to load.</p>
     </div>
-    <div class="sensor-copy">
-      <span class="eyebrow">Step 1, up close</span>
-      <h3>The sensor works like a bat</h3>
-      <p class="say">It sits under the lid and sends a short pulse of ultrasound down into the bin. Then it listens for the echo bouncing back off the rubbish. Sound travels at about 343 metres a second, so the time the echo takes tells us the distance. We halve it, because the sound goes down and comes back up. The fuller the bin, the shorter the distance, and the faster the echo returns. Take that distance away from the depth of the bin, and you have the fill level.</p>
-      <div class="formula" aria-label="Formulas">
-        <div><span>distance</span> = 343 m/s × echo time ÷ 2</div>
-        <div><span>fill</span> = 1 − distance ÷ bin depth</div>
-      </div>
-      <div class="cost">
-        <div class="cost-n">£2<small>.00</small></div>
-        <p><b>The whole sensing part.</b> It is an HC-SR04, a standard ultrasonic module sold for £2.00 at <a href="https://thepihut.com/products/ultrasonic-distance-sensor-hcsr04" target="_blank" rel="noopener">The Pi Hut</a>. It fits the bins the city already has.</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="echo">
-    <svg id="echoSvg" viewBox="0 0 240 280" aria-hidden="true">
-      <defs>
-        <linearGradient id="binG" x1="0" x2="1"><stop offset="0" stop-color="var(--bin-a)"/><stop offset="1" stop-color="var(--bin-b)"/></linearGradient>
-        <clipPath id="binClip"><path d="M44 58h152l-10 196a10 10 0 0 1-10 9H64a10 10 0 0 1-10-9z"/></clipPath>
-      </defs>
-      <path d="M44 58h152l-10 196a10 10 0 0 1-10 9H64a10 10 0 0 1-10-9z" fill="url(#binG)" stroke="var(--line-2)"/>
-      <g clip-path="url(#binClip)"><rect id="echoWaste" x="40" y="160" width="160" height="110" fill="var(--waste)"/><path id="echoTop" d="" fill="var(--waste-2)"/></g>
-      <rect x="34" y="44" width="172" height="14" rx="5" fill="var(--ink)"/>
-      <rect x="108" y="58" width="24" height="8" rx="2" fill="var(--sensor-blue)"/>
-      <circle cx="114" cy="66" r="3.4" fill="var(--sensor-can)"/><circle cx="126" cy="66" r="3.4" fill="var(--sensor-can)"/>
-      <g id="echoWaves" fill="none" stroke="var(--wave)" stroke-width="2.2" stroke-linecap="round"></g>
-      <line id="echoLine" x1="210" y1="66" x2="210" y2="160" stroke="var(--ink-3)" stroke-dasharray="3 3"/>
-      <path id="echoArrA" d="" fill="var(--ink-3)"/><path id="echoArrB" d="" fill="var(--ink-3)"/>
-    </svg>
-    <div class="echo-copy">
-      <span class="eyebrow">Sensor demo</span>
-      <h3>Fill the bin, watch the echo</h3>
-      <p>Drag the slider. As the rubbish rises, the echo comes back sooner and the reading goes up.</p>
-      <div class="echo-field">
-        <label for="eFill">How full is the bin? <output id="oFill" class="num">65 %</output></label>
-        <input type="range" id="eFill" min="0" max="100" step="1" value="65">
-      </div>
+    <div class="echo">
+      <svg id="echoSvg" viewBox="0 0 240 280" role="img" aria-label="A bin with the sensor under its lid, sending ultrasound down to the rubbish">
+        <defs>
+          <linearGradient id="binG" x1="0" x2="1"><stop offset="0" stop-color="var(--bin-a)"/><stop offset="1" stop-color="var(--bin-b)"/></linearGradient>
+          <clipPath id="binClip"><path d="M44 58h152l-10 196a10 10 0 0 1-10 9H64a10 10 0 0 1-10-9z"/></clipPath>
+        </defs>
+        <path d="M44 58h152l-10 196a10 10 0 0 1-10 9H64a10 10 0 0 1-10-9z" fill="url(#binG)" stroke="var(--line-2)"/>
+        <g clip-path="url(#binClip)"><rect id="echoWaste" x="40" y="160" width="160" height="110" fill="var(--waste)"/><path id="echoTop" d="" fill="var(--waste-2)"/></g>
+        <rect x="34" y="44" width="172" height="14" rx="5" fill="var(--ink)"/>
+        <rect x="108" y="58" width="24" height="8" rx="2" fill="var(--sensor-blue)"/>
+        <circle cx="114" cy="66" r="3.4" fill="var(--sensor-can)"/><circle cx="126" cy="66" r="3.4" fill="var(--sensor-can)"/>
+        <g id="echoWaves" fill="none" stroke="var(--wave)" stroke-width="2.2" stroke-linecap="round"></g>
+        <line id="echoLine" x1="210" y1="66" x2="210" y2="160" stroke="var(--ink-3)" stroke-dasharray="3 3"/>
+        <path id="echoArrA" d="" fill="var(--ink-3)"/><path id="echoArrB" d="" fill="var(--ink-3)"/>
+      </svg>
+      <input type="range" id="eFill" min="0" max="100" step="1" value="65" aria-label="How full the bin is">
+      <output id="oFill" class="sr">65 %</output>
       <div class="echo-out">
-        <div><b id="eTime" class="num">–</b><span>echo time</span></div>
-        <div><b id="eDist" class="num">–</b><span>to the rubbish</span></div>
-        <div><b id="ePct" class="num">–</b><span>fill reading</span></div>
+        <div><b id="eTime" class="num">–</b><span>echo</span></div>
+        <div><b id="eDist" class="num">–</b><span>distance</span></div>
+        <div><b id="ePct" class="num">–</b><span>fill</span></div>
       </div>
-      <p class="small muted">Example bin 1.2 m deep. Module data: 40 kHz pulse, 2 cm to 4 m range, about 3 mm resolution.</p>
     </div>
   </div>
-  <p class="say how-close">Every reading feeds tomorrow’s forecast. Next, you can watch tomorrow’s plan play out on the live map.</p>
 </section>
 </div>
 
@@ -1274,39 +1225,78 @@ function projector(w, h, pad = 18) {
   const ox = (w - (b.e - b.w) * kx * s) / 2, oy = (h - (b.n - b.s) * s) / 2;
   return { x: lon => ox + (lon - b.w) * kx * s, y: lat => oy + (b.n - lat) * s };
 }
-let heroPts = null;
+let heroPts = null, heroBase = null, heroFull = [], heroRaf = 0, heroVis = true;
+const heroReduce = matchMedia("(prefers-reduced-motion: reduce)");
+// fit the city into a rectangle (x0, y0, x1, y1) of the cover
+function fitProjector(x0, y0, x1, y1) {
+  const b = { s: 55.885, n: 56.0, w: -3.43, e: -3.05 }, kx = Math.cos(55.94 * Math.PI / 180);
+  const s = Math.min((x1 - x0) / ((b.e - b.w) * kx), (y1 - y0) / (b.n - b.s));
+  const ox = x0 + ((x1 - x0) - (b.e - b.w) * kx * s) / 2, oy = y0 + ((y1 - y0) - (b.n - b.s) * s) / 2;
+  return { x: lon => ox + (lon - b.w) * kx * s, y: lat => oy + (b.n - lat) * s, s };
+}
 function drawHero() {
   const cv = $("#heroCanvas"); if (!cv || !D.S) return;
-  const box = cv.parentElement.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
-  cv.width = box.width * dpr; cv.height = box.height * dpr;
-  const c = cv.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const P = projector(box.width, box.height);
-  c.fillStyle = PAL.sea; c.fillRect(0, 0, box.width, box.height);
-  // wards = land
-  c.lineWidth = 1; c.strokeStyle = PAL.line2;
-  for (const w of D.base.wards) for (const ring of w.rings) {
-    const pts = decode(ring); c.beginPath();
-    pts.forEach(([la, lo], i) => i ? c.lineTo(P.x(lo), P.y(la)) : c.moveTo(P.x(lo), P.y(la)));
-    c.closePath(); c.fillStyle = PAL.land; c.fill(); c.stroke();
+  const box = cv.parentElement.getBoundingClientRect(), W = box.width, H = box.height, dpr = Math.min(2, devicePixelRatio || 1);
+  const narrow = W < 900;
+  const P = narrow ? fitProjector(-W * .06, 30, W * 1.06, Math.min(W * .92, 520) + 40) : fitProjector(W * .3, -H * .06, W * 1.05, H * 1.06);
+  const bc = document.createElement("canvas"); bc.width = W * dpr; bc.height = H * dpr;
+  const c = bc.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const N = { land: css("--night-land"), edge: css("--night-edge"), road: css("--night-road"), park: css("--night-park"), ink: css("--night-ink") };
+  const path = (pts, close) => { c.beginPath(); pts.forEach(([la, lo], k) => k ? c.lineTo(P.x(lo), P.y(la)) : c.moveTo(P.x(lo), P.y(la))); if (close) c.closePath(); };
+  c.lineWidth = 1; c.strokeStyle = N.edge; c.fillStyle = N.land;
+  for (const w of D.base.wards) for (const ring of w.rings) { path(decode(ring), true); c.fill(); c.stroke(); }
+  c.fillStyle = N.park;
+  for (const pk of D.base.parks) { if (pk.k !== "park") continue; path(decode(pk.ring), true); c.fill(); }
+  c.strokeStyle = N.road; c.lineWidth = 1.3;
+  for (const line of (D.base.roads.major || [])) { path(decode(line)); c.stroke(); }
+  // stops: a soft glow under the fuller ones, then the dots, emptiest first
+  const S = D.S, order = [...S.pred.keys()].sort((x, y) => S.pred[x] - S.pred[y]);
+  const r = clamp(P.s / 1100, 1.2, 2.2);
+  heroPts = []; heroFull = [];
+  c.globalCompositeOperation = "lighter";
+  for (const i of order) if (S.pred[i] >= 80) {
+    const x = P.x(S.lon[i]), y = P.y(S.lat[i]);
+    const g = c.createRadialGradient(x, y, 0, x, y, r * 4.5); g.addColorStop(0, S.pred[i] >= 90 ? "rgba(214,80,56,.11)" : "rgba(226,140,70,.08)"); g.addColorStop(1, "rgba(0,0,0,0)");
+    c.fillStyle = g; c.fillRect(x - r * 4.5, y - r * 4.5, r * 9, r * 9);
   }
-  c.fillStyle = PAL.park;
-  for (const pk of D.base.parks) { if (pk.k !== "park") continue; const pts = decode(pk.ring); c.beginPath(); pts.forEach(([la, lo], i) => i ? c.lineTo(P.x(lo), P.y(la)) : c.moveTo(P.x(lo), P.y(la))); c.fill(); }
-  c.strokeStyle = PAL.road; c.lineWidth = 1.2;
-  for (const line of (D.base.roads.major || [])) { const pts = decode(line); c.beginPath(); pts.forEach(([la, lo], i) => i ? c.lineTo(P.x(lo), P.y(la)) : c.moveTo(P.x(lo), P.y(la))); c.stroke(); }
-  // stops, low first so the full ones sit on top
-  const S = D.S, order = [...S.pred.keys()].sort((a, b) => S.pred[a] - S.pred[b]);
-  heroPts = [];
+  c.globalCompositeOperation = "source-over";
   for (const i of order) {
     const x = P.x(S.lon[i]), y = P.y(S.lat[i]);
-    heroPts.push([x, y, i]);
-    c.beginPath(); c.arc(x, y, 1.9, 0, Math.PI * 2); c.fillStyle = fillColor(S.pred[i]); c.fill();
+    heroPts.push([x, y, i]); if (S.pred[i] >= 80) heroFull.push([x, y, S.pred[i]]);
+    c.beginPath(); c.arc(x, y, S.pred[i] >= 80 ? r : r * .8, 0, Math.PI * 2); c.fillStyle = fillColor(S.pred[i]); c.globalAlpha = S.pred[i] >= 60 ? 1 : .7; c.fill();
   }
-  // depot
+  c.globalAlpha = 1;
   const dx = P.x(D.site.depot.longitude), dy = P.y(D.site.depot.latitude);
-  c.beginPath(); c.arc(dx, dy, 6, 0, Math.PI * 2); c.fillStyle = PAL.ink; c.fill();
-  c.beginPath(); c.arc(dx, dy, 10, 0, Math.PI * 2); c.strokeStyle = PAL.ink; c.lineWidth = 1.2; c.stroke();
-  c.fillStyle = PAL.ink; c.font = "600 11px " + css("--body"); c.fillText("Seafield depot", dx + 14, dy + 4);
+  c.beginPath(); c.arc(dx, dy, 5, 0, Math.PI * 2); c.fillStyle = N.ink; c.fill();
+  c.beginPath(); c.arc(dx, dy, 9.5, 0, Math.PI * 2); c.strokeStyle = N.ink; c.lineWidth = 1.2; c.stroke();
+  heroBase = bc;
+  cv.width = W * dpr; cv.height = H * dpr;
+  heroFrame(performance.now());
+  cv.classList.add("on");
+  if (!heroReduce.matches && !heroRaf) heroRaf = requestAnimationFrame(heroLoop);
 }
+// sensor pings: rings rise from a few full bins at a time
+const pings = [];
+function heroFrame(now) {
+  const cv = $("#heroCanvas"); if (!heroBase || !cv) return;
+  const c = cv.getContext("2d"), dpr = cv.width / cv.clientWidth || 1;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); c.drawImage(heroBase, 0, 0);
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (heroFull.length && pings.length < 9 && Math.random() < .12) { const p = heroFull[(Math.random() * heroFull.length) | 0]; pings.push({ x: p[0], y: p[1], t: now, hot: p[2] >= 90 }); }
+  for (let k = pings.length - 1; k >= 0; k--) {
+    const p = pings[k], u = (now - p.t) / 1600;
+    if (u >= 1) { pings.splice(k, 1); continue; }
+    c.beginPath(); c.arc(p.x, p.y, 3 + u * 18, 0, Math.PI * 2);
+    c.strokeStyle = p.hot ? `rgba(240,110,80,${(1 - u) * .8})` : `rgba(240,170,90,${(1 - u) * .7})`; c.lineWidth = 1.4; c.stroke();
+  }
+}
+function heroLoop(now) {
+  heroRaf = 0;
+  if (!heroVis || document.hidden) return;
+  heroFrame(now); heroRaf = requestAnimationFrame(heroLoop);
+}
+new IntersectionObserver(es => { heroVis = es[0].isIntersecting; if (heroVis && heroBase && !heroReduce.matches && !heroRaf) heroRaf = requestAnimationFrame(heroLoop); }).observe(document.querySelector("#heroMap") || document.body);
+document.addEventListener("visibilitychange", () => { if (!document.hidden && heroVis && heroBase && !heroReduce.matches && !heroRaf) heroRaf = requestAnimationFrame(heroLoop); });
 function initHeroHover() {
   const cv = $("#heroCanvas"), tip = $("#heroTip");
   cv.addEventListener("mousemove", e => {

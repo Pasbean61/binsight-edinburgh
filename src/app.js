@@ -157,39 +157,78 @@ function projector(w, h, pad = 18) {
   const ox = (w - (b.e - b.w) * kx * s) / 2, oy = (h - (b.n - b.s) * s) / 2;
   return { x: lon => ox + (lon - b.w) * kx * s, y: lat => oy + (b.n - lat) * s };
 }
-let heroPts = null;
+let heroPts = null, heroBase = null, heroFull = [], heroRaf = 0, heroVis = true;
+const heroReduce = matchMedia("(prefers-reduced-motion: reduce)");
+// fit the city into a rectangle (x0, y0, x1, y1) of the cover
+function fitProjector(x0, y0, x1, y1) {
+  const b = { s: 55.885, n: 56.0, w: -3.43, e: -3.05 }, kx = Math.cos(55.94 * Math.PI / 180);
+  const s = Math.min((x1 - x0) / ((b.e - b.w) * kx), (y1 - y0) / (b.n - b.s));
+  const ox = x0 + ((x1 - x0) - (b.e - b.w) * kx * s) / 2, oy = y0 + ((y1 - y0) - (b.n - b.s) * s) / 2;
+  return { x: lon => ox + (lon - b.w) * kx * s, y: lat => oy + (b.n - lat) * s, s };
+}
 function drawHero() {
   const cv = $("#heroCanvas"); if (!cv || !D.S) return;
-  const box = cv.parentElement.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
-  cv.width = box.width * dpr; cv.height = box.height * dpr;
-  const c = cv.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const P = projector(box.width, box.height);
-  c.fillStyle = PAL.sea; c.fillRect(0, 0, box.width, box.height);
-  // wards = land
-  c.lineWidth = 1; c.strokeStyle = PAL.line2;
-  for (const w of D.base.wards) for (const ring of w.rings) {
-    const pts = decode(ring); c.beginPath();
-    pts.forEach(([la, lo], i) => i ? c.lineTo(P.x(lo), P.y(la)) : c.moveTo(P.x(lo), P.y(la)));
-    c.closePath(); c.fillStyle = PAL.land; c.fill(); c.stroke();
+  const box = cv.parentElement.getBoundingClientRect(), W = box.width, H = box.height, dpr = Math.min(2, devicePixelRatio || 1);
+  const narrow = W < 900;
+  const P = narrow ? fitProjector(-W * .06, 30, W * 1.06, Math.min(W * .92, 520) + 40) : fitProjector(W * .3, -H * .06, W * 1.05, H * 1.06);
+  const bc = document.createElement("canvas"); bc.width = W * dpr; bc.height = H * dpr;
+  const c = bc.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const N = { land: css("--night-land"), edge: css("--night-edge"), road: css("--night-road"), park: css("--night-park"), ink: css("--night-ink") };
+  const path = (pts, close) => { c.beginPath(); pts.forEach(([la, lo], k) => k ? c.lineTo(P.x(lo), P.y(la)) : c.moveTo(P.x(lo), P.y(la))); if (close) c.closePath(); };
+  c.lineWidth = 1; c.strokeStyle = N.edge; c.fillStyle = N.land;
+  for (const w of D.base.wards) for (const ring of w.rings) { path(decode(ring), true); c.fill(); c.stroke(); }
+  c.fillStyle = N.park;
+  for (const pk of D.base.parks) { if (pk.k !== "park") continue; path(decode(pk.ring), true); c.fill(); }
+  c.strokeStyle = N.road; c.lineWidth = 1.3;
+  for (const line of (D.base.roads.major || [])) { path(decode(line)); c.stroke(); }
+  // stops: a soft glow under the fuller ones, then the dots, emptiest first
+  const S = D.S, order = [...S.pred.keys()].sort((x, y) => S.pred[x] - S.pred[y]);
+  const r = clamp(P.s / 1100, 1.2, 2.2);
+  heroPts = []; heroFull = [];
+  c.globalCompositeOperation = "lighter";
+  for (const i of order) if (S.pred[i] >= 80) {
+    const x = P.x(S.lon[i]), y = P.y(S.lat[i]);
+    const g = c.createRadialGradient(x, y, 0, x, y, r * 4.5); g.addColorStop(0, S.pred[i] >= 90 ? "rgba(214,80,56,.11)" : "rgba(226,140,70,.08)"); g.addColorStop(1, "rgba(0,0,0,0)");
+    c.fillStyle = g; c.fillRect(x - r * 4.5, y - r * 4.5, r * 9, r * 9);
   }
-  c.fillStyle = PAL.park;
-  for (const pk of D.base.parks) { if (pk.k !== "park") continue; const pts = decode(pk.ring); c.beginPath(); pts.forEach(([la, lo], i) => i ? c.lineTo(P.x(lo), P.y(la)) : c.moveTo(P.x(lo), P.y(la))); c.fill(); }
-  c.strokeStyle = PAL.road; c.lineWidth = 1.2;
-  for (const line of (D.base.roads.major || [])) { const pts = decode(line); c.beginPath(); pts.forEach(([la, lo], i) => i ? c.lineTo(P.x(lo), P.y(la)) : c.moveTo(P.x(lo), P.y(la))); c.stroke(); }
-  // stops, low first so the full ones sit on top
-  const S = D.S, order = [...S.pred.keys()].sort((a, b) => S.pred[a] - S.pred[b]);
-  heroPts = [];
+  c.globalCompositeOperation = "source-over";
   for (const i of order) {
     const x = P.x(S.lon[i]), y = P.y(S.lat[i]);
-    heroPts.push([x, y, i]);
-    c.beginPath(); c.arc(x, y, 1.9, 0, Math.PI * 2); c.fillStyle = fillColor(S.pred[i]); c.fill();
+    heroPts.push([x, y, i]); if (S.pred[i] >= 80) heroFull.push([x, y, S.pred[i]]);
+    c.beginPath(); c.arc(x, y, S.pred[i] >= 80 ? r : r * .8, 0, Math.PI * 2); c.fillStyle = fillColor(S.pred[i]); c.globalAlpha = S.pred[i] >= 60 ? 1 : .7; c.fill();
   }
-  // depot
+  c.globalAlpha = 1;
   const dx = P.x(D.site.depot.longitude), dy = P.y(D.site.depot.latitude);
-  c.beginPath(); c.arc(dx, dy, 6, 0, Math.PI * 2); c.fillStyle = PAL.ink; c.fill();
-  c.beginPath(); c.arc(dx, dy, 10, 0, Math.PI * 2); c.strokeStyle = PAL.ink; c.lineWidth = 1.2; c.stroke();
-  c.fillStyle = PAL.ink; c.font = "600 11px " + css("--body"); c.fillText("Seafield depot", dx + 14, dy + 4);
+  c.beginPath(); c.arc(dx, dy, 5, 0, Math.PI * 2); c.fillStyle = N.ink; c.fill();
+  c.beginPath(); c.arc(dx, dy, 9.5, 0, Math.PI * 2); c.strokeStyle = N.ink; c.lineWidth = 1.2; c.stroke();
+  heroBase = bc;
+  cv.width = W * dpr; cv.height = H * dpr;
+  heroFrame(performance.now());
+  cv.classList.add("on");
+  if (!heroReduce.matches && !heroRaf) heroRaf = requestAnimationFrame(heroLoop);
 }
+// sensor pings: rings rise from a few full bins at a time
+const pings = [];
+function heroFrame(now) {
+  const cv = $("#heroCanvas"); if (!heroBase || !cv) return;
+  const c = cv.getContext("2d"), dpr = cv.width / cv.clientWidth || 1;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); c.drawImage(heroBase, 0, 0);
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (heroFull.length && pings.length < 9 && Math.random() < .12) { const p = heroFull[(Math.random() * heroFull.length) | 0]; pings.push({ x: p[0], y: p[1], t: now, hot: p[2] >= 90 }); }
+  for (let k = pings.length - 1; k >= 0; k--) {
+    const p = pings[k], u = (now - p.t) / 1600;
+    if (u >= 1) { pings.splice(k, 1); continue; }
+    c.beginPath(); c.arc(p.x, p.y, 3 + u * 18, 0, Math.PI * 2);
+    c.strokeStyle = p.hot ? `rgba(240,110,80,${(1 - u) * .8})` : `rgba(240,170,90,${(1 - u) * .7})`; c.lineWidth = 1.4; c.stroke();
+  }
+}
+function heroLoop(now) {
+  heroRaf = 0;
+  if (!heroVis || document.hidden) return;
+  heroFrame(now); heroRaf = requestAnimationFrame(heroLoop);
+}
+new IntersectionObserver(es => { heroVis = es[0].isIntersecting; if (heroVis && heroBase && !heroReduce.matches && !heroRaf) heroRaf = requestAnimationFrame(heroLoop); }).observe(document.querySelector("#heroMap") || document.body);
+document.addEventListener("visibilitychange", () => { if (!document.hidden && heroVis && heroBase && !heroReduce.matches && !heroRaf) heroRaf = requestAnimationFrame(heroLoop); });
 function initHeroHover() {
   const cv = $("#heroCanvas"), tip = $("#heroTip");
   cv.addEventListener("mousemove", e => {

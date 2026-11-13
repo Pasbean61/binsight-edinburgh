@@ -19,40 +19,20 @@
 
 <main id="home">
 <!-- ── HERO ───────────────────────────────────────────── -->
-<section class="hero wrap">
-  <div class="hero-grid">
-    <div class="hero-copy">
-      <span class="eyebrow">Smarter bins, cleaner streets · Edinburgh</span>
-      <h1>Empty the bins that are full. <em>Skip the ones that aren’t.</em></h1>
-      <p class="lede say">Edinburgh empties its communal bins on a fixed timetable, so some overflow while others go out half empty. BinSight puts a two-pound sensor in every bin, forecasts how full each of the city’s <b data-k="stops">4,532</b> bin stops will be tomorrow, and sends the trucks only where they are needed. In a simulated week, that cut overflows by <b data-k="overflowCutWord">82&nbsp;%</b> and costs by <b data-k="costCutWord">29&nbsp;%</b>.</p>
-      <div class="cta">
-        <a class="btn primary" href="#console">Explore tomorrow’s plan <span aria-hidden="true">→</span></a>
-        <a class="btn ghost" href="#how">How it works</a>
-      </div>
-      <div class="provenance" aria-label="Data provenance">
-        <span class="prov real"><i></i>Real: council bins, wards, streets, weather</span>
-        <span class="prov sim"><i></i>Simulated: fill levels</span>
-        <span class="prov asm"><i></i>Assumed: fleet and shift</span>
-      </div>
+<section class="cover wrap" aria-labelledby="coverTitle">
+  <div class="cover-card" id="heroMap">
+    <canvas id="heroCanvas" role="img" aria-label="Edinburgh at night: every general-waste communal bin stop, coloured by how full it is forecast to be tomorrow"></canvas>
+    <span class="cover-tag"><i></i>Edinburgh · <span data-k="forecastShort">3 Nov</span></span>
+    <div class="cover-copy">
+      <h1 id="coverTitle">Empty the bins that are full. <em>Skip the ones that aren’t.</em></h1>
+      <a class="cover-btn" href="#problem">See how <span aria-hidden="true">→</span></a>
     </div>
-    <div class="hero-visual"><div class="hero-map" id="heroMap" role="img" aria-label="Map of Edinburgh's 17 wards with every general-waste communal bin stop coloured by tomorrow's forecast fill level">
-      <canvas id="heroCanvas"></canvas>
-      <div class="chip-card c1"><div class="muted small">Forecast for</div><div class="big" data-k="forecastShort">3 Nov</div></div>
-      <div class="chip-card c2">
-        <div><b class="num" data-k="flagged">–</b> stops flagged for collection · <span class="num" data-k="wardsN">17</span> wards</div>
-        <div class="ramp" aria-hidden="true"><span style="background:var(--f0)"></span><span style="background:var(--f1)"></span><span style="background:var(--f2)"></span><span style="background:var(--f3)"></span><span style="background:var(--f4)"></span></div>
-        <div class="muted" style="display:flex;justify-content:space-between;font-size:11px;margin-top:3px"><span>empty</span><span>80 %</span><span>full</span></div>
-      </div>
-      <div class="hero-tip" id="heroTip"></div>
-    </div></div>
-  </div>
-
-  <div class="kpis">
-    <div class="kpi"><b class="num" data-k="assets">17,713</b><span>communal bins and recycling banks in the council’s asset register</span><span class="tag real">Real</span></div>
-    <div class="kpi"><b class="num" data-k="stops">4,532</b><span>general-waste collection stops, merged from <span data-k="gwRecords">4,564</span> bin records</span><span class="tag real">Real</span></div>
-    <div class="kpi"><b class="num" data-k="flagged">–</b><span>stops forecast to need emptying tomorrow</span><span class="tag sim">Simulated</span></div>
-    <div class="kpi"><b class="num" data-k="planKm">–</b><span>of optimised routes for <span data-k="trucksUsed">–</span> trucks from Seafield depot</span><span class="tag sim">Simulated</span></div>
-    <div class="kpi"><b class="num" data-k="overflowCut">–</b><span>fewer overflow bin-hours than a fixed rota in the 7-day replay</span><span class="tag sim">Simulated</span></div>
+    <dl class="cover-stats">
+      <div><dt class="num" data-k="stops">4,532</dt><dd>bin stops</dd></div>
+      <div><dt class="num" data-k="overflowCut">−82 %</dt><dd>overflows <small>sim.</small></dd></div>
+      <div><dt class="num">£2</dt><dd>sensor</dd></div>
+    </dl>
+    <div class="hero-tip" id="heroTip"></div>
   </div>
 </section>
 
@@ -111,66 +91,37 @@
     <div class="card step"><span class="k">Step 4</span><h3>Collect</h3><p>Crews follow the plan, and residents can report a problem in an app.</p></div>
   </div>
 
-  <div class="sensor" id="sensor">
+  <div class="sensor-demo" id="sensor">
     <div class="stage" id="stage">
       <canvas id="sensor3d" role="img" aria-label="3D model of the sensor: an HC-SR04 ultrasonic module with two round transducers on a blue circuit board"></canvas>
-      <div class="hotspots" aria-hidden="true">
-        <span class="hs" data-hs="t"><i></i>Sends the ping</span>
-        <span class="hs" data-hs="r"><i></i>Hears the echo</span>
-        <span class="hs" data-hs="x"><i></i>Crystal keeps time</span>
-        <span class="hs" data-hs="p"><i></i>Power and data</span>
-      </div>
-      <span class="stage-tag">HC-SR04 · actual size 45 × 20 mm</span>
-      <span class="stage-hint" id="stageHint">Drag to turn it</span>
+      <span class="stage-tag">HC-SR04 · 45 × 20 mm · £2</span>
+      <span class="stage-hint" id="stageHint">Drag to turn ↻</span>
       <p class="stage-fallback" id="stageFallback" hidden>The 3D model needs an internet connection to load.</p>
     </div>
-    <div class="sensor-copy">
-      <span class="eyebrow">Step 1, up close</span>
-      <h3>The sensor works like a bat</h3>
-      <p class="say">It sits under the lid and sends a short pulse of ultrasound down into the bin. Then it listens for the echo bouncing back off the rubbish. Sound travels at about 343 metres a second, so the time the echo takes tells us the distance. We halve it, because the sound goes down and comes back up. The fuller the bin, the shorter the distance, and the faster the echo returns. Take that distance away from the depth of the bin, and you have the fill level.</p>
-      <div class="formula" aria-label="Formulas">
-        <div><span>distance</span> = 343 m/s × echo time ÷ 2</div>
-        <div><span>fill</span> = 1 − distance ÷ bin depth</div>
-      </div>
-      <div class="cost">
-        <div class="cost-n">£2<small>.00</small></div>
-        <p><b>The whole sensing part.</b> It is an HC-SR04, a standard ultrasonic module sold for £2.00 at <a href="https://thepihut.com/products/ultrasonic-distance-sensor-hcsr04" target="_blank" rel="noopener">The Pi Hut</a>. It fits the bins the city already has.</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="echo">
-    <svg id="echoSvg" viewBox="0 0 240 280" aria-hidden="true">
-      <defs>
-        <linearGradient id="binG" x1="0" x2="1"><stop offset="0" stop-color="var(--bin-a)"/><stop offset="1" stop-color="var(--bin-b)"/></linearGradient>
-        <clipPath id="binClip"><path d="M44 58h152l-10 196a10 10 0 0 1-10 9H64a10 10 0 0 1-10-9z"/></clipPath>
-      </defs>
-      <path d="M44 58h152l-10 196a10 10 0 0 1-10 9H64a10 10 0 0 1-10-9z" fill="url(#binG)" stroke="var(--line-2)"/>
-      <g clip-path="url(#binClip)"><rect id="echoWaste" x="40" y="160" width="160" height="110" fill="var(--waste)"/><path id="echoTop" d="" fill="var(--waste-2)"/></g>
-      <rect x="34" y="44" width="172" height="14" rx="5" fill="var(--ink)"/>
-      <rect x="108" y="58" width="24" height="8" rx="2" fill="var(--sensor-blue)"/>
-      <circle cx="114" cy="66" r="3.4" fill="var(--sensor-can)"/><circle cx="126" cy="66" r="3.4" fill="var(--sensor-can)"/>
-      <g id="echoWaves" fill="none" stroke="var(--wave)" stroke-width="2.2" stroke-linecap="round"></g>
-      <line id="echoLine" x1="210" y1="66" x2="210" y2="160" stroke="var(--ink-3)" stroke-dasharray="3 3"/>
-      <path id="echoArrA" d="" fill="var(--ink-3)"/><path id="echoArrB" d="" fill="var(--ink-3)"/>
-    </svg>
-    <div class="echo-copy">
-      <span class="eyebrow">Sensor demo</span>
-      <h3>Fill the bin, watch the echo</h3>
-      <p>Drag the slider. As the rubbish rises, the echo comes back sooner and the reading goes up.</p>
-      <div class="echo-field">
-        <label for="eFill">How full is the bin? <output id="oFill" class="num">65 %</output></label>
-        <input type="range" id="eFill" min="0" max="100" step="1" value="65">
-      </div>
+    <div class="echo">
+      <svg id="echoSvg" viewBox="0 0 240 280" role="img" aria-label="A bin with the sensor under its lid, sending ultrasound down to the rubbish">
+        <defs>
+          <linearGradient id="binG" x1="0" x2="1"><stop offset="0" stop-color="var(--bin-a)"/><stop offset="1" stop-color="var(--bin-b)"/></linearGradient>
+          <clipPath id="binClip"><path d="M44 58h152l-10 196a10 10 0 0 1-10 9H64a10 10 0 0 1-10-9z"/></clipPath>
+        </defs>
+        <path d="M44 58h152l-10 196a10 10 0 0 1-10 9H64a10 10 0 0 1-10-9z" fill="url(#binG)" stroke="var(--line-2)"/>
+        <g clip-path="url(#binClip)"><rect id="echoWaste" x="40" y="160" width="160" height="110" fill="var(--waste)"/><path id="echoTop" d="" fill="var(--waste-2)"/></g>
+        <rect x="34" y="44" width="172" height="14" rx="5" fill="var(--ink)"/>
+        <rect x="108" y="58" width="24" height="8" rx="2" fill="var(--sensor-blue)"/>
+        <circle cx="114" cy="66" r="3.4" fill="var(--sensor-can)"/><circle cx="126" cy="66" r="3.4" fill="var(--sensor-can)"/>
+        <g id="echoWaves" fill="none" stroke="var(--wave)" stroke-width="2.2" stroke-linecap="round"></g>
+        <line id="echoLine" x1="210" y1="66" x2="210" y2="160" stroke="var(--ink-3)" stroke-dasharray="3 3"/>
+        <path id="echoArrA" d="" fill="var(--ink-3)"/><path id="echoArrB" d="" fill="var(--ink-3)"/>
+      </svg>
+      <input type="range" id="eFill" min="0" max="100" step="1" value="65" aria-label="How full the bin is">
+      <output id="oFill" class="sr">65 %</output>
       <div class="echo-out">
-        <div><b id="eTime" class="num">–</b><span>echo time</span></div>
-        <div><b id="eDist" class="num">–</b><span>to the rubbish</span></div>
-        <div><b id="ePct" class="num">–</b><span>fill reading</span></div>
+        <div><b id="eTime" class="num">–</b><span>echo</span></div>
+        <div><b id="eDist" class="num">–</b><span>distance</span></div>
+        <div><b id="ePct" class="num">–</b><span>fill</span></div>
       </div>
-      <p class="small muted">Example bin 1.2 m deep. Module data: 40 kHz pulse, 2 cm to 4 m range, about 3 mm resolution.</p>
     </div>
   </div>
-  <p class="say how-close">Every reading feeds tomorrow’s forecast. Next, you can watch tomorrow’s plan play out on the live map.</p>
 </section>
 </div>
 
