@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css">
 <style>
 /* Layout: a civic operations brief. Narrative chapters run down a 1120px column and open into a
    full-width live console. */
@@ -507,6 +508,19 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 32px; justify-content: 
 .eq.inline { display: inline; padding: 1px 6px; margin: 0; font-size: 15.5px; border-radius: 6px; }
 .eq var, .m-text var, .m-widget var { font-style: italic; }
 .eq sub, .eq sup { font-size: .72em; }
+.m-text .m-idea { color: var(--ink); font-size: 17px; margin: 0 0 14px; }
+.eq .katex-display { margin: 6px 0; }
+.eq .katex { font-size: 1.08em; }
+.m-text .katex, .m-widget .katex { font-size: 1.05em; }
+.m-flow { font: 500 13.5px/1.45 var(--body); color: var(--accent); background: var(--accent-soft); border-radius: 8px; padding: 7px 11px; margin: 0 0 12px !important; display: inline-block; max-width: 100%; }
+.m-flow b { font-weight: 650; }
+.m-one { max-width: 760px; }
+.m-three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+@media (max-width: 640px) { .m-three { grid-template-columns: 1fr; } }
+.m-three div { background: var(--paper); border-radius: 10px; padding: 12px 14px; }
+.m-three div:last-child { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.m-three b { display: block; font: 650 16px var(--display); }
+.m-three span { font-size: 13.5px; color: var(--ink-2); }
 .m-widget { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .m-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .m-head b { font: 650 17px var(--display); }
@@ -530,6 +544,11 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 .algo li { margin: 6px 0; padding-left: 2px; }
 .algo li::marker { color: var(--accent); font-weight: 700; }
 .sa-log { min-height: 3.1em; margin: 2px 0 0; font-size: 13.5px; color: var(--ink-2); }
+.eq.hl .katex { font-size: 1.25em; }
+.eq.hl { padding: 14px 12px; }
+.eq.hl .katex-display { margin: 10px 0; }
+/* maths steps 1, 2, 3, 5: no secondary captions (the route tab keeps its own) */
+.m-pane:not([data-m="3"]) .note, .m-pane:not([data-m="3"]) .muted.small, .m-pane:not([data-m="3"]) .slider small, .m-pane:not([data-m="3"]) #decCounts > div[style] { display: none; }
 
 </style>
 </head>
@@ -707,35 +726,33 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 <section class="chapter wrap" id="maths">
   <div class="chapter-head">
     <div><span class="eyebrow">The maths</span><h2>Five steps behind one plan</h2></div>
-    <p>Each step of BinSight is a piece of mathematics we wrote ourselves: a simulator of how bins fill, calibrated to the council’s own complaint rate; a random-forest forecast; a fullest-first decision rule; one routing model solved by simulated annealing; and a before-and-after test. Every widget below runs on tomorrow’s real stops and today’s model output.</p>
+    <p>Each step feeds the next: simulate how bins fill, forecast each stop, choose which to empty, route the trucks, then test the result. One core formula per step; the full detail is in <span class="mono">model/README.md</span>.</p>
   </div>
   <div class="m-tabs" role="tablist" id="mTabs">
-    <button type="button" role="tab" data-m="0" class="on"><span class="k">1</span>Simulate<small>stochastic process</small></button>
-    <button type="button" role="tab" data-m="1"><span class="k">2</span>Predict<small>random forest</small></button>
-    <button type="button" role="tab" data-m="2"><span class="k">3</span>Decide<small>fullest first</small></button>
+    <button type="button" role="tab" data-m="0" class="on"><span class="k">1</span>Simulate<small>how bins fill</small></button>
+    <button type="button" role="tab" data-m="1"><span class="k">2</span>Predict<small>tomorrow’s fill</small></button>
+    <button type="button" role="tab" data-m="2"><span class="k">3</span>Decide<small>which stops</small></button>
     <button type="button" role="tab" data-m="3"><span class="k">4</span>Route<small>simulated annealing</small></button>
-    <button type="button" role="tab" data-m="4"><span class="k">5</span>Check<small>before and after</small></button>
+    <button type="button" role="tab" data-m="4"><span class="k">5</span>Check<small>against the timetable</small></button>
   </div>
 
   <!-- 1 · MODEL -->
   <div class="card m-pane" data-m="0">
     <div class="m-grid">
       <div class="m-text">
-        <h3>How communal bins fill: derived from how the council runs the service</h3>
-        <p>The council empties communal general-waste bins every <var>K</var> = <span data-mk="K">2</span> days <span class="tag real">Real</span>, so a stop holds about two days of its households’ waste. If a stop is on average a share <var>U</var> full when the truck comes, it fills</p>
-        <div class="eq"><var>ρ<sub>i</sub></var> = <var>U</var> / <var>K</var> · e<sup><var>σZ<sub>i</sub></var></sup>, &nbsp; <var>Z<sub>i</sub></var> ~ N(0, 1), &nbsp; <var>σ</var> = <span data-mk="sigma">0.35</span></div>
-        <p>of its capacity a day; <var>σ</var> spreads the stops, because some serve more flats than others. Households drop one <span data-mk="bag">30</span> L kitchen bag at a time, so in hour <var>t</var></p>
-        <div class="eq"><var>N<sub>it</sub></var> ~ Poisson(<var>λ<sub>it</sub></var>), &nbsp; <var>λ<sub>it</sub></var> = (cap<sub><var>i</var></sub> <var>ρ<sub>i</sub></var> / <span data-mk="bag">30</span> L) · <var>a</var>(hour) · <var>w<sub>t</sub></var> / 24</div>
+        <h3>How does a bin fill up?</h3>
+        <p class="m-idea">The council does not share its sensor data, so we build our own. People drop bags at random times: more in the evening, fewer in the rain.</p>
+        <div class="eq hl">\[ \underbrace{N_{it}}_{\mathclap{\substack{\text{bags in bin } i \\ \text{in hour } t}}} \quad\sim\quad \operatorname{Poisson}\bigl(\,\underbrace{\lambda_{it}}_{\mathclap{\substack{\text{average} \\ \text{rate}}}}\,\bigr) \]
+        \[ \lambda_{it} \;\;\propto\;\; \underbrace{\rho_i}_{\mathclap{\substack{\text{how busy} \\ \text{the stop is}}}} \quad\times\quad \underbrace{a_h}_{\mathclap{\substack{\text{time} \\ \text{of day}}}} \quad\times\quad \underbrace{w_t}_{\mathclap{\substack{\text{weather,} \\ \text{holidays}}}} \]</div>
         <ul class="m-list">
-          <li><var>a</var>: the hour-of-day profile, mean 1, quiet at night with morning and evening peaks (an assumption).</li>
-          <li><var>w<sub>t</sub></var> ∝ e<sup>−0.15·1[rain ≥ 0.5 mm]</sup> (1 + 0.01 (<var>T</var> − 10 °C)) (1 + 0.10·1[holiday]), rescaled to mean 1, from <b>real hourly Edinburgh weather and real public and school holidays</b>. The three effect sizes are assumptions.</li>
-          <li><b>Calibration.</b> Of about 100,000 communal-bin collections a month, 1–1.5 % draw a complaint (council report, 2017). We run the every-two-days timetable for a grid of <var>U</var> and keep the one at which 1 % of collections overflow: <var>U</var> = <b data-mk="U">0.415</b>. Bins are then on average about 44 % full when the timetable empties them.</li>
-          <li><b>Sensors.</b> A reading is the true fill plus N(0, <span data-mk="noise">1</span>²) percentage points.</li>
+          <li><b>Random, like real life.</b> Two weeks with the same average can look very different. That is why bins overflow by surprise.</li>
+          <li><b>Matched to reality.</b> We tune one number so that the simulated timetable overflows on @target@ % of collections, the same as the council’s complaint rate.</li>
+          <li><b>Real inputs.</b> The bins, the weather and the holidays are real. Only the bags are simulated.</li>
         </ul>
-        <p class="note">The fill process is simulated because the council does not publish sensor data; the stops, bins, weather and holidays are real.</p>
+        <p class="note">Every parameter and its source is in <span class="mono">model/README.md</span>.</p>
       </div>
       <div class="m-widget">
-        <div class="slider"><div class="top"><label for="mRho">Daily fill share <var>ρ</var></label><output id="oRho">0.21</output></div><input type="range" id="mRho" min="0.08" max="0.6" step="0.01" value="0.21"><small>Share of the stop’s capacity filled on an average day. <var>U</var>/<var>K</var> = 0.21 is the median stop.</small></div>
+        <div class="slider"><div class="top"><label for="mRho">Daily fill share <var>ρ</var></label><output id="oRho">0.21</output></div><input type="range" id="mRho" min="0.08" max="0.6" step="0.01" value="0.21"><small>Share of the stop’s capacity filled on an average day. 0.21 is the typical stop.</small></div>
         <svg class="chart" id="mPaths" viewBox="0 0 520 260" role="img" aria-label="Simulated fill paths over one week with a truck every two days"></svg>
         <div class="m-row"><button class="btn ghost sm" type="button" id="mRedraw">Draw three new weeks</button><span class="muted small" id="mPathNote"></span></div>
       </div>
@@ -746,21 +763,21 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
   <div class="card m-pane" data-m="1" hidden>
     <div class="m-grid">
       <div class="m-text">
-        <h3>A random-forest forecast of how fast each stop fills</h3>
-        <p>Every morning at 05:00 one random forest (<span data-mk="trees">100</span> trees, scikit-learn defaults) predicts, for every stop, how many percentage points it will gain per hour over the next day, <var>ĝ<sub>i</sub></var>. The projected fill at the next chance of a truck (14:00 tomorrow) is</p>
-        <div class="eq big"><var>ŷ<sub>i</sub></var> = <var>y<sub>i</sub></var> + <var>ĝ<sub>i</sub></var> · hours</div>
-        <p>where <var>y<sub>i</sub></var> is the latest reading. <var>ŷ<sub>i</sub></var> may pass 100 %: a stop projected at 130 % is expected to overflow well before the truck could come.</p>
+        <h3>How full will it be tomorrow?</h3>
+        <p class="m-idea">Every morning a machine-learning model (a random forest) learns how fast each bin is filling. Then we extend the line.</p>
+        <div class="eq hl">\[ \underbrace{\hat y_i}_{\text{forecast}} \;=\; \underbrace{y_i}_{\substack{\text{fill} \\ \text{now}}} \;+\; \underbrace{H}_{\substack{\text{hours} \\ \text{ahead}}} \times \underbrace{\hat g_i}_{\substack{\text{filling} \\ \text{speed}}} \]</div>
+        <div class="eq">\[ \text{Example:}\quad @exY@\,\% + @H@\ \text{h} \times @exG@\ \text{points/h} \approx @exP@\,\% \]</div>
         <ul class="m-list">
-          <li><b>Inputs</b>, only what a real system has: latest reading; fill rate since last emptied; change over the last 24 h; hours since last emptied; capacity; weekday; hours of rain and mean temperature before the next chance of a truck; share of those hours on a holiday.</li>
-          <li><b>Target:</b> the reading 24 h later minus the reading now, over 24, on every past morning when no truck came in between. The forest is retrained every morning on all the days seen so far: <b data-mk="nTrain">–</b> rows for tomorrow’s forecast.</li>
-          <li><b>Why regression, not a classifier of “will it overflow?”.</b> The fleet cannot reach every stop at risk, so the order among them decides who waits. A classifier gave about 1,550 stops a probability of at least 0.99, so the order at the top was arbitrary. The projected fill still separates a stop that fills in two hours from one that fills in thirty.</li>
+          <li><b>What the model looks at:</b> the latest reading, how fast the bin has been filling, the weekday, and the weather and holidays ahead.</li>
+          <li><b>Hours ahead:</b> until 14:00 tomorrow, the bin’s next chance of a truck.</li>
+          <li><b>Over 100 % is allowed.</b> A forecast of 130 % means the bin will overflow well before the truck comes, so it goes to the top of the list.</li>
         </ul>
       </div>
       <div class="m-widget">
         <div class="m-head"><b id="fcTitle">–</b><span class="muted small" id="fcSub"></span></div>
         <svg class="chart" id="mFc" viewBox="0 0 520 250" role="img" aria-label="Fill history and projection for one stop"></svg>
         <p class="note" id="fcNote"></p>
-        <div class="m-head" style="margin-top:14px"><b>What the forest looks at</b><span class="muted small">share of the trees’ splitting gain</span></div>
+        <div class="m-head" style="margin-top:14px"><b>What the forest looks at</b><span class="muted small">importance of each input</span></div>
         <svg class="chart" id="mImp" viewBox="0 0 520 250" role="img" aria-label="Importance of each forecast input"></svg>
       </div>
     </div>
@@ -770,14 +787,14 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
   <div class="card m-pane" data-m="2" hidden>
     <div class="m-grid">
       <div class="m-text">
-        <h3>Who gets a truck: fullest first until the fleet is full</h3>
-        <p>One rule, on the projected fill <var>ŷ<sub>i</sub></var> from step 2:</p>
-        <div class="eq big">sort the stops by <var>ŷ<sub>i</sub></var>, fullest first, and take them while the fleet has time; never take a stop with <var>ŷ<sub>i</sub></var> &lt; <span data-mk="floor">80</span> %</div>
+        <h3>Which bins get a truck?</h3>
+        <p class="m-idea">Sort the bins from fullest to emptiest. Take them from the top until the trucks have no time left.</p>
+        <div class="eq hl">\[ \underbrace{\hat y_{(1)} \ge \hat y_{(2)} \ge \cdots \ge @floor@\,\%}_{\text{fullest first, skip below @floor@ \%}} \]
+        \[ \underbrace{\tau_{(1)} + \tau_{(2)} + \cdots + \tau_{(k)}}_{\text{time the chosen stops need}} \;\le\; \underbrace{m \times T}_{\text{trucks} \,\times\, \text{shift}} \]</div>
         <ul class="m-list">
-          <li><b>The floor.</b> <span data-mk="floor">80</span> % is the threshold smart-bin systems commonly use to flag a bin for collection. Below it a stop can safely wait, even on a quiet day.</li>
-          <li><b>The time a stop uses.</b> <var>t<sub>i</sub></var> = <var>s<sub>i</sub></var> + θ · (drive from its nearest other candidate), with lifting time <var>s<sub>i</sub></var> = 2 + 1 · bins<sub><var>i</var></sub> minutes and rain slowdown θ. Each full <span data-mk="loadM3">60</span> m³ load adds a 25-minute tip. The stops are taken while
-            <div class="eq">Σ<sub>taken</sub> <var>t<sub>i</sub></var> + 25 · ⌈Σ<sub>taken</sub> <var>q<sub>i</sub></var> / <var>Q</var>⌉ ≤ 0.95 · <var>K</var> · 480 min</div></li>
-          <li><b>Rough on purpose.</b> Routing (step 4) has the final say: if the trips do not fit the fleet, it leaves out the least full stops first.</li>
+          <li><b>Fullest first.</b> The bins closest to overflowing are always served first.</li>
+          <li><b>Skip below @floor@ %.</b> A bin forecast under @floor@ % can safely wait, so no truck is sent.</li>
+          <li><b>Time per stop \(\tau\):</b> lifting the bins, driving there, and tipping when the truck is full.</li>
         </ul>
         <p class="note" id="decNote"></p>
       </div>
@@ -785,6 +802,7 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
         <svg class="chart" id="mDec" viewBox="0 0 520 300" role="img" aria-label="Every stop ranked by projected fill, with the floor and the point where the fleet runs out of time"></svg>
         <div class="slider"><div class="top"><label for="mFloor">Floor</label><output id="oFloor">80 %</output></div><input type="range" id="mFloor" min="50" max="100" step="1" value="80"><small>Never take a stop projected below this.</small></div>
         <div class="slider"><div class="top"><label for="mTrucks">Trucks</label><output id="oTrucks">–</output></div><input type="range" id="mTrucks" min="6" max="60" step="1" value="24"></div>
+        <div class="slider"><div class="top"><label for="mShift">Shift length</label><output id="oShiftM">8.0 h</output></div><input type="range" id="mShift" min="6" max="12" step="0.5" value="8"></div>
         <div class="m-counts" id="decCounts"></div>
       </div>
     </div>
@@ -833,40 +851,21 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 
   <!-- 5 · CHECK -->
   <div class="card m-pane" data-m="4" hidden>
-    <div class="m-grid">
-      <div class="m-text">
-        <h3>How do we know it works? Before and after</h3>
-        <p>Three policies run on the same simulated city, with the same deposits, weather and sensor noise (common random numbers):</p>
-        <ul class="m-list">
-          <li><b>Timetable:</b> every stop every second day, in fixed geographic rounds. Today’s practice.</li>
-          <li><b>Reactive:</b> every stop reading ≥ 80 % at 05:00. Sensors, no forecast.</li>
-          <li><b>BinSight:</b> forecast → fullest first → routes.</li>
-        </ul>
-        <p><b>Same fleet for all three.</b> No public figure says how many of Edinburgh’s refuse trucks serve communal general waste, so the timetable is routed without a fleet limit and the trucks it needs on its busiest round, <b data-mk="fleet">–</b>, become the fleet for every policy. BinSight is compared with today’s practice at equal resources.</p>
-        <p><b>The calibration holds.</b> <span id="calText"></span></p>
-        <p><b>Annealing against the previous four-stage heuristic</b> (savings, local search, annealing, packing), on real stop locations, straight-line distance × 1.35 at 22 km/h, 24 trucks, equal time. Score: £ route + £60 per stop left out; for the timetable rounds, £ route and trucks.</p>
-        <div class="tablewrap"><table class="tight"><thead><tr><th>Instance</th><th class="n">Previous</th><th class="n">Annealing</th></tr></thead><tbody style="cursor:default">
-          <tr><td>1,500 stops (a)</td><td class="n">£7,773</td><td class="n"><b>£7,181</b></td></tr>
-          <tr><td>1,500 stops (b)</td><td class="n">£6,796</td><td class="n"><b>£6,456</b></td></tr>
-          <tr><td>1,300 stops</td><td class="n">£4,696</td><td class="n"><b>£4,616</b></td></tr>
-          <tr><td>Round, 2,404 stops</td><td class="n">£6,611 · 35</td><td class="n"><b>£6,479</b> · 35</td></tr>
-          <tr><td>Round, 2,128 stops</td><td class="n">£5,028 · 30</td><td class="n"><b>£4,830</b> · 31</td></tr>
-        </tbody></table></div>
-        <p class="note">Annealing alone matched or beat the four stages on route cost every time, at one truck more on the smaller round. These checks used an approximate distance matrix.</p>
+    <div class="m-text m-one">
+      <h3>Is it really better?</h3>
+      <p class="m-idea">We run one simulated week three times, once for each way of collecting, and compare overflows and cost.</p>
+      <div class="m-three">
+        <div><b>Timetable</b><span>Every bin, every 2 days. What Edinburgh does today.</span></div>
+        <div><b>Reactive</b><span>Empty a bin once it reads @reactive@ %. Sensors, no forecast.</span></div>
+        <div><b>BinSight</b><span>Forecast, fullest first, best routes.</span></div>
       </div>
-      <div class="m-widget">
-        <div class="m-head"><b>Cost against overflows</b><span class="muted small" id="checkSub">test days, mean per day</span></div>
-        <svg class="chart" id="mCheck" viewBox="0 0 520 300" role="img" aria-label="Route cost against overflow events for the three policies"></svg>
-        <p class="note" id="checkNote"></p>
-        <div class="m-head" style="margin-top:14px"><b>What the test cannot show</b></div>
-        <ul class="m-list small">
-          <li>Fill is simulated; the forecast is trained and tested on the same simulator.</li>
-          <li>Two structural assumptions (spread of fill speed, hour-of-day profile) and the size of the weather and holiday effects have no direct source.</li>
-          <li>The complaint rate used for calibration is a lower bound on overflows.</li>
-          <li>One-way streets and turn restrictions are ignored; tomorrow’s weather is assumed known; trucks tip at Seafield, while real residual waste goes to Millerhill.</li>
-          <li>Simulated annealing gives a good plan, not a proven optimum.</li>
-        </ul>
-      </div>
+      <div class="eq hl">\[ \text{cost per day} = \underbrace{£@costKm@ \times \text{km}}_{\text{driving}} + \underbrace{£@costHour@ \times \text{truck-hours}}_{\text{crew}} + \underbrace{£@costOverflow@ \times \text{overflows}}_{\text{penalty}} \]</div>
+      <ul class="m-list">
+        <li><b>A fair test.</b> Same bins, same bags, same weather, same @fleet@ trucks. Only the method changes.</li>
+        <li><b>Result:</b> <span id="chkResult"></span></li>
+        <li><b>Why not just react?</b> <span id="chkReact"></span></li>
+      </ul>
+      <p><a class="btn primary sm" href="#results">See the results →</a></p>
     </div>
   </div>
 </section>
@@ -1019,6 +1018,8 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/contrib/auto-render.min.js"></script>
 <script>
 /* BinSight Edinburgh: page logic. Data comes from data/*.json, built by scripts/build_site_data.py. */
 (() => {
@@ -2005,6 +2006,11 @@ function poisson(l, u) { if (l > 30) { const z = Math.sqrt(-2 * Math.log(u() || 
 const svgAxisY = (x0, x1, y, vals, f) => vals.map(v => `<line class="grid" x1="${x0}" x2="${x1}" y1="${y(v)}" y2="${y(v)}"/><text x="${x0 - 6}" y="${y(v) + 4}" text-anchor="end">${f(v)}</text>`).join("");
 const FEATURE_LABEL = { fill: "Latest reading", rate: "Fill rate since last emptied", d24: "Change over the last 24 h", hours_since: "Hours since last emptied", cap: "Capacity", weekday: "Weekday", rain_h: "Hours of rain ahead", temp: "Mean temperature ahead", holiday: "Share of holiday hours ahead" };
 
+/* LaTeX: \( … \) inline and \[ … \] display, typeset by KaTeX when it has loaded (raw LaTeX otherwise) */
+const TEX_DELIMS = [{ left: "\\[", right: "\\]", display: true }, { left: "\\(", right: "\\)", display: false }];
+const typeset = el => { if (window.renderMathInElement) renderMathInElement(el, { delimiters: TEX_DELIMS, throwOnError: false }); };
+const tex = s => window.katex ? katex.renderToString(s, { throwOnError: false }) : s;
+
 function initMaths() {
   const M = D.site.maths; if (!M) return;
   const P = M.params, F = M.forecast;
@@ -2019,6 +2025,19 @@ function initMaths() {
     roadKm: fmt(D.site.totals.road_km), nStops: fmt(M.route.stops), fleet: fmt(D.site.fleet.trucks),
   };
   $$("[data-mk]").forEach(el => { const v = vals[el.dataset.mk]; if (v != null) el.textContent = v; });
+  // @key@ tokens in the text and in the LaTeX, then typeset the LaTeX with KaTeX
+  const fl = D.site.fleet, sg = P.DAILY_FILL_SPREAD;
+  const tok = {
+    K: fmt(P.COLLECT_EVERY_DAYS), bag: fmt(P.BAG_L), noise: fmt(P.SENSOR_NOISE), target: fmt(100 * P.TARGET_OVERFLOW),
+    U: P.FILL_AT_COLLECTION.toFixed(3), sigma: sg.toFixed(2), meanColl: fmt(100 * P.FILL_AT_COLLECTION * Math.exp(sg * sg / 2)),
+    betas: `${P.RAIN_EFFECT}, ${P.TEMP_EFFECT}, ${P.HOLIDAY_EFFECT}`, H: fmt(F.example.hours), trees: fmt(F.trees), nTrain: fmt(F.n_train),
+    floor: fmt(P.FLOOR), fleet: fmt(fl.trucks), loadM3: fmt(P.TRUCK_LOAD_L / 1000), shift: fmt(P.SHIFT_MIN), tip: fmt(P.TIP_MIN),
+    s0: fmt(P.SERVICE_BASE_MIN), s1: fmt(P.SERVICE_PER_BIN_MIN), kappa: P.RAIN_SLOWDOWN.toFixed(2), reactive: fmt(P.REACTIVE_AT),
+    costKm: P.COST_KM.toFixed(2), costHour: fmt(P.COST_HOUR), costOverflow: fmt(P.COST_OVERFLOW), exY: fmt(F.example.past[F.example.past.length - 1]), exG: (F.example.gain_day / 24).toFixed(1), exP: fmt(F.example.proj),
+  };
+  const root = $("#maths"), walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let n; (n = walk.nextNode());) if (n.nodeValue.includes("@")) n.nodeValue = n.nodeValue.replace(/@(\w+)@/g, (m, k) => tok[k] ?? m);
+  typeset(root);
   mathsSimulate(M); mathsPredict(M); mathsDecide(M); mathsRoute(M); mathsCheck(M);
 }
 
@@ -2073,7 +2092,7 @@ function mathsPredict(M) {
     `<line x1="${x(0)}" y1="${y(last)}" x2="${x(n1)}" y2="${y(ex.proj)}" stroke="${PAL.accent}" stroke-width="2" stroke-dasharray="5 3"/>` +
     `<circle cx="${x(n1)}" cy="${y(ex.proj)}" r="4" fill="${PAL.accent}"/><text x="${x(n1) - 6}" y="${y(ex.proj) - 8}" text-anchor="end" style="fill:${PAL.accent};font-weight:600">ŷ = ${fmt(ex.proj)} %</text>` +
     `<line class="ax" x1="${x(0)}" x2="${x(0)}" y1="${t}" y2="${y(0)}"/><text x="${x(0)}" y="${H - 8}" text-anchor="middle">now (05:00)</text><text x="${x(-n0 + 1)}" y="${H - 8}">−72 h</text><text x="${W - r}" y="${H - 8}" text-anchor="end">14:00 tomorrow</text>`;
-  $("#fcNote").innerHTML = `Solid: the last 72 hours of readings. Dashed: the projection <var>ŷ</var> = <var>y</var> + <var>ĝ</var> · hours over the next ${fmt(n1)} hours, <b>${fmt(ex.proj)} %</b>. ${ex.proj >= P.FLOOR ? `Above the ${fmt(P.FLOOR)} % floor, so it is a candidate for tomorrow.` : `Below the ${fmt(P.FLOOR)} % floor, so it can wait.`}`;
+  $("#fcNote").innerHTML = `Solid: the last 72 hours of readings. Dashed: the projection ${tex(`\\hat y = y + H\\hat g`)} with ${tex(`H = ${fmt(n1)}`)} h, <b>${fmt(ex.proj)} %</b>. ${ex.proj >= P.FLOOR ? `Above the ${fmt(P.FLOOR)} % floor, so it is a candidate for tomorrow.` : `Below the ${fmt(P.FLOOR)} % floor, so it can wait.`}`;
   // importance
   const imp = Object.entries(F.importance).sort((p, q) => q[1] - p[1]);
   const Wi = 520, rowH = 25, x0 = 210, bw = Wi - x0 - 60, mx = imp[0][1] || 1;
@@ -2085,28 +2104,32 @@ function mathsPredict(M) {
 function mathsDecide(M) {
   const S = D.S, n = D.n, dm = M.decide, fleet0 = D.site.fleet.trucks;
   const order = Array.from({ length: n }, (_, i) => i).sort((a, b) => S.pred[b] - S.pred[a]);
-  const W = 520, H = 300, l = 40, r = 12, t = 12, b = 34, ymax = 150;
+  const W = 520, H = 300, l = 44, r = 12, t = 30, b = 46, ymax = 150;
   const X = k => l + k / (n - 1) * (W - l - r), Y = v => t + (1 - Math.min(v, ymax) / ymax) * (H - t - b);
   const pts = []; for (let k = 0; k < n; k += 4) pts.push([k, S.pred[order[k]]]); pts.push([n - 1, S.pred[order[n - 1]]]);
   const line = pts.map(([k, v], j) => `${j ? "L" : "M"}${X(k).toFixed(1)},${Y(v).toFixed(1)}`).join("");
   $("#mTrucks").max = Math.max(60, 2 * fleet0); $("#mTrucks").value = fleet0;
   const draw = () => {
-    const floor = +$("#mFloor").value, fleet = +$("#mTrucks").value;
-    $("#oFloor").textContent = floor + " %"; $("#oTrucks").textContent = fleet;
-    const r_ = BS.choose({ floor, fleet }), nc = r_.cand.length, ns = r_.sel.length;
+    const floor = +$("#mFloor").value, fleet = +$("#mTrucks").value, shift = +$("#mShift").value;
+    $("#oFloor").textContent = floor + " %"; $("#oTrucks").textContent = fleet; $("#oShiftM").textContent = shift.toFixed(1) + " h";
+    const r_ = BS.choose({ floor, fleet, shift }), nc = r_.cand.length, ns = r_.sel.length;
     const over = r_.cand.slice(ns).filter(i => S.pred[i] >= 100).length;
     const area = pts.filter(([k]) => k < ns).map(([k, v], j) => `${j ? "L" : "M"}${X(k).toFixed(1)},${Y(v).toFixed(1)}`).join("");
     $("#mDec").innerHTML = svgAxisY(l, W - r, Y, [0, 50, 100, 150], v => v + "%") +
       (ns > 1 ? `<path d="${area} L${X(ns - 1)},${Y(0)} L${X(0)},${Y(0)} Z" fill="${PAL.accent}" opacity=".16"/>` : "") +
       `<path d="${line}" fill="none" stroke="${PAL.ink}" stroke-width="1.8"/>` +
-      `<line x1="${l}" x2="${W - r}" y1="${Y(floor)}" y2="${Y(floor)}" stroke="${PAL.ink}" stroke-dasharray="5 3"/><text x="${W - r}" y="${Y(floor) - 5}" text-anchor="end">floor ${floor} %</text>` +
-      `<line x1="${l}" x2="${W - r}" y1="${Y(100)}" y2="${Y(100)}" stroke="${PAL.bad}" stroke-dasharray="2 3" opacity=".7"/>` +
-      (ns ? `<line x1="${X(ns - 1)}" x2="${X(ns - 1)}" y1="${t}" y2="${Y(0)}" stroke="${PAL.accent}" stroke-width="1.8"/><text x="${X(ns - 1) + 5}" y="${t + 12}" style="fill:${PAL.accent};font-weight:600">${ns < nc ? "fleet out of time" : "all above the floor fit"}</text>` : "") +
-      `<text x="${(l + W - r) / 2}" y="${H - 6}" text-anchor="middle">all ${fmt(n)} stops, fullest first</text><text transform="translate(11 ${(t + H - b) / 2}) rotate(-90)" text-anchor="middle">projected fill ŷ</text>`;
-    $("#decCounts").innerHTML = [[nc, `at or above ${floor} %`], [ns, "fit the fleet’s time"], [nc - ns, "wait for the next day"]].map(([v, l_]) => `<div><b>${fmt(v)}</b><span>${l_}</span></div>`).join("") +
-      `<div style="grid-column:1/-1"><span>${over ? `<b style="display:inline;font-size:15px">${fmt(over)}</b> of the waiting stops are projected past 100 %.` : "No stop projected past 100 % has to wait."} Estimate from the model’s own time per stop; routing has the final say.</span></div>`;
+      `<line x1="${l}" x2="${W - r}" y1="${Y(floor)}" y2="${Y(floor)}" stroke="${PAL.ink}" stroke-dasharray="5 3"/><text x="${W - r}" y="${Y(floor) - 5}" text-anchor="end">${floor} % line: below it, a bin can wait</text>` +
+      `<line x1="${l}" x2="${W - r}" y1="${Y(100)}" y2="${Y(100)}" stroke="${PAL.bad}" stroke-dasharray="2 3" opacity=".7"/><text x="${W - r}" y="${Y(100) - 5}" text-anchor="end" style="fill:${PAL.bad}">100 %: overflow</text>` +
+      (ns ? `<line x1="${X(ns - 1)}" x2="${X(ns - 1)}" y1="${t}" y2="${Y(0)}" stroke="${PAL.accent}" stroke-width="1.8"/>` +
+        (X(ns - 1) - l > 120 ? `<text x="${(l + X(ns - 1)) / 2}" y="${Y(0) - 12}" text-anchor="middle" style="fill:${PAL.accent};font-weight:650;font-size:13px">get a truck: ${fmt(ns)}</text>` : "") +
+        (W - r - X(ns - 1) > 110 ? `<text x="${(X(ns - 1) + W - r) / 2}" y="${Y(0) - 12}" text-anchor="middle" style="font-size:13px">wait: ${fmt(n - ns)}</text>` : "") : "") +
+      [1, 1000, 2000, 3000, 4000].filter(k => k < n).map(k => `<line class="ax" x1="${X(k - 1)}" x2="${X(k - 1)}" y1="${Y(0)}" y2="${Y(0) + 4}"/><text x="${X(k - 1)}" y="${Y(0) + 16}" text-anchor="middle">${k === 1 ? "1st" : fmt(k) + "th"}</text>`).join("") +
+      `<text x="${l}" y="${H - 6}" style="font-weight:600">← fullest</text><text x="${(l + W - r) / 2}" y="${H - 6}" text-anchor="middle">all ${fmt(n)} bin stops, in order</text><text x="${W - r}" y="${H - 6}" text-anchor="end" style="font-weight:600">emptiest →</text>` +
+      `<text x="4" y="14" style="font-weight:600">Forecast fill for tomorrow</text>`;
+    $("#decCounts").innerHTML = [[nc, `at or above ${floor} %`], [ns, "fit the fleet’s time"], [nc - ns, "wait a day"]].map(([v, l_]) => `<div><b>${fmt(v)}</b><span>${l_}</span></div>`).join("") +
+      `<div style="grid-column:1/-1"><span>${over ? `<b style="display:inline;font-size:15px">${fmt(over)}</b> of the waiting stops are projected past 100 %.` : "No stop projected past 100 % has to wait."} A quick estimate; routing has the final say.</span></div>`;
   };
-  $("#mFloor").oninput = draw; $("#mTrucks").oninput = draw; draw();
+  $("#mFloor").oninput = draw; $("#mTrucks").oninput = draw; $("#mShift").oninput = draw; draw();
   $("#decNote").textContent = `Tomorrow: ${fmt(dm.risky)} stops are projected at ${fmt(dm.floor)} % or more. Fullest first, ${fmt(dm.chosen)} fit the time of ${fmt(fleet0)} trucks; after routing, ${fmt(dm.served)} are emptied.`;
 }
 
@@ -2232,19 +2255,11 @@ function mathsRoute(M) {
 
 /* 5 · before and after: the three policies */
 function mathsCheck(M) {
-  const ex = D.site.experiments, ag = ex.aggregate, P = M.params, pol = { timetable: "Timetable", reactive: "Reactive", binsight: "BinSight" };
-  const tt = ag.find(a => a.policy === "timetable"), bs = ag.find(a => a.policy === "binsight");
-  $("#calText").textContent = tt ? `On the test days the every-${P.COLLECT_EVERY_DAYS}-days timetable overflowed on ${fmt(100 * tt.overflow_events_day / tt.collections_day, 2)} % of its collections (target ${fmt(100 * P.TARGET_OVERFLOW)} %), and bins were ${fmt(tt.fill_at_collection)} % full on average when it emptied them (about 44 % expected).` : "";
-  $("#checkSub").textContent = `${ex.eval_days} test days × ${ex.seeds.length} seeds, mean per day`;
-  const all = ag.map(a => [a.route_cost_day, a.overflow_events_day]);
-  const W = 520, H = 300, l = 52, r = 14, t = 14, b = 36;
-  const x0 = Math.min(...all.map(p => p[0])) * .85, x1 = Math.max(...all.map(p => p[0])) * 1.1, y1 = Math.max(...all.map(p => p[1])) * 1.15 || 1;
-  const X = v => l + (v - x0) / (x1 - x0) * (W - l - r), Y = v => t + (1 - v / y1) * (H - t - b);
-  const yt = [0, y1 / 3, 2 * y1 / 3, y1].map(v => y1 > 30 ? Math.round(v / 10) * 10 : Math.round(v)), xt = [x0, (x0 + x1) / 2, x1].map(v => Math.round(v / 1000) * 1000);
-  $("#mCheck").innerHTML = svgAxisY(l, W - r, Y, yt, v => fmt(v)) + xt.map(v => `<text x="${X(v)}" y="${H - b + 15}" text-anchor="middle">£${fmt(v / 1000)}k</text>`).join("") +
-    ag.map(a => `<rect x="${X(a.route_cost_day) - 6}" y="${Y(a.overflow_events_day) - 6}" width="12" height="12" rx="2" fill="${a.policy === "binsight" ? PAL.accent : a.policy === "timetable" ? PAL.ink : PAL.f[3]}"/><text class="lbl" x="${X(a.route_cost_day) + 10}" y="${Y(a.overflow_events_day) + 4}">${pol[a.policy]}</text>`).join("") +
-    `<text x="${(l + W - r) / 2}" y="${H - 4}" text-anchor="middle">route cost per day (driving + crew time)</text><text transform="translate(12 ${(t + H - b) / 2}) rotate(-90)" text-anchor="middle">overflows per day</text>`;
-  $("#checkNote").textContent = tt && bs ? `BinSight: ${fmt(bs.overflow_events_day, 1)} overflows a day against ${fmt(tt.overflow_events_day, 1)} for the timetable, for £${fmt(bs.route_cost_day)} of driving and crew time against £${fmt(tt.route_cost_day)}. Down and to the left is better. The comparison is relative: absolute numbers depend on the simulated city.` : "";
+  const ag = D.site.experiments.aggregate, f = p => ag.find(a => a.policy === p), tt = f("timetable"), re = f("reactive"), bs = f("binsight");
+  if (!tt || !bs) return;
+  const cut = (a, b) => fmt(100 * (1 - b / a));
+  $("#chkResult").textContent = `${cut(tt.overflow_events_day, bs.overflow_events_day)} % fewer overflows and ${cut(tt.cost_day, bs.cost_day)} % lower cost than the timetable.`;
+  $("#chkReact").textContent = re ? `By the time a bin reads ${fmt(M.params.REACTIVE_AT)} % it is often too late: reacting overflows ${fmt(re.overflow_events_day)} times a day, against ${fmt(bs.overflow_events_day)} for BinSight.` : "";
 }
 
 

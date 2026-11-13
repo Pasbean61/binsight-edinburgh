@@ -491,6 +491,19 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 32px; justify-content: 
 .eq.inline { display: inline; padding: 1px 6px; margin: 0; font-size: 15.5px; border-radius: 6px; }
 .eq var, .m-text var, .m-widget var { font-style: italic; }
 .eq sub, .eq sup { font-size: .72em; }
+.m-text .m-idea { color: var(--ink); font-size: 17px; margin: 0 0 14px; }
+.eq .katex-display { margin: 6px 0; }
+.eq .katex { font-size: 1.08em; }
+.m-text .katex, .m-widget .katex { font-size: 1.05em; }
+.m-flow { font: 500 13.5px/1.45 var(--body); color: var(--accent); background: var(--accent-soft); border-radius: 8px; padding: 7px 11px; margin: 0 0 12px !important; display: inline-block; max-width: 100%; }
+.m-flow b { font-weight: 650; }
+.m-one { max-width: 760px; }
+.m-three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+@media (max-width: 640px) { .m-three { grid-template-columns: 1fr; } }
+.m-three div { background: var(--paper); border-radius: 10px; padding: 12px 14px; }
+.m-three div:last-child { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.m-three b { display: block; font: 650 16px var(--display); }
+.m-three span { font-size: 13.5px; color: var(--ink-2); }
 .m-widget { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .m-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .m-head b { font: 650 17px var(--display); }
@@ -514,3 +527,8 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 .algo li { margin: 6px 0; padding-left: 2px; }
 .algo li::marker { color: var(--accent); font-weight: 700; }
 .sa-log { min-height: 3.1em; margin: 2px 0 0; font-size: 13.5px; color: var(--ink-2); }
+.eq.hl .katex { font-size: 1.25em; }
+.eq.hl { padding: 14px 12px; }
+.eq.hl .katex-display { margin: 10px 0; }
+/* maths steps 1, 2, 3, 5: no secondary captions (the route tab keeps its own) */
+.m-pane:not([data-m="3"]) .note, .m-pane:not([data-m="3"]) .muted.small, .m-pane:not([data-m="3"]) .slider small, .m-pane:not([data-m="3"]) #decCounts > div[style] { display: none; }
