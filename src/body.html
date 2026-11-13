@@ -42,37 +42,81 @@
     <div><span class="eyebrow">The problem</span><h2>Bins fill at different speeds. A timetable can’t see that.</h2></div>
     <p class="say">Edinburgh is a city of tenements. Instead of a wheelie bin for every home, <b>10,657 communal bins</b> stand on its streets, each shared by the flats around it. Every bin fills at its own speed, yet the trucks still follow a fixed timetable. So some bins overflow before the truck arrives, while others are emptied half full. In one summer quarter, people reported <b>6,006</b> full or overflowing bins. And money is tight: collection now costs <b>£1.35 million</b> more a year, and the council must find <b>£20.2 million</b> of savings this year. A better timetable won’t fix this. The city needs to see inside its bins.</p>
   </div>
-  <div class="stats">
-    <div class="card stat"><b>10,657</b><p>communal bins on the streets, at 4,532 stops</p><span class="src">City of Edinburgh Council, <a href="https://data.edinburghcouncilmaps.info/datasets/283caa7cb2434db3874526d16efe8c67_27/about" target="_blank" rel="noopener">Communal Bins register</a> (open data)</span></div>
-    <div class="card stat"><b>6,006</b><p>full or overflowing bins reported in one summer quarter, up 13 %</p><span class="src">Edinburgh Evening News, <a href="https://www.edinburghnews.scotsman.com/news/politics/council/edinburgh-council-blames-increase-in-overflowing-bins-on-explosion-of-airbnb-style-short-term-lets-1331605" target="_blank" rel="noopener">2019</a></span></div>
-    <div class="card stat"><b>37.5 %</b><p>of household waste recycled in 2024: 28th of Scotland’s 32 councils</p><span class="src"><a href="https://shiny.data.gov.scot/sepa/waste/household.html" target="_blank" rel="noopener">SEPA household waste data 2024</a>; <a href="https://beta.sepa.scot/news/2025/small-rise-in-scottish-household-recycling-rate-but-big-gains-are-still-go/" target="_blank" rel="noopener">SEPA</a> (2025)</span></div>
-    <div class="card stat"><b>52 %</b><p>of what goes in the general bin could have been recycled</p><span class="src">Zero Waste Scotland via <a href="https://beta.sepa.scot/news/2025/small-rise-in-scottish-household-recycling-rate-but-big-gains-are-still-go/" target="_blank" rel="noopener">SEPA</a> (2025)</span></div>
-    <div class="card stat"><b>£1.35m</b><p>more a year spent on collection in 2024/25</p><span class="src">City of Edinburgh Council, <a href="https://www.edinburgh.gov.uk/downloads/file/40593/environment-lgbf-2024-25" target="_blank" rel="noopener">Environment LGBF 2024/25</a></span></div>
-    <div class="card stat"><b>£20.2m</b><p>of savings the council must find in 2026/27</p><span class="src">City of Edinburgh Council, <a href="https://www.edinburgh.gov.uk/downloads/file/38260/council-budget-key-facts-and-figures-2025--2026" target="_blank" rel="noopener">Budget key facts 2025–26</a></span></div>
-  </div>
-  <div class="policy">
-    <div class="card"><span class="when">2025→</span><div><h4>Packaging EPR</h4><p>Up to 20 % of £17.3m can be withheld from inefficient services.</p></div></div>
-    <div class="card"><span class="when">2028</span><div><h4>Landfill ban</h4><p>Biodegradable waste can no longer go to landfill.</p></div></div>
-    <div class="card"><span class="when">2030→</span><div><h4>Circular Economy Act</h4><p>Council recycling targets, and penalties for contamination.</p></div></div>
-  </div>
-
-  <div class="card explainer" id="explainer">
-    <div class="ex-stage">
-      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center">
-        <div><h3 style="font-size:20px">Same fortnight, two ways to collect</h3><p class="muted small" style="margin-top:4px">Illustration: eight bins that fill at different speeds. Press play.</p></div>
-        <div class="seg" role="group" aria-label="Collection policy"><button type="button" class="on" data-mode="fixed">Fixed timetable</button><button type="button" data-mode="smart">BinSight</button></div>
-      </div>
-      <div class="ex-bins" id="exBins"></div>
-      <div class="ex-ctrl">
-        <button class="btn ghost" type="button" id="exPlay" style="padding:8px 16px">Play</button>
-        <input type="range" id="exDay" min="0" max="14" value="0" step="1" aria-label="Day">
-        <span class="ex-day" id="exDayLbl">Day 0</span>
-      </div>
+  <div class="stats" id="statAnims">
+    <div class="card stat anim">
+      <div class="stat-viz"><svg viewBox="0 0 320 120" id="vBins" aria-hidden="true"><g class="bins-grid"></g><text x="316" y="114" text-anchor="end" class="v-note">1 icon ≈ 110 bins</text></svg></div>
+      <b data-count="10657">10,657</b><p>communal bins on the streets, at 4,532 stops</p>
+      <span class="src">City of Edinburgh Council, <a href="https://data.edinburghcouncilmaps.info/datasets/283caa7cb2434db3874526d16efe8c67_27/about" target="_blank" rel="noopener">Communal Bins register</a> (open data)</span>
     </div>
-    <div class="ex-side">
-      <p class="small muted" id="exExplain">The timetable empties every bin on days 3, 6, 9 and 12, whether it is full or not.</p>
-      <div class="ex-score" id="exScore"></div>
-      <p class="small muted">Rule used by BinSight here: empty a bin today if tomorrow’s forecast is 80 % or more. The real engine applies the same 80 % floor to Edinburgh’s <span data-k="stops">4,532</span> stops, below, taking the fullest first while the fleet has time.</p>
+    <div class="card stat anim">
+      <div class="stat-viz"><svg viewBox="0 0 320 120" aria-hidden="true">
+        <g class="stink"><path d="M58 30c-4-6 4-9 0-15"/><path d="M76 24c-4-6 4-9 0-15"/><path d="M94 30c-4-6 4-9 0-15"/></g>
+        <path d="M38 52h76l-7 56a6 6 0 0 1-6 5H51a6 6 0 0 1-6-5z" fill="var(--bin-a)"/>
+        <g class="bags"><circle cx="56" cy="50" r="11" fill="var(--waste-2)"/><circle cx="77" cy="44" r="13" fill="var(--waste)"/><circle cx="97" cy="51" r="10" fill="var(--waste-2)"/><circle cx="66" cy="38" r="7" fill="#d9cdb2"/></g>
+        <rect class="lid" x="30" y="40" width="88" height="7" rx="3.5" fill="var(--ink)"/>
+        <g class="reps">
+          <g class="rep" style="--i:0"><rect x="148" y="72" width="160" height="26" rx="13"/><circle cx="163" cy="85" r="4.5"/><text x="175" y="89">Full bin reported</text></g>
+          <g class="rep" style="--i:1"><rect x="148" y="72" width="160" height="26" rx="13"/><circle cx="163" cy="85" r="4.5"/><text x="175" y="89">Bin overflowing</text></g>
+          <g class="rep" style="--i:2"><rect x="148" y="72" width="160" height="26" rx="13"/><circle cx="163" cy="85" r="4.5"/><text x="175" y="89">Full bin reported</text></g>
+        </g>
+        <g class="badge"><rect x="252" y="8" width="56" height="22" rx="11"/><text x="280" y="23" text-anchor="middle">+13 %</text></g>
+      </svg></div>
+      <b data-count="6006">6,006</b><p>full or overflowing bins reported in one summer quarter</p>
+      <span class="src">Edinburgh Evening News, <a href="https://www.edinburghnews.scotsman.com/news/politics/council/edinburgh-council-blames-increase-in-overflowing-bins-on-explosion-of-airbnb-style-short-term-lets-1331605" target="_blank" rel="noopener">2019</a></span>
+    </div>
+    <div class="card stat anim">
+      <div class="stat-viz"><svg viewBox="0 0 320 120" id="vRank" aria-hidden="true">
+        <text x="20" y="24" class="v-lab">Edinburgh</text>
+        <rect x="20" y="32" width="280" height="14" rx="7" fill="var(--line)"/>
+        <rect class="grow" x="20" y="32" width="105" height="14" rx="7" fill="var(--accent)"/>
+        <g class="avg"><line x1="144" y1="26" x2="144" y2="52"/><text x="148" y="24" class="v-lab">Scotland 44.3 %</text></g>
+        <g class="dots"></g>
+        <text x="20" y="114" class="v-note">1st</text><text x="300" y="114" text-anchor="end" class="v-note">32nd of 32 councils</text>
+      </svg></div>
+      <b data-count="37.5" data-dec="1" data-suf=" %">37.5 %</b><p>of household waste recycled in 2024</p>
+      <span class="src"><a href="https://shiny.data.gov.scot/sepa/waste/household.html" target="_blank" rel="noopener">SEPA household waste data 2024</a>; <a href="https://beta.sepa.scot/news/2025/small-rise-in-scottish-household-recycling-rate-but-big-gains-are-still-go/" target="_blank" rel="noopener">SEPA</a> (2025)</span>
+    </div>
+    <div class="card stat anim">
+      <div class="stat-viz"><svg viewBox="0 0 320 120" id="vMix" aria-hidden="true">
+        <rect x="44" y="18" width="232" height="8" rx="4" fill="var(--ink)"/>
+        <path d="M48 28h224l-6 76a6 6 0 0 1-6 5H60a6 6 0 0 1-6-5z" fill="none" stroke="var(--line-2)" stroke-width="1.5"/>
+        <g class="cells"></g>
+        <g class="v-leg"><rect x="60" y="112" width="7" height="7" rx="1.5" fill="var(--accent)"/><text x="71" y="119">could be recycled</text></g>
+      </svg></div>
+      <b data-count="52" data-suf=" %">52 %</b><p>of what goes in the general bin could have been recycled</p>
+      <span class="src">Zero Waste Scotland via <a href="https://beta.sepa.scot/news/2025/small-rise-in-scottish-household-recycling-rate-but-big-gains-are-still-go/" target="_blank" rel="noopener">SEPA</a> (2025)</span>
+    </div>
+    <div class="card stat anim">
+      <div class="stat-viz"><svg viewBox="0 0 320 120" aria-hidden="true">
+        <text x="16" y="22" class="v-lab">+£5.07 a year per home</text>
+        <g class="houses"><path d="M16 104v-14l12-10 12 10v14z"/><rect x="25" y="96" width="6" height="8" rx="1" class="door"/><path d="M58 104v-14l12-10 12 10v14z"/><rect x="67" y="96" width="6" height="8" rx="1" class="door"/><path d="M100 104v-14l12-10 12 10v14z"/><rect x="109" y="96" width="6" height="8" rx="1" class="door"/><path d="M142 104v-14l12-10 12 10v14z"/><rect x="151" y="96" width="6" height="8" rx="1" class="door"/><path d="M184 104v-14l12-10 12 10v14z"/><rect x="193" y="96" width="6" height="8" rx="1" class="door"/></g>
+        <g class="coins"><g class="coin" style="--i:0;--dx:234px;--dy:-6px"><circle cx="28" cy="68" r="7"/><text x="28" y="71.5" text-anchor="middle">£</text></g><g class="coin" style="--i:1;--dx:192px;--dy:-6px"><circle cx="70" cy="68" r="7"/><text x="70" y="71.5" text-anchor="middle">£</text></g><g class="coin" style="--i:2;--dx:150px;--dy:-6px"><circle cx="112" cy="68" r="7"/><text x="112" y="71.5" text-anchor="middle">£</text></g><g class="coin" style="--i:3;--dx:108px;--dy:-6px"><circle cx="154" cy="68" r="7"/><text x="154" y="71.5" text-anchor="middle">£</text></g><g class="coin" style="--i:4;--dx:66px;--dy:-6px"><circle cx="196" cy="68" r="7"/><text x="196" y="71.5" text-anchor="middle">£</text></g></g>
+        <rect x="236" y="40" width="52" height="68" rx="9" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
+        <rect class="jar" x="239" y="43" width="46" height="62" rx="7" fill="var(--f2)"/>
+        <rect x="232" y="34" width="60" height="8" rx="4" fill="var(--ink-3)"/>
+      </svg></div>
+      <b data-count="1.35" data-dec="2" data-pre="£" data-suf="m">£1.35m</b><p>more a year spent on collection, across 266,612 homes (2024/25)</p>
+      <span class="src">City of Edinburgh Council, <a href="https://www.edinburgh.gov.uk/downloads/file/40593/environment-lgbf-2024-25" target="_blank" rel="noopener">Environment LGBF 2024/25</a></span>
+    </div>
+    <div class="card stat anim">
+      <div class="stat-viz"><svg viewBox="0 0 320 120" aria-hidden="true">
+        <defs><pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="var(--paper)"/><line x1="0" y1="0" x2="0" y2="7" stroke="var(--f4)" stroke-width="2.4" opacity=".35"/></pattern></defs>
+        <text x="20" y="28" class="v-lab">2026/27</text><text x="300" y="28" text-anchor="end" class="v-lab">four years to 2029/30: £94.2m</text>
+        <rect class="rest" x="20" y="38" width="280" height="30" rx="9" fill="url(#hatch)" stroke="var(--line-2)"/>
+        <rect class="grow" x="20" y="38" width="60" height="30" rx="9" fill="var(--f4)"/>
+        <g class="cutline"><line x1="80" y1="74" x2="80" y2="96"/><text x="86" y="94" class="v-lab">this year</text></g>
+      </svg></div>
+      <b data-count="20.2" data-dec="1" data-pre="£" data-suf="m">£20.2m</b><p>of savings the council must find this year</p>
+      <span class="src">City of Edinburgh Council, <a href="https://www.edinburgh.gov.uk/downloads/file/38260/council-budget-key-facts-and-figures-2025--2026" target="_blank" rel="noopener">Budget key facts 2025–26</a></span>
+    </div>
+  </div>
+  <div class="card tl-card anim" aria-label="Policy timeline">
+    <div class="tl">
+      <div class="tl-track"><span class="tl-fill"></span></div>
+      <div class="tl-node" style="--x:13%;--t:.45s"><span class="tl-dot"></span><b>2025</b><h4>Packaging EPR</h4><p>Up to 20 % of £17.3m withheld from inefficient services</p></div>
+      <div class="tl-now" style="--x:40%;--t:.9s"><span class="tl-dot"></span><b>Now</b></div>
+      <div class="tl-node" style="--x:56.5%;--t:1.2s"><span class="tl-dot"></span><b>2028</b><h4>Landfill ban</h4><p>Biodegradable waste can no longer go to landfill</p></div>
+      <div class="tl-node" style="--x:85.5%;--t:1.8s"><span class="tl-dot"></span><b>2030</b><h4>Circular Economy Act</h4><p>Council recycling targets and contamination penalties</p></div>
     </div>
   </div>
 </section>

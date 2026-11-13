@@ -49,7 +49,6 @@ async function boot() {
   derive();
   fillKeys();
   drawHero();
-  initExplainer();
   initSteps();
   initMap();
   initConsole();
@@ -249,62 +248,6 @@ function initHeroHover() {
     if (best) { BS.focusStop(best[2]); $("#console").scrollIntoView(); }
   });
   let t; addEventListener("resize", () => { clearTimeout(t); t = setTimeout(drawHero, 150); });
-}
-
-/* ── explainer (illustration) ────────────────────── */
-function initExplainer() {
-  const rates = [9, 14, 22, 31, 12, 38, 18, 26], days = 14, fixedDays = new Set([3, 6, 9, 12]);
-  const start = [20, 35, 10, 40, 55, 15, 30, 45];
-  function run(mode) {
-    let f = start.slice(); const frames = [];
-    const tally = { visits: 0, overflowDays: 0, waste: 0 };
-    frames.push({ f: f.slice(), hit: [], over: [], waste: [], tally: { ...tally } });
-    for (let d = 1; d <= days; d++) {
-      const hit = [], waste = [];
-      for (let b = 0; b < 8; b++) {
-        const collect = mode === "fixed" ? fixedDays.has(d) : (f[b] + rates[b] >= 80);
-        if (collect) { tally.visits++; hit.push(b); if (f[b] < 40) { tally.waste++; waste.push(b); } f[b] = 0; }
-      }
-      const over = [];
-      for (let b = 0; b < 8; b++) { f[b] += rates[b]; if (f[b] > 100) { over.push(b); tally.overflowDays++; } }
-      frames.push({ f: f.slice(), hit, over, waste, tally: { ...tally } });
-    }
-    return frames;
-  }
-  const runs = { fixed: run("fixed"), smart: run("smart") };
-  let mode = "fixed", day = 0, timer = null;
-  const host = $("#exBins");
-  host.innerHTML = rates.map((r, b) => `<div class="ex-bin" data-b="${b}"><span class="truck">emptied</span><span class="spill"></span><div class="tank"><div class="lvl"></div></div><div class="lbl">Bin ${"ABCDEFGH"[b]}<br><span class="mono">+${r} %/day</span></div></div>`).join("");
-  function render() {
-    const fr = runs[mode][day];
-    $$(".ex-bin", host).forEach((el, b) => {
-      const v = Math.min(100, fr.f[b]);
-      const lvl = $(".lvl", el); lvl.style.height = v + "%"; lvl.style.background = fillColor(fr.f[b]);
-      el.classList.toggle("over", fr.over.includes(b));
-      el.classList.toggle("hit", fr.hit.includes(b));
-      el.classList.toggle("waste", fr.waste.includes(b));
-      $(".truck", el).textContent = fr.waste.includes(b) ? "half-empty" : "emptied";
-    });
-    $("#exDay").value = day; $("#exDayLbl").textContent = "Day " + day;
-    const a = runs.fixed[day].tally, s = runs.smart[day].tally;
-    const cell = (x, y, lowerBetter = true) => `<b>${x}</b><b class="${(lowerBetter ? y < x : y > x) ? "better" : ""}">${y}</b>`;
-    $("#exScore").innerHTML = `<span class="h"></span><span class="h">Timetable</span><span class="h">BinSight</span>
-      <span>Bin visits</span>${cell(a.visits, s.visits)}
-      <span>Overflowing bin-days</span>${cell(a.overflowDays, s.overflowDays)}
-      <span>Emptied under 40 % full</span>${cell(a.waste, s.waste)}`;
-    $("#exExplain").textContent = mode === "fixed"
-      ? "The timetable empties every bin on days 3, 6, 9 and 12, whether it is full or not. Fast bins overflow in between."
-      : "BinSight empties a bin only when it would pass 80 % before the next chance of a truck. Slow bins are skipped, fast bins are visited sooner.";
-  }
-  $$(".seg button[data-mode]").forEach(b => b.onclick = () => { mode = b.dataset.mode; $$(".seg button[data-mode]").forEach(x => x.classList.toggle("on", x === b)); render(); });
-  $("#exDay").oninput = e => { day = +e.target.value; render(); };
-  $("#exPlay").onclick = () => {
-    if (timer) { clearInterval(timer); timer = null; $("#exPlay").textContent = "Play"; return; }
-    if (day >= days) day = 0;
-    $("#exPlay").textContent = "Pause";
-    timer = setInterval(() => { day++; render(); if (day >= days) { clearInterval(timer); timer = null; $("#exPlay").textContent = "Replay"; } }, 650);
-  };
-  render();
 }
 
 /* ── steps ───────────────────────────────────────── */
@@ -1123,6 +1066,52 @@ function initNav() {
   };
   addEventListener("scroll", onScroll, { passive: true }); onScroll();
 }
+
+/* ── problem: animated facts ── */
+(function initStatAnims() {
+  const host = $("#statAnims"); if (!host) return;
+  const NS = "http://www.w3.org/2000/svg", el = (t, at) => { const e = document.createElementNS(NS, t); for (const k in at) e.setAttribute(k, at[k]); return e; };
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  // 96 bins, one icon for about 110 of the 10,657
+  const g = $("#vBins .bins-grid");
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 24; c++) {
+    const x = 6.5 + c * 13, y = 6 + r * 24, b = el("g", { class: "bin" + (rnd() < .14 ? " hot" : "") });
+    b.style.setProperty("--d", (c * 26 + r * 70) + "ms"); b.style.setProperty("--h", (rnd() * 5).toFixed(2) + "s");
+    b.append(el("rect", { x, y, width: 10, height: 2.4, rx: 1, class: "lidr" }), el("rect", { x: x + 1, y: y + 3.4, width: 8, height: 11, rx: 1.6, class: "body" }));
+    g.append(b);
+  }
+  // 32 councils by recycling rate; Edinburgh is 28th
+  const dots = $("#vRank .dots");
+  for (let k = 0; k < 32; k++) {
+    const d = el("circle", { cx: 24 + k * 8.9, cy: 92, r: k === 27 ? 5.5 : 3.6, class: k === 27 ? "me" : "" });
+    d.style.setProperty("--d", (600 + k * 35) + "ms"); dots.append(d);
+  }
+  dots.append(Object.assign(el("text", { x: 24 + 27 * 8.9, y: 80, "text-anchor": "middle", class: "v-me" }), { textContent: "28th" }));
+  // 100 squares of general waste; 52 could have been recycled
+  const cells = $("#vMix .cells"), order = [...Array(100).keys()].sort(() => rnd() - .5), rank = new Map(order.map((v, k) => [v, k]));
+  for (let k = 0; k < 100; k++) {
+    const c = k % 20, r = (k / 20) | 0, sq = el("rect", { x: 62 + c * 10.1, y: 36 + r * 13, width: 8, height: 10, rx: 1.6, class: rank.get(k) < 52 ? "rec" : "" });
+    sq.style.setProperty("--d", (300 + rank.get(k) * 24) + "ms"); cells.append(sq);
+  }
+  const count = b => {
+    const end = +b.dataset.count, dec = +(b.dataset.dec || 0), pre = b.dataset.pre || "", suf = (b.dataset.suf || "").replace(" ", " ");
+    const show = v => b.textContent = pre + v.toLocaleString("en-GB", { minimumFractionDigits: dec, maximumFractionDigits: dec }) + suf;
+    if (still) return show(end);
+    const t0 = performance.now(), dur = 1500;
+    const step = now => { const u = Math.min(1, (now - t0) / dur); show(end * (1 - Math.pow(1 - u, 3))); if (u < 1) requestAnimationFrame(step); };
+    show(0); requestAnimationFrame(step);
+  };
+  const cards = $$(".anim", host.parentElement);
+  document.documentElement.classList.add("anim-ready");
+  if (still || !("IntersectionObserver" in window)) { cards.forEach(c => c.classList.add("play")); return; }
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    io.unobserve(e.target); e.target.classList.add("play");
+    const b = $("b[data-count]", e.target); if (b) count(b);
+  }), { threshold: .35 });
+  cards.forEach(c => io.observe(c));
+})();
 
 /* ── the sensor (Step 1, up close): copied from the BinSight business demo ── */
 (function initSensor() {

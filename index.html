@@ -162,35 +162,6 @@ section.chapter { padding-block: 88px 24px; }
 .policy h4 { font-size: 16px; }
 .policy p { font-size: 14px; color: var(--ink-2); margin-top: 4px; }
 
-/* explainer */
-.explainer { margin-top: 36px; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 0; padding: 0; overflow: hidden; }
-@media (max-width: 900px) { .explainer { grid-template-columns: 1fr; } }
-.ex-stage { padding: 26px; border-right: 1px solid var(--line); }
-@media (max-width: 900px) { .ex-stage { border-right: 0; border-bottom: 1px solid var(--line); } }
-.ex-side { padding: 26px; display: flex; flex-direction: column; gap: 18px; background: var(--raised); }
-.seg { display: inline-flex; background: var(--paper); border: 1px solid var(--line); border-radius: 99px; padding: 3px; gap: 2px; flex-wrap: wrap; }
-.seg button { border: 0; background: none; padding: 6px 14px; border-radius: 99px; cursor: pointer; font-size: 14px; color: var(--ink-2); }
-.seg button.on { background: var(--ink); color: var(--paper); }
-.ex-bins { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 10px; height: 220px; align-items: end; margin-top: 24px; }
-.ex-bin { position: relative; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; }
-.ex-bin .tank { position: relative; height: 170px; border: 1.5px solid var(--line-2); border-top-width: 5px; border-radius: 4px 4px 8px 8px; overflow: hidden; background: var(--paper); }
-.ex-bin .lvl { position: absolute; left: 0; right: 0; bottom: 0; background: var(--f1); transition: height .45s ease, background .3s; }
-.ex-bin .spill { position: absolute; left: -4px; right: -4px; top: -14px; height: 10px; border-radius: 6px; background: var(--f4); opacity: 0; transition: opacity .3s; }
-.ex-bin.over .spill { opacity: 1; }
-.ex-bin .lbl { text-align: center; font-size: 12px; color: var(--ink-3); margin-top: 6px; }
-.ex-bin .truck { position: absolute; top: -34px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 700; color: var(--accent); opacity: 0; transition: opacity .2s; }
-.ex-bin.hit .truck { opacity: 1; }
-.ex-bin.hit .tank { border-color: var(--accent); }
-.ex-bin.waste .truck { color: var(--warn); }
-.ex-bin.waste .tank { border-color: var(--warn); }
-.ex-ctrl { display: flex; align-items: center; gap: 14px; margin-top: 22px; flex-wrap: wrap; }
-.ex-ctrl input[type=range] { flex: 1; min-width: 160px; }
-.ex-day { font: 600 14px var(--mono); min-width: 96px; }
-.ex-score { display: grid; grid-template-columns: 1fr auto auto; gap: 8px 16px; font-size: 14px; align-items: baseline; }
-.ex-score .h { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-3); }
-.ex-score b { font: 700 20px/1 var(--display); text-align: right; font-variant-numeric: tabular-nums; }
-.ex-score b.better { color: var(--good); }
-
 /* steps */
 .steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; counter-reset: step; }
 @media (max-width: 980px) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -402,14 +373,12 @@ tbody tr:last-child td { border-bottom: 0; }
   .playbar { grid-template-columns: auto auto minmax(0, 1fr); grid-template-areas: "play time speed" "range range range" "stats stats stats"; bottom: 10px; padding: 8px 10px; }
   .legend { display: none; }
 }
-.step-detail > div, .explainer > div, .results-grid > *, .biz-grid > * { min-width: 0; }
+.step-detail > div, .results-grid > *, .biz-grid > * { min-width: 0; }
 @media (max-width: 640px) {
   .legend { padding: 8px 10px; font-size: 11px; }
   .legend .row { display: inline-flex; margin: 2px 8px 2px 0; }
   .legend .title { margin-bottom: 2px; }
   .map-note { font-size: 11px; right: 14px; border-radius: 10px; }
-  .ex-bins { gap: 6px; height: 200px; }
-  .ex-bin .lbl .mono { font-size: 10px; }
   section.chapter { padding-block: 64px 16px; }
   .band { margin-top: 64px; }
 }
@@ -643,6 +612,89 @@ div.card.step { cursor: default; }
 .echo-out div { padding: 10px; }
 .echo-out b { font-size: 17px; white-space: nowrap; }
 
+/* ── problem: animated facts ── */
+.stat-viz { height: 132px; margin: -6px -6px 6px; border-radius: 12px; background: var(--paper); overflow: hidden; }
+.stat-viz svg { width: 100%; height: 100%; display: block; }
+.stat-viz text { font-family: var(--body); }
+.v-note { font: 500 10px var(--mono); fill: var(--ink-3); }
+.v-lab { font-size: 11.5px; font-weight: 600; fill: var(--ink-2); }
+.v-me { font: 700 11px var(--mono); fill: var(--accent); }
+.stat b[data-count] { font-variant-numeric: tabular-nums; }
+/* one-shot reveals: transitions, so reduced motion simply shows the end state */
+.anim .bin { transition: opacity .35s var(--d), transform .5s cubic-bezier(.2, .8, .2, 1) var(--d); transform-box: fill-box; transform-origin: 50% 100%; }
+.anim .bin .body { fill: var(--bin-a); } .anim .bin .lidr { fill: var(--ink); }
+.anim-ready .anim:not(.play) .bin { opacity: 0; transform: translateY(7px) scale(.6); }
+.anim.play .bin.hot .body { animation: binHot 5s ease-in-out var(--h) infinite; }
+@keyframes binHot { 0%, 62%, 100% { fill: var(--bin-a); } 72% { fill: var(--f2); } 82%, 90% { fill: var(--f4); } }
+.anim .grow { transform-box: fill-box; transform-origin: 0 50%; transition: transform 1.3s cubic-bezier(.3, .7, .2, 1) .2s; }
+.anim-ready .anim:not(.play) .grow { transform: scaleX(0); }
+.anim .avg line { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.anim .avg, .anim .cutline, .anim .badge, .anim .rest { transition: opacity .5s ease 1.2s; }
+.anim-ready .anim:not(.play) :is(.avg, .cutline, .badge, .rest) { opacity: 0; }
+.anim .rest { transition-delay: .1s; }
+.anim .cutline line { stroke: var(--ink); stroke-width: 1.5; }
+.anim .dots circle { fill: var(--line-2); transition: opacity .3s var(--d), transform .4s var(--d); transform-box: fill-box; transform-origin: center; }
+.anim .dots circle.me { fill: var(--accent); }
+.anim-ready .anim:not(.play) .dots circle { opacity: 0; transform: scale(0); }
+.anim .v-me { transition: opacity .4s 1.8s; } .anim-ready .anim:not(.play) .v-me { opacity: 0; }
+.anim.play .dots circle.me { animation: meRing 2s ease-in-out 2s infinite; }
+@keyframes meRing { 50% { transform: scale(1.35); } }
+.anim .cells rect { fill: var(--line-2); transition: fill .35s var(--d); }
+.anim-ready .anim:not(.play) .cells rect.rec { fill: var(--line-2); }
+.anim .cells rect.rec { fill: var(--accent); }
+.anim .v-leg text { font-size: 10.5px; fill: var(--ink-2); }
+/* overflowing bin */
+.anim .lid { transform-box: fill-box; transform-origin: 0% 100%; transform: rotate(-16deg); }
+.anim.play .lid { animation: lidJig 1.6s ease-in-out infinite; }
+@keyframes lidJig { 0%, 100% { transform: rotate(-16deg); } 50% { transform: rotate(-22deg); } }
+.anim.play .bags circle { animation: bagBob 1.6s ease-in-out infinite; } .anim .bags circle:nth-child(2) { animation-delay: -.5s; } .anim .bags circle:nth-child(3) { animation-delay: -1s; }
+@keyframes bagBob { 50% { transform: translateY(-2.5px); } }
+.anim .stink path { fill: none; stroke: var(--ink-3); stroke-width: 1.6; stroke-linecap: round; opacity: 0; }
+.anim.play .stink path { animation: stink 2.4s ease-in-out infinite; } .anim .stink path:nth-child(2) { animation-delay: -.8s; } .anim .stink path:nth-child(3) { animation-delay: -1.6s; }
+@keyframes stink { 0% { opacity: 0; transform: translateY(6px); } 40% { opacity: .7; } 100% { opacity: 0; transform: translateY(-8px); } }
+.anim .rep rect { fill: var(--surface); stroke: var(--line-2); } .anim .rep circle { fill: var(--f4); } .anim .rep text { font-size: 11.5px; font-weight: 600; fill: var(--ink); }
+.anim .rep { opacity: 0; }
+.anim.play .rep { animation: rep 3.6s linear calc(var(--i) * -1.2s) infinite; }
+@keyframes rep { 0% { opacity: 0; transform: translateY(26px); } 14% { opacity: 1; } 78% { opacity: 1; } 100% { opacity: 0; transform: translateY(-58px); } }
+.anim .badge rect { fill: color-mix(in srgb, var(--f4) 14%, var(--surface)); } .anim .badge text { font: 700 11.5px var(--mono); fill: var(--f4); }
+@media (prefers-reduced-motion: reduce) { .anim .rep:first-child, .anim .coin { opacity: 1 !important; } .anim .coin { transform: translate(var(--dx), calc(var(--dy) + 14px)); } .anim .stink path { opacity: .5; } }
+/* coins into the jar */
+.anim .houses path { fill: var(--ink-2); } .anim .houses .door { fill: var(--paper); }
+.anim .coin circle { fill: var(--f2); stroke: color-mix(in srgb, var(--f2) 60%, var(--ink)); stroke-width: 1.2; } .anim .coin text { font: 700 9px var(--body); fill: var(--ink); }
+.anim .coin { opacity: 0; }
+.anim.play .coin { animation: coin 3s cubic-bezier(.45, 0, .3, 1) calc(var(--i) * .6s) infinite; }
+@keyframes coin { 0% { opacity: 0; transform: translate(0, 10px) scale(.5); } 12% { opacity: 1; transform: translate(0, -8px) scale(1); } 70% { opacity: 1; transform: translate(var(--dx), var(--dy)) scale(.9); } 82%, 100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 16px)) scale(.6); } }
+.anim .jar { transform-box: fill-box; transform-origin: 50% 100%; transition: transform 3.2s cubic-bezier(.3, .6, .3, 1) .6s; opacity: .9; }
+.anim-ready .anim:not(.play) .jar { transform: scaleY(.04); }
+/* policy timeline */
+.tl-card { margin-top: 14px; padding: 26px 28px 30px; }
+.tl { position: relative; height: 150px; }
+.tl-track { position: absolute; left: 0; right: 0; top: 11px; height: 3px; border-radius: 3px; background: var(--line); }
+.tl-fill { position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--f3)); transform-origin: 0 50%; transition: transform 2s cubic-bezier(.4, .1, .2, 1) .2s; }
+.anim-ready .tl-card:not(.play) .tl-fill { transform: scaleX(0); }
+.tl-node, .tl-now { position: absolute; top: 0; left: var(--x); width: 25%; transform: translateX(-50%); text-align: center; transition: opacity .5s, transform .6s cubic-bezier(.2, .8, .2, 1); transition-delay: var(--t); }
+.anim-ready .tl-card:not(.play) :is(.tl-node, .tl-now) { opacity: 0; transform: translate(-50%, 10px); }
+.tl-dot { display: block; width: 16px; height: 16px; margin: 4px auto 10px; border-radius: 50%; background: var(--surface); border: 3px solid var(--accent); box-shadow: 0 0 0 5px var(--surface); }
+.tl-node b { font: 700 13px var(--mono); color: var(--accent); }
+.tl-node h4 { font-size: 16px; margin-top: 4px; }
+.tl-node p { font-size: 13.5px; color: var(--ink-2); margin-top: 4px; line-height: 1.45; }
+.tl-now { width: auto; }
+.tl-now .tl-dot { width: 12px; height: 12px; margin-top: 6px; background: var(--f4); border: 0; box-shadow: 0 0 0 4px color-mix(in srgb, var(--f4) 22%, transparent); }
+.tl-card.play .tl-now .tl-dot { animation: nowPulse 2s ease-in-out infinite; }
+@keyframes nowPulse { 50% { box-shadow: 0 0 0 9px color-mix(in srgb, var(--f4) 6%, transparent); } }
+.tl-now b { font: 600 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--f4); }
+@media (max-width: 760px) {
+  .tl { height: auto; display: grid; gap: 18px; padding-left: 30px; }
+  .tl-track { left: 7px; right: auto; top: 6px; bottom: 6px; width: 3px; height: auto; }
+  .tl-fill { background: linear-gradient(180deg, var(--accent), var(--f3)); transform-origin: 50% 0; }
+  .anim-ready .tl-card:not(.play) .tl-fill { transform: scaleY(0); }
+  .tl-node, .tl-now { position: relative; left: auto; width: auto; transform: none; text-align: left; }
+  .anim-ready .tl-card:not(.play) :is(.tl-node, .tl-now) { transform: translateY(10px); }
+  .tl-dot { position: absolute; left: -30px; top: 0; margin: 0; }
+  .tl-now .tl-dot { left: -27.5px; top: 2px; margin: 0; }
+  .tl-card { padding: 22px 20px; }
+}
+
 </style>
 </head>
 <body>
@@ -690,37 +742,81 @@ div.card.step { cursor: default; }
     <div><span class="eyebrow">The problem</span><h2>Bins fill at different speeds. A timetable can’t see that.</h2></div>
     <p class="say">Edinburgh is a city of tenements. Instead of a wheelie bin for every home, <b>10,657 communal bins</b> stand on its streets, each shared by the flats around it. Every bin fills at its own speed, yet the trucks still follow a fixed timetable. So some bins overflow before the truck arrives, while others are emptied half full. In one summer quarter, people reported <b>6,006</b> full or overflowing bins. And money is tight: collection now costs <b>£1.35 million</b> more a year, and the council must find <b>£20.2 million</b> of savings this year. A better timetable won’t fix this. The city needs to see inside its bins.</p>
   </div>
-  <div class="stats">
-    <div class="card stat"><b>10,657</b><p>communal bins on the streets, at 4,532 stops</p><span class="src">City of Edinburgh Council, <a href="https://data.edinburghcouncilmaps.info/datasets/283caa7cb2434db3874526d16efe8c67_27/about" target="_blank" rel="noopener">Communal Bins register</a> (open data)</span></div>
-    <div class="card stat"><b>6,006</b><p>full or overflowing bins reported in one summer quarter, up 13 %</p><span class="src">Edinburgh Evening News, <a href="https://www.edinburghnews.scotsman.com/news/politics/council/edinburgh-council-blames-increase-in-overflowing-bins-on-explosion-of-airbnb-style-short-term-lets-1331605" target="_blank" rel="noopener">2019</a></span></div>
-    <div class="card stat"><b>37.5 %</b><p>of household waste recycled in 2024: 28th of Scotland’s 32 councils</p><span class="src"><a href="https://shiny.data.gov.scot/sepa/waste/household.html" target="_blank" rel="noopener">SEPA household waste data 2024</a>; <a href="https://beta.sepa.scot/news/2025/small-rise-in-scottish-household-recycling-rate-but-big-gains-are-still-go/" target="_blank" rel="noopener">SEPA</a> (2025)</span></div>
-    <div class="card stat"><b>52 %</b><p>of what goes in the general bin could have been recycled</p><span class="src">Zero Waste Scotland via <a href="https://beta.sepa.scot/news/2025/small-rise-in-scottish-household-recycling-rate-but-big-gains-are-still-go/" target="_blank" rel="noopener">SEPA</a> (2025)</span></div>
-    <div class="card stat"><b>£1.35m</b><p>more a year spent on collection in 2024/25</p><span class="src">City of Edinburgh Council, <a href="https://www.edinburgh.gov.uk/downloads/file/40593/environment-lgbf-2024-25" target="_blank" rel="noopener">Environment LGBF 2024/25</a></span></div>
-    <div class="card stat"><b>£20.2m</b><p>of savings the council must find in 2026/27</p><span class="src">City of Edinburgh Council, <a href="https://www.edinburgh.gov.uk/downloads/file/38260/council-budget-key-facts-and-figures-2025--2026" target="_blank" rel="noopener">Budget key facts 2025–26</a></span></div>
-  </div>
-  <div class="policy">
-    <div class="card"><span class="when">2025→</span><div><h4>Packaging EPR</h4><p>Up to 20 % of £17.3m can be withheld from inefficient services.</p></div></div>
-    <div class="card"><span class="when">2028</span><div><h4>Landfill ban</h4><p>Biodegradable waste can no longer go to landfill.</p></div></div>
-    <div class="card"><span class="when">2030→</span><div><h4>Circular Economy Act</h4><p>Council recycling targets, and penalties for contamination.</p></div></div>
-  </div>
-
-  <div class="card explainer" id="explainer">
-    <div class="ex-stage">
-      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center">
-        <div><h3 style="font-size:20px">Same fortnight, two ways to collect</h3><p class="muted small" style="margin-top:4px">Illustration: eight bins that fill at different speeds. Press play.</p></div>
-        <div class="seg" role="group" aria-label="Collection policy"><button type="button" class="on" data-mode="fixed">Fixed timetable</button><button type="button" data-mode="smart">BinSight</button></div>
-      </div>
-      <div class="ex-bins" id="exBins"></div>
-      <div class="ex-ctrl">
-        <button class="btn ghost" type="button" id="exPlay" style="padding:8px 16px">Play</button>
-        <input type="range" id="exDay" min="0" max="14" value="0" step="1" aria-label="Day">
-        <span class="ex-day" id="exDayLbl">Day 0</span>
-      </div>
+  <div class="stats" id="statAnims">
+    <div class="card stat anim">
+      <div class="stat-viz"><svg viewBox="0 0 320 120" id="vBins" aria-hidden="true"><g class="bins-grid"></g><text x="316" y="114" text-anchor="end" class="v-note">1 icon ≈ 110 bins</text></svg></div>
+      <b data-count="10657">10,657</b><p>communal bins on the streets, at 4,532 stops</p>
+      <span class="src">City of Edinburgh Council, <a href="https://data.edinburghcouncilmaps.info/datasets/283caa7cb2434db3874526d16efe8c67_27/about" target="_blank" rel="noopener">Communal Bins register</a> (open data)</span>
     </div>
-    <div class="ex-side">
-      <p class="small muted" id="exExplain">The timetable empties every bin on days 3, 6, 9 and 12, whether it is full or not.</p>
-      <div class="ex-score" id="exScore"></div>
-      <p class="small muted">Rule used by BinSight here: empty a bin today if tomorrow’s forecast is 80 % or more. The real engine applies the same 80 % floor to Edinburgh’s <span data-k="stops">4,532</span> stops, below, taking the fullest first while the fleet has time.</p>
+    <div class="card stat anim">
+      <div class="stat-viz"><svg viewBox="0 0 320 120" aria-hidden="true">
+        <g class="stink"><path d="M58 30c-4-6 4-9 0-15"/><path d="M76 24c-4-6 4-9 0-15"/><path d="M94 30c-4-6 4-9 0-15"/></g>
+        <path d="M38 52h76l-7 56a6 6 0 0 1-6 5H51a6 6 0 0 1-6-5z" fill="var(--bin-a)"/>
+        <g class="bags"><circle cx="56" cy="50" r="11" fill="var(--waste-2)"/><circle cx="77" cy="44" r="13" fill="var(--waste)"/><circle cx="97" cy="51" r="10" fill="var(--waste-2)"/><circle cx="66" cy="38" r="7" fill="#d9cdb2"/></g>
+        <rect class="lid" x="30" y="40" width="88" height="7" rx="3.5" fill="var(--ink)"/>
+        <g class="reps">
+          <g class="rep" style="--i:0"><rect x="148" y="72" width="160" height="26" rx="13"/><circle cx="163" cy="85" r="4.5"/><text x="175" y="89">Full bin reported</text></g>
+          <g class="rep" style="--i:1"><rect x="148" y="72" width="160" height="26" rx="13"/><circle cx="163" cy="85" r="4.5"/><text x="175" y="89">Bin overflowing</text></g>
+          <g class="rep" style="--i:2"><rect x="148" y="72" width="160" height="26" rx="13"/><circle cx="163" cy="85" r="4.5"/><text x="175" y="89">Full bin reported</text></g>
+        </g>
+        <g class="badge"><rect x="252" y="8" width="56" height="22" rx="11"/><text x="280" y="23" text-anchor="middle">+13 %</text></g>
+      </svg></div>
+      <b data-count="6006">6,006</b><p>full or overflowing bins reported in one summer quarter</p>
+      <span class="src">Edinburgh Evening News, <a href="https://www.edinburghnews.scotsman.com/news/politics/council/edinburgh-council-blames-increase-in-overflowing-bins-on-explosion-of-airbnb-style-short-term-lets-1331605" target="_blank" rel="noopener">2019</a></span>
+    </div>
+    <div class="card stat anim">
+      <div class="stat-viz"><svg viewBox="0 0 320 120" id="vRank" aria-hidden="true">
+        <text x="20" y="24" class="v-lab">Edinburgh</text>
+        <rect x="20" y="32" width="280" height="14" rx="7" fill="var(--line)"/>
+        <rect class="grow" x="20" y="32" width="105" height="14" rx="7" fill="var(--accent)"/>
+        <g class="avg"><line x1="144" y1="26" x2="144" y2="52"/><text x="148" y="24" class="v-lab">Scotland 44.3 %</text></g>
+        <g class="dots"></g>
+        <text x="20" y="114" class="v-note">1st</text><text x="300" y="114" text-anchor="end" class="v-note">32nd of 32 councils</text>
+      </svg></div>
+      <b data-count="37.5" data-dec="1" data-suf=" %">37.5 %</b><p>of household waste recycled in 2024</p>
+      <span class="src"><a href="https://shiny.data.gov.scot/sepa/waste/household.html" target="_blank" rel="noopener">SEPA household waste data 2024</a>; <a href="https://beta.sepa.scot/news/2025/small-rise-in-scottish-household-recycling-rate-but-big-gains-are-still-go/" target="_blank" rel="noopener">SEPA</a> (2025)</span>
+    </div>
+    <div class="card stat anim">
+      <div class="stat-viz"><svg viewBox="0 0 320 120" id="vMix" aria-hidden="true">
+        <rect x="44" y="18" width="232" height="8" rx="4" fill="var(--ink)"/>
+        <path d="M48 28h224l-6 76a6 6 0 0 1-6 5H60a6 6 0 0 1-6-5z" fill="none" stroke="var(--line-2)" stroke-width="1.5"/>
+        <g class="cells"></g>
+        <g class="v-leg"><rect x="60" y="112" width="7" height="7" rx="1.5" fill="var(--accent)"/><text x="71" y="119">could be recycled</text></g>
+      </svg></div>
+      <b data-count="52" data-suf=" %">52 %</b><p>of what goes in the general bin could have been recycled</p>
+      <span class="src">Zero Waste Scotland via <a href="https://beta.sepa.scot/news/2025/small-rise-in-scottish-household-recycling-rate-but-big-gains-are-still-go/" target="_blank" rel="noopener">SEPA</a> (2025)</span>
+    </div>
+    <div class="card stat anim">
+      <div class="stat-viz"><svg viewBox="0 0 320 120" aria-hidden="true">
+        <text x="16" y="22" class="v-lab">+£5.07 a year per home</text>
+        <g class="houses"><path d="M16 104v-14l12-10 12 10v14z"/><rect x="25" y="96" width="6" height="8" rx="1" class="door"/><path d="M58 104v-14l12-10 12 10v14z"/><rect x="67" y="96" width="6" height="8" rx="1" class="door"/><path d="M100 104v-14l12-10 12 10v14z"/><rect x="109" y="96" width="6" height="8" rx="1" class="door"/><path d="M142 104v-14l12-10 12 10v14z"/><rect x="151" y="96" width="6" height="8" rx="1" class="door"/><path d="M184 104v-14l12-10 12 10v14z"/><rect x="193" y="96" width="6" height="8" rx="1" class="door"/></g>
+        <g class="coins"><g class="coin" style="--i:0;--dx:234px;--dy:-6px"><circle cx="28" cy="68" r="7"/><text x="28" y="71.5" text-anchor="middle">£</text></g><g class="coin" style="--i:1;--dx:192px;--dy:-6px"><circle cx="70" cy="68" r="7"/><text x="70" y="71.5" text-anchor="middle">£</text></g><g class="coin" style="--i:2;--dx:150px;--dy:-6px"><circle cx="112" cy="68" r="7"/><text x="112" y="71.5" text-anchor="middle">£</text></g><g class="coin" style="--i:3;--dx:108px;--dy:-6px"><circle cx="154" cy="68" r="7"/><text x="154" y="71.5" text-anchor="middle">£</text></g><g class="coin" style="--i:4;--dx:66px;--dy:-6px"><circle cx="196" cy="68" r="7"/><text x="196" y="71.5" text-anchor="middle">£</text></g></g>
+        <rect x="236" y="40" width="52" height="68" rx="9" fill="none" stroke="var(--ink-3)" stroke-width="1.5"/>
+        <rect class="jar" x="239" y="43" width="46" height="62" rx="7" fill="var(--f2)"/>
+        <rect x="232" y="34" width="60" height="8" rx="4" fill="var(--ink-3)"/>
+      </svg></div>
+      <b data-count="1.35" data-dec="2" data-pre="£" data-suf="m">£1.35m</b><p>more a year spent on collection, across 266,612 homes (2024/25)</p>
+      <span class="src">City of Edinburgh Council, <a href="https://www.edinburgh.gov.uk/downloads/file/40593/environment-lgbf-2024-25" target="_blank" rel="noopener">Environment LGBF 2024/25</a></span>
+    </div>
+    <div class="card stat anim">
+      <div class="stat-viz"><svg viewBox="0 0 320 120" aria-hidden="true">
+        <defs><pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="var(--paper)"/><line x1="0" y1="0" x2="0" y2="7" stroke="var(--f4)" stroke-width="2.4" opacity=".35"/></pattern></defs>
+        <text x="20" y="28" class="v-lab">2026/27</text><text x="300" y="28" text-anchor="end" class="v-lab">four years to 2029/30: £94.2m</text>
+        <rect class="rest" x="20" y="38" width="280" height="30" rx="9" fill="url(#hatch)" stroke="var(--line-2)"/>
+        <rect class="grow" x="20" y="38" width="60" height="30" rx="9" fill="var(--f4)"/>
+        <g class="cutline"><line x1="80" y1="74" x2="80" y2="96"/><text x="86" y="94" class="v-lab">this year</text></g>
+      </svg></div>
+      <b data-count="20.2" data-dec="1" data-pre="£" data-suf="m">£20.2m</b><p>of savings the council must find this year</p>
+      <span class="src">City of Edinburgh Council, <a href="https://www.edinburgh.gov.uk/downloads/file/38260/council-budget-key-facts-and-figures-2025--2026" target="_blank" rel="noopener">Budget key facts 2025–26</a></span>
+    </div>
+  </div>
+  <div class="card tl-card anim" aria-label="Policy timeline">
+    <div class="tl">
+      <div class="tl-track"><span class="tl-fill"></span></div>
+      <div class="tl-node" style="--x:13%;--t:.45s"><span class="tl-dot"></span><b>2025</b><h4>Packaging EPR</h4><p>Up to 20 % of £17.3m withheld from inefficient services</p></div>
+      <div class="tl-now" style="--x:40%;--t:.9s"><span class="tl-dot"></span><b>Now</b></div>
+      <div class="tl-node" style="--x:56.5%;--t:1.2s"><span class="tl-dot"></span><b>2028</b><h4>Landfill ban</h4><p>Biodegradable waste can no longer go to landfill</p></div>
+      <div class="tl-node" style="--x:85.5%;--t:1.8s"><span class="tl-dot"></span><b>2030</b><h4>Circular Economy Act</h4><p>Council recycling targets and contamination penalties</p></div>
     </div>
   </div>
 </section>
@@ -1117,7 +1213,6 @@ async function boot() {
   derive();
   fillKeys();
   drawHero();
-  initExplainer();
   initSteps();
   initMap();
   initConsole();
@@ -1317,62 +1412,6 @@ function initHeroHover() {
     if (best) { BS.focusStop(best[2]); $("#console").scrollIntoView(); }
   });
   let t; addEventListener("resize", () => { clearTimeout(t); t = setTimeout(drawHero, 150); });
-}
-
-/* ── explainer (illustration) ────────────────────── */
-function initExplainer() {
-  const rates = [9, 14, 22, 31, 12, 38, 18, 26], days = 14, fixedDays = new Set([3, 6, 9, 12]);
-  const start = [20, 35, 10, 40, 55, 15, 30, 45];
-  function run(mode) {
-    let f = start.slice(); const frames = [];
-    const tally = { visits: 0, overflowDays: 0, waste: 0 };
-    frames.push({ f: f.slice(), hit: [], over: [], waste: [], tally: { ...tally } });
-    for (let d = 1; d <= days; d++) {
-      const hit = [], waste = [];
-      for (let b = 0; b < 8; b++) {
-        const collect = mode === "fixed" ? fixedDays.has(d) : (f[b] + rates[b] >= 80);
-        if (collect) { tally.visits++; hit.push(b); if (f[b] < 40) { tally.waste++; waste.push(b); } f[b] = 0; }
-      }
-      const over = [];
-      for (let b = 0; b < 8; b++) { f[b] += rates[b]; if (f[b] > 100) { over.push(b); tally.overflowDays++; } }
-      frames.push({ f: f.slice(), hit, over, waste, tally: { ...tally } });
-    }
-    return frames;
-  }
-  const runs = { fixed: run("fixed"), smart: run("smart") };
-  let mode = "fixed", day = 0, timer = null;
-  const host = $("#exBins");
-  host.innerHTML = rates.map((r, b) => `<div class="ex-bin" data-b="${b}"><span class="truck">emptied</span><span class="spill"></span><div class="tank"><div class="lvl"></div></div><div class="lbl">Bin ${"ABCDEFGH"[b]}<br><span class="mono">+${r} %/day</span></div></div>`).join("");
-  function render() {
-    const fr = runs[mode][day];
-    $$(".ex-bin", host).forEach((el, b) => {
-      const v = Math.min(100, fr.f[b]);
-      const lvl = $(".lvl", el); lvl.style.height = v + "%"; lvl.style.background = fillColor(fr.f[b]);
-      el.classList.toggle("over", fr.over.includes(b));
-      el.classList.toggle("hit", fr.hit.includes(b));
-      el.classList.toggle("waste", fr.waste.includes(b));
-      $(".truck", el).textContent = fr.waste.includes(b) ? "half-empty" : "emptied";
-    });
-    $("#exDay").value = day; $("#exDayLbl").textContent = "Day " + day;
-    const a = runs.fixed[day].tally, s = runs.smart[day].tally;
-    const cell = (x, y, lowerBetter = true) => `<b>${x}</b><b class="${(lowerBetter ? y < x : y > x) ? "better" : ""}">${y}</b>`;
-    $("#exScore").innerHTML = `<span class="h"></span><span class="h">Timetable</span><span class="h">BinSight</span>
-      <span>Bin visits</span>${cell(a.visits, s.visits)}
-      <span>Overflowing bin-days</span>${cell(a.overflowDays, s.overflowDays)}
-      <span>Emptied under 40 % full</span>${cell(a.waste, s.waste)}`;
-    $("#exExplain").textContent = mode === "fixed"
-      ? "The timetable empties every bin on days 3, 6, 9 and 12, whether it is full or not. Fast bins overflow in between."
-      : "BinSight empties a bin only when it would pass 80 % before the next chance of a truck. Slow bins are skipped, fast bins are visited sooner.";
-  }
-  $$(".seg button[data-mode]").forEach(b => b.onclick = () => { mode = b.dataset.mode; $$(".seg button[data-mode]").forEach(x => x.classList.toggle("on", x === b)); render(); });
-  $("#exDay").oninput = e => { day = +e.target.value; render(); };
-  $("#exPlay").onclick = () => {
-    if (timer) { clearInterval(timer); timer = null; $("#exPlay").textContent = "Play"; return; }
-    if (day >= days) day = 0;
-    $("#exPlay").textContent = "Pause";
-    timer = setInterval(() => { day++; render(); if (day >= days) { clearInterval(timer); timer = null; $("#exPlay").textContent = "Replay"; } }, 650);
-  };
-  render();
 }
 
 /* ── steps ───────────────────────────────────────── */
@@ -2452,6 +2491,52 @@ function initNav() {
   };
   addEventListener("scroll", onScroll, { passive: true }); onScroll();
 }
+
+/* ── problem: animated facts ── */
+(function initStatAnims() {
+  const host = $("#statAnims"); if (!host) return;
+  const NS = "http://www.w3.org/2000/svg", el = (t, at) => { const e = document.createElementNS(NS, t); for (const k in at) e.setAttribute(k, at[k]); return e; };
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  // 96 bins, one icon for about 110 of the 10,657
+  const g = $("#vBins .bins-grid");
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 24; c++) {
+    const x = 6.5 + c * 13, y = 6 + r * 24, b = el("g", { class: "bin" + (rnd() < .14 ? " hot" : "") });
+    b.style.setProperty("--d", (c * 26 + r * 70) + "ms"); b.style.setProperty("--h", (rnd() * 5).toFixed(2) + "s");
+    b.append(el("rect", { x, y, width: 10, height: 2.4, rx: 1, class: "lidr" }), el("rect", { x: x + 1, y: y + 3.4, width: 8, height: 11, rx: 1.6, class: "body" }));
+    g.append(b);
+  }
+  // 32 councils by recycling rate; Edinburgh is 28th
+  const dots = $("#vRank .dots");
+  for (let k = 0; k < 32; k++) {
+    const d = el("circle", { cx: 24 + k * 8.9, cy: 92, r: k === 27 ? 5.5 : 3.6, class: k === 27 ? "me" : "" });
+    d.style.setProperty("--d", (600 + k * 35) + "ms"); dots.append(d);
+  }
+  dots.append(Object.assign(el("text", { x: 24 + 27 * 8.9, y: 80, "text-anchor": "middle", class: "v-me" }), { textContent: "28th" }));
+  // 100 squares of general waste; 52 could have been recycled
+  const cells = $("#vMix .cells"), order = [...Array(100).keys()].sort(() => rnd() - .5), rank = new Map(order.map((v, k) => [v, k]));
+  for (let k = 0; k < 100; k++) {
+    const c = k % 20, r = (k / 20) | 0, sq = el("rect", { x: 62 + c * 10.1, y: 36 + r * 13, width: 8, height: 10, rx: 1.6, class: rank.get(k) < 52 ? "rec" : "" });
+    sq.style.setProperty("--d", (300 + rank.get(k) * 24) + "ms"); cells.append(sq);
+  }
+  const count = b => {
+    const end = +b.dataset.count, dec = +(b.dataset.dec || 0), pre = b.dataset.pre || "", suf = (b.dataset.suf || "").replace(" ", " ");
+    const show = v => b.textContent = pre + v.toLocaleString("en-GB", { minimumFractionDigits: dec, maximumFractionDigits: dec }) + suf;
+    if (still) return show(end);
+    const t0 = performance.now(), dur = 1500;
+    const step = now => { const u = Math.min(1, (now - t0) / dur); show(end * (1 - Math.pow(1 - u, 3))); if (u < 1) requestAnimationFrame(step); };
+    show(0); requestAnimationFrame(step);
+  };
+  const cards = $$(".anim", host.parentElement);
+  document.documentElement.classList.add("anim-ready");
+  if (still || !("IntersectionObserver" in window)) { cards.forEach(c => c.classList.add("play")); return; }
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    io.unobserve(e.target); e.target.classList.add("play");
+    const b = $("b[data-count]", e.target); if (b) count(b);
+  }), { threshold: .35 });
+  cards.forEach(c => io.observe(c));
+})();
 
 /* ── the sensor (Step 1, up close): copied from the BinSight business demo ── */
 (function initSensor() {
