@@ -243,7 +243,7 @@
     <button type="button" role="tab" data-m="0" class="on"><span class="k">1</span>Simulate<small>how bins fill</small></button>
     <button type="button" role="tab" data-m="1"><span class="k">2</span>Predict<small>tomorrow’s fill</small></button>
     <button type="button" role="tab" data-m="2"><span class="k">3</span>Decide<small>which stops</small></button>
-    <button type="button" role="tab" data-m="3"><span class="k">4</span>Route<small>simulated annealing</small></button>
+    <button type="button" role="tab" data-m="3"><span class="k">4</span>Optimise<small>the cheapest routes</small></button>
     <button type="button" role="tab" data-m="4"><span class="k">5</span>Check<small>against the timetable</small></button>
   </div>
 
@@ -319,29 +319,20 @@
     </div>
   </div>
 
-  <!-- 4 · ROUTE -->
+  <!-- 4 · OPTIMISE -->
   <div class="card m-pane" data-m="3" hidden>
     <div class="m-grid">
       <div class="m-text">
-        <h3>Routing: one model, solved by simulated annealing</h3>
-        <p>Step 3 chose tomorrow’s stops. This step decides which truck empties each one, in what order, and when it drives back to Seafield to tip.</p>
-        <p><b>The model.</b> On the road graph (<span data-mk="roadKm">–</span> km of Edinburgh streets from OpenStreetMap, shortest paths by Dijkstra), truck <var>k</var> makes trips <var>r</var>. Driving <var>i</var> → <var>j</var> costs <var>c<sub>ij</sub></var> = £1.45·km + £75·θ·hours. Leaving stop <var>i</var> out costs its prize <var>π<sub>i</sub></var> = £60 × <var>ŷ<sub>i</sub></var>/100, its share of an overflow.</p>
-        <div class="eq left eq-lines hl">
-          <div>min &nbsp; Σ <var>c<sub>ij</sub> x<sub>ijkr</sub></var> + Σ<sub><var>i</var></sub> <var>π<sub>i</sub></var>(1 − Σ<sub><var>kr</var></sub> <var>z<sub>ikr</sub></var>)</div>
-          <div class="in st">Σ<sub><var>kr</var></sub> <var>z<sub>ikr</sub></var> ≤ 1 &emsp; each stop at most once</div>
-          <div class="in">Σ<sub><var>i</var></sub> <var>q<sub>i</sub> z<sub>ikr</sub></var> ≤ <var>Q</var> = 60 m³ &emsp; one load per trip</div>
-          <div class="in">Σ<sub><var>r</var></sub> (θ·drive + lift + tip) ≤ 480 min &emsp; each of <span data-mk="fleet">–</span> trucks</div>
-          <div class="in">flow in = flow out, no subtours, &nbsp;<var>x</var>, <var>z</var>, <var>u</var> ∈ {0, 1}</div>
-        </div>
-        <p><b>The algorithm: simulated annealing.</b> The model is NP-hard and tomorrow has <b data-mk="nStops">–</b> stops, so no exact solver finishes in minutes. Annealing searches instead:</p>
-        <div class="algo"><ol>
-          <li><b>Start.</b> Fill truck after truck, trip after trip, with the nearest stop that still fits.</li>
-          <li><b>Propose a small change.</b> Pick a stop <var>v</var> and one of its 20 nearest stops <var>w</var>, then: move <var>v</var> next to <var>w</var> · swap them · reverse the path between them (2-opt) · cross two trips at them (2-opt*) · drop <var>v</var> · give <var>v</var> a new trip. Changes that break a constraint are never made.</li>
-          <li><b>Accept or reject.</b> Δ = new cost − old cost. Keep the change if Δ ≤ 0; if it is worse, keep it anyway with probability <span class="eq inline">e<sup>−Δ/<var>T</var></sup></span>.</li>
-          <li><b>Cool.</b> The temperature <var>T</var> falls geometrically over the time budget. Early on, worse plans are often kept, so the search can climb out of a dead end. At the end it only goes downhill.</li>
-          <li><b>Return</b> the best plan seen.</li>
-        </ol></div>
-        <p><b>Weather and holidays sit in the constraints.</b> The load <var>q<sub>i</sub></var> grows with the hourly factor <var>w<sub>h</sub></var> (rain, temperature, holidays) until the truck arrives, and rain slows driving: θ = 1 + 0.10 × the share of the shift’s hours with rain. Both effect sizes are assumptions.</p>
+        <h3>What is the cheapest way to empty them?</h3>
+        <p class="m-idea">Each truck leaves Seafield, empties its stops and drives back to tip when it is full, all within one shift. Simulated annealing searches for the plan that costs least, one small change at a time.</p>
+        <div class="eq hl">\[ \min \;\; \underbrace{\textstyle\sum c_{ij}\, x_{ijkr}}_{\text{driving cost}} \;+\; \underbrace{\textstyle\sum_i \pi_i \bigl(1 - \sum_{kr} z_{ikr}\bigr)}_{\text{stops left out}} \]
+        \[ \underbrace{\textstyle\sum_i q_i\, z_{ikr} \le Q}_{\text{one load per trip}} \qquad \underbrace{\text{drive} + \text{lift} + \text{tip} \le @shift@\ \text{min}}_{\text{one shift per truck}} \]</div>
+        <ul class="m-list">
+          <li><b>Cost of driving.</b> £@costKm@ per km plus £@costHour@ per truck-hour. Rain slows every drive.</li>
+          <li><b>Cost of skipping.</b> Leaving a bin out costs its share of a £@costOverflow@ overflow, \(\pi_i = @costOverflow@ \times \hat y_i / 100\), so the emptiest bins wait first.</li>
+          <li><b>Simulated annealing.</b> Try small changes: move a stop, swap two, reverse a stretch. Keep every improvement, and early on sometimes a worse plan, so the search does not get stuck.</li>
+        </ul>
+        <p class="note">The full model, every constraint and the algorithm’s settings are in <span class="mono">model/README.md</span>.</p>
         <p class="note" id="routeNote"></p>
       </div>
       <div class="m-widget">
