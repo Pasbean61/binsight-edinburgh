@@ -156,98 +156,169 @@ function projector(w, h, pad = 18) {
   const ox = (w - (b.e - b.w) * kx * s) / 2, oy = (h - (b.n - b.s) * s) / 2;
   return { x: lon => ox + (lon - b.w) * kx * s, y: lat => oy + (b.n - lat) * s };
 }
-let heroPts = null, heroBase = null, heroFull = [], heroRaf = 0, heroVis = true;
-const heroReduce = matchMedia("(prefers-reduced-motion: reduce)");
-// fit the city into a rectangle (x0, y0, x1, y1) of the cover
-function fitProjector(x0, y0, x1, y1) {
-  const b = { s: 55.885, n: 56.0, w: -3.43, e: -3.05 }, kx = Math.cos(55.94 * Math.PI / 180);
+/* ── cover: tomorrow's plan as a short film ──
+   The city fades up, every bin stop lights in a wave from the depot, then the 34 trucks leave Seafield
+   and each bin turns green as its truck reaches it (real stops, real street routes, simulated fill). */
+let heroPts = null;
+const CV = { W: 0, H: 0, dpr: 1, P: null, r: 2, x: null, y: null, delay: null, order: null, state: null, t: 0, t0: 0, last: 0, raf: 0, ig: 0, ev: 0, fx: [], trails: [], resetAt: 0, started: false, box: null };
+const coverStill = matchMedia("(prefers-reduced-motion: reduce)");
+const IGNITE_MS = 1900, TRUCKS_AT = 2700, DAY_MS = 46000, HOLD_MS = 4200, TRAIL_MS = 2600;
+function coverProjector(W, H) {
+  if (!CV.box) {
+    const q = (arr, p) => { const s = [...arr].sort((m, n) => m - n); return s[Math.floor((s.length - 1) * p)]; };
+    CV.box = { s: q(D.S.lat, .02), n: q(D.S.lat, .985), w: q(D.S.lon, .03), e: q(D.S.lon, .985) };
+  }
+  const b = CV.box, kx = Math.cos(55.94 * Math.PI / 180), narrow = W < 760;
+  const [x0, y0, x1, y1] = narrow ? [W * .04, 96, W * .96, H * .47] : [W * .44, H * .15, W * .965, H * .85];
   const s = Math.min((x1 - x0) / ((b.e - b.w) * kx), (y1 - y0) / (b.n - b.s));
   const ox = x0 + ((x1 - x0) - (b.e - b.w) * kx * s) / 2, oy = y0 + ((y1 - y0) - (b.n - b.s) * s) / 2;
   return { x: lon => ox + (lon - b.w) * kx * s, y: lat => oy + (b.n - lat) * s, s };
 }
-function drawHero() {
-  const cv = $("#heroCanvas"); if (!cv || !D.S) return;
-  const box = cv.parentElement.getBoundingClientRect(), W = box.width, H = box.height, dpr = Math.min(2, devicePixelRatio || 1);
-  const narrow = W < 900;
-  const P = narrow ? fitProjector(-W * .06, 30, W * 1.06, Math.min(W * .92, 520) + 40) : fitProjector(W * .3, -H * .06, W * 1.05, H * 1.06);
-  const bc = document.createElement("canvas"); bc.width = W * dpr; bc.height = H * dpr;
-  const c = bc.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+const dotsCtx = () => { const c = $("#heroDots").getContext("2d"); c.setTransform(CV.dpr, 0, 0, CV.dpr, 0, 0); return c; };
+function litDot(c, i) {
+  const v = D.S.pred[i], x = CV.x[i], y = CV.y[i], r = CV.r;
+  if (v >= 80) {
+    const g = c.createRadialGradient(x, y, 0, x, y, r * 4.5);
+    g.addColorStop(0, v >= 90 ? "rgba(214,80,56,.13)" : "rgba(226,140,70,.1)"); g.addColorStop(1, "rgba(0,0,0,0)");
+    c.globalCompositeOperation = "lighter"; c.fillStyle = g; c.fillRect(x - r * 4.5, y - r * 4.5, r * 9, r * 9); c.globalCompositeOperation = "source-over";
+  }
+  c.globalAlpha = v >= 60 ? 1 : .55; c.fillStyle = fillColor(v);
+  c.beginPath(); c.arc(x, y, v >= 80 ? r : r * .78, 0, 6.2832); c.fill(); c.globalAlpha = 1;
+}
+function doneDot(c, i) {
+  const x = CV.x[i], y = CV.y[i], r = CV.r;
+  const g = c.createRadialGradient(x, y, r * .6, x, y, r * 2.4);
+  g.addColorStop(0, "rgba(22,30,36,.92)"); g.addColorStop(1, "rgba(22,30,36,0)");
+  c.fillStyle = g; c.beginPath(); c.arc(x, y, r * 2.4, 0, 6.2832); c.fill();
+  c.fillStyle = "#57d6a6"; c.beginPath(); c.arc(x, y, r * .82, 0, 6.2832); c.fill();
+}
+function redrawDots() {
+  const c = dotsCtx(); c.clearRect(0, 0, CV.W, CV.H);
+  const byFill = [...D.S.pred.keys()].sort((m, n) => D.S.pred[m] - D.S.pred[n]);
+  for (const i of byFill) if (CV.state[i] === 1) litDot(c, i);
+  for (const i of byFill) if (CV.state[i] === 2) doneDot(c, i);
+}
+function drawHero() {                                       // lay the cover out (also on resize); the film itself starts once
+  const host = $("#heroMap"), base = $("#heroBase"), fx = $("#heroCanvas"); if (!host || !base || !D.S) return;
+  const W = host.clientWidth, H = host.clientHeight, S = D.S, n = S.lat.length;
+  const dpr = Math.min(2, devicePixelRatio || 1, Math.sqrt(3.4e6 / (W * H)));
+  const P = coverProjector(W, H);
+  Object.assign(CV, { W, H, dpr, P, r: clamp(P.s / 3200, 1.25, 2.6) });
+  for (const cv of [base, $("#heroDots"), fx]) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const c = base.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0);
   const N = { land: css("--night-land"), edge: css("--night-edge"), road: css("--night-road"), park: css("--night-park"), ink: css("--night-ink") };
   const path = (pts, close) => { c.beginPath(); pts.forEach(([la, lo], k) => k ? c.lineTo(P.x(lo), P.y(la)) : c.moveTo(P.x(lo), P.y(la))); if (close) c.closePath(); };
   c.lineWidth = 1; c.strokeStyle = N.edge; c.fillStyle = N.land;
   for (const w of D.base.wards) for (const ring of w.rings) { path(decode(ring), true); c.fill(); c.stroke(); }
   c.fillStyle = N.park;
   for (const pk of D.base.parks) { if (pk.k !== "park") continue; path(decode(pk.ring), true); c.fill(); }
-  c.strokeStyle = N.road; c.lineWidth = 1.3;
+  c.strokeStyle = N.road; c.lineWidth = 1.2; c.lineJoin = "round";
   for (const line of (D.base.roads.major || [])) { path(decode(line)); c.stroke(); }
-  // stops: a soft glow under the fuller ones, then the dots, emptiest first
-  const S = D.S, order = [...S.pred.keys()].sort((x, y) => S.pred[x] - S.pred[y]);
-  const r = clamp(P.s / 1100, 1.2, 2.2);
-  heroPts = []; heroFull = [];
-  c.globalCompositeOperation = "lighter";
-  for (const i of order) if (S.pred[i] >= 80) {
-    const x = P.x(S.lon[i]), y = P.y(S.lat[i]);
-    const g = c.createRadialGradient(x, y, 0, x, y, r * 4.5); g.addColorStop(0, S.pred[i] >= 90 ? "rgba(214,80,56,.11)" : "rgba(226,140,70,.08)"); g.addColorStop(1, "rgba(0,0,0,0)");
-    c.fillStyle = g; c.fillRect(x - r * 4.5, y - r * 4.5, r * 9, r * 9);
-  }
-  c.globalCompositeOperation = "source-over";
-  for (const i of order) {
-    const x = P.x(S.lon[i]), y = P.y(S.lat[i]);
-    heroPts.push([x, y, i]); if (S.pred[i] >= 80) heroFull.push([x, y, S.pred[i]]);
-    c.beginPath(); c.arc(x, y, S.pred[i] >= 80 ? r : r * .8, 0, Math.PI * 2); c.fillStyle = fillColor(S.pred[i]); c.globalAlpha = S.pred[i] >= 60 ? 1 : .7; c.fill();
-  }
-  c.globalAlpha = 1;
   const dx = P.x(D.site.depot.longitude), dy = P.y(D.site.depot.latitude);
-  c.beginPath(); c.arc(dx, dy, 5, 0, Math.PI * 2); c.fillStyle = N.ink; c.fill();
-  c.beginPath(); c.arc(dx, dy, 9.5, 0, Math.PI * 2); c.strokeStyle = N.ink; c.lineWidth = 1.2; c.stroke();
-  heroBase = bc;
-  cv.width = W * dpr; cv.height = H * dpr;
-  heroFrame(performance.now());
-  cv.classList.add("on");
-  if (!heroReduce.matches && !heroRaf) heroRaf = requestAnimationFrame(heroLoop);
+  c.beginPath(); c.arc(dx, dy, 4.5, 0, 6.2832); c.fillStyle = N.ink; c.fill();
+  c.beginPath(); c.arc(dx, dy, 9, 0, 6.2832); c.strokeStyle = N.ink; c.lineWidth = 1.2; c.stroke();
+  // where every stop sits, and when it lights: a wave spreading from the depot
+  if (!CV.state) { CV.state = new Uint8Array(n); CV.delay = new Float32Array(n); }
+  CV.x = new Float32Array(n); CV.y = new Float32Array(n); heroPts = [];
+  let far = 1;
+  for (let i = 0; i < n; i++) { CV.x[i] = P.x(S.lon[i]); CV.y[i] = P.y(S.lat[i]); heroPts.push([CV.x[i], CV.y[i], i]); far = Math.max(far, Math.hypot(CV.x[i] - dx, CV.y[i] - dy)); }
+  for (let i = 0; i < n; i++) CV.delay[i] = 250 + Math.hypot(CV.x[i] - dx, CV.y[i] - dy) / far * IGNITE_MS + (i * 7919 % 100) * 2.2;
+  CV.order = [...S.pred.keys()].sort((m, k) => CV.delay[m] - CV.delay[k]);
+  CV.trails = []; CV.fx = [];
+  host.classList.add("live");
+  if (coverStill.matches) { CV.state.fill(1); redrawDots(); return; }
+  redrawDots();
+  if (!CV.started) { CV.started = true; addEventListener("scroll", coverKick, { passive: true }); document.addEventListener("visibilitychange", coverKick); }
+  coverKick();
 }
-// sensor pings: rings rise from a few full bins at a time
-const pings = [];
-function heroFrame(now) {
-  const cv = $("#heroCanvas"); if (!heroBase || !cv) return;
-  const c = cv.getContext("2d"), dpr = cv.width / cv.clientWidth || 1;
-  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); c.drawImage(heroBase, 0, 0);
-  c.setTransform(dpr, 0, 0, dpr, 0, 0);
-  if (heroFull.length && pings.length < 9 && Math.random() < .12) { const p = heroFull[(Math.random() * heroFull.length) | 0]; pings.push({ x: p[0], y: p[1], t: now, hot: p[2] >= 90 }); }
-  for (let k = pings.length - 1; k >= 0; k--) {
-    const p = pings[k], u = (now - p.t) / 1600;
-    if (u >= 1) { pings.splice(k, 1); continue; }
-    c.beginPath(); c.arc(p.x, p.y, 3 + u * 18, 0, Math.PI * 2);
-    c.strokeStyle = p.hot ? `rgba(240,110,80,${(1 - u) * .8})` : `rgba(240,170,90,${(1 - u) * .7})`; c.lineWidth = 1.4; c.stroke();
+function coverKick() {
+  const host = $("#heroMap"); if (!host) return;
+  host.style.setProperty("--p", clamp(scrollY / Math.max(1, host.offsetHeight), 0, 1).toFixed(3));
+  if (!CV.raf && CV.started && !coverStill.matches && !document.hidden && scrollY < host.offsetHeight) { CV.last = 0; CV.raf = requestAnimationFrame(coverFrame); }
+}
+function coverFrame(now) {
+  CV.raf = 0;
+  const host = $("#heroMap");
+  if (document.hidden || scrollY >= host.offsetHeight) return;         // off screen: coverKick resumes it
+  const dt = CV.last ? Math.min(50, now - CV.last) : 16; CV.last = now;
+  coverStep(dt);
+  CV.raf = requestAnimationFrame(coverFrame);
+}
+function coverStep(dt) {
+  CV.t += dt;
+  const t = CV.t - CV.t0, S = D.S, P = CV.P, dc = dotsCtx();
+  // 1. the stops light up
+  while (CV.ig < CV.order.length && CV.delay[CV.order[CV.ig]] <= t) {
+    const i = CV.order[CV.ig++]; if (CV.state[i]) continue;
+    CV.state[i] = 1; litDot(dc, i);
+    if (S.pred[i] >= 80 && CV.fx.length < 700) CV.fx.push([CV.x[i], CV.y[i], CV.t, 0]);
+  }
+  // 2. the shift: 06:00 to 14:00 in 46 seconds
+  const tt = t - TRUCKS_AT, simT = SIM.end ? clamp(tt / DAY_MS, 0, 1) * SIM.end : 0;
+  if (SIM.end && tt > 0) while (CV.ev < SIM.events.length && SIM.events[CV.ev][0] <= simT) {
+    const i = SIM.events[CV.ev++][1]; if (CV.state[i] === 2) continue;
+    CV.state[i] = 2; doneDot(dc, i);
+    if ((i & 3) === 0) CV.fx.push([CV.x[i], CV.y[i], CV.t, 1]);
+  }
+  // 3. light: truck trails, flashes
+  const f = $("#heroCanvas").getContext("2d"); f.setTransform(CV.dpr, 0, 0, CV.dpr, 0, 0); f.clearRect(0, 0, CV.W, CV.H);
+  f.globalCompositeOperation = "lighter"; f.lineCap = "round"; f.lineJoin = "round";
+  if (SIM.end && tt > 0) SIM.trucks.forEach((tk, k) => {
+    const tr = CV.trails[k] || (CV.trails[k] = []);
+    const p = tt < DAY_MS ? truckPos(tk, simT) : null, moving = p && p.tr;
+    const hx = moving ? P.x(p.at[1]) : 0, hy = moving ? P.y(p.at[0]) : 0;
+    if (moving) { const l = tr[tr.length - 1]; if (!l || Math.hypot(hx - l[0], hy - l[1]) > 1.4) tr.push([hx, hy, CV.t]); }
+    while (tr.length && CV.t - tr[0][2] > TRAIL_MS) tr.shift();
+    if (tr.length > 1) {
+      const m = tr.length, parts = Math.min(6, m - 1);
+      for (let q = 0; q < parts; q++) {
+        const from = Math.floor(q * (m - 1) / parts), to = Math.floor((q + 1) * (m - 1) / parts), u = (q + 1) / parts;
+        f.beginPath(); f.moveTo(tr[from][0], tr[from][1]); for (let j = from + 1; j <= to; j++) f.lineTo(tr[j][0], tr[j][1]);
+        f.strokeStyle = `rgba(110,225,180,${(u * u * .75).toFixed(3)})`; f.lineWidth = .8 + u * 1.4; f.stroke();
+      }
+    }
+    if (moving) {
+      const h = [hx, hy], gr = CV.r * 4.6, g = f.createRadialGradient(h[0], h[1], 0, h[0], h[1], gr);
+      g.addColorStop(0, "rgba(160,245,210,.55)"); g.addColorStop(1, "rgba(160,245,210,0)");
+      f.fillStyle = g; f.fillRect(h[0] - gr, h[1] - gr, gr * 2, gr * 2);
+      f.fillStyle = "rgba(255,255,255,.95)"; f.beginPath(); f.arc(h[0], h[1], CV.r * .85, 0, 6.2832); f.fill();
+    }
+  });
+  for (let k = CV.fx.length - 1; k >= 0; k--) {
+    const e = CV.fx[k], life = e[3] ? 720 : 430, u = (CV.t - e[2]) / life;
+    if (u >= 1) { CV.fx.splice(k, 1); continue; }
+    if (e[3]) { f.beginPath(); f.arc(e[0], e[1], 2 + u * 11, 0, 6.2832); f.strokeStyle = `rgba(110,225,180,${((1 - u) * .7).toFixed(3)})`; f.lineWidth = 1.2; f.stroke(); }
+    else { f.beginPath(); f.arc(e[0], e[1], CV.r * (1 + u * 2.6), 0, 6.2832); f.fillStyle = `rgba(255,196,150,${((1 - u) * .7).toFixed(3)})`; f.fill(); }
+  }
+  f.globalCompositeOperation = "source-over";
+  // 4. after the shift, hold, fade and play again
+  if (SIM.end && tt > DAY_MS + HOLD_MS) {
+    const dots = $("#heroDots");
+    if (!CV.resetAt) { CV.resetAt = CV.t; dots.classList.add("out"); }
+    else if (CV.t - CV.resetAt > 1100) {
+      CV.state.fill(0); dc.clearRect(0, 0, CV.W, CV.H); CV.ig = 0; CV.ev = 0; CV.trails = []; CV.fx = []; CV.t0 = CV.t; CV.resetAt = 0; dots.classList.remove("out");
+    }
   }
 }
-function heroLoop(now) {
-  heroRaf = 0;
-  if (!heroVis || document.hidden) return;
-  heroFrame(now); heroRaf = requestAnimationFrame(heroLoop);
-}
-new IntersectionObserver(es => { heroVis = es[0].isIntersecting; if (heroVis && heroBase && !heroReduce.matches && !heroRaf) heroRaf = requestAnimationFrame(heroLoop); }).observe(document.querySelector("#heroMap") || document.body);
-document.addEventListener("visibilitychange", () => { if (!document.hidden && heroVis && heroBase && !heroReduce.matches && !heroRaf) heroRaf = requestAnimationFrame(heroLoop); });
+BS.coverAdvance = ms => { for (let k = 0; k < ms / 16; k++) coverStep(16); return Math.round(CV.t - CV.t0); };   // for checking a frame of the film by hand
 function initHeroHover() {
-  const cv = $("#heroCanvas"), tip = $("#heroTip");
+  const cv = $("#heroCanvas"), host = $("#heroMap"), tip = $("#heroTip");
+  const pick = (e, rad) => {
+    const r = cv.getBoundingClientRect(), k = CV.W / r.width, mx = (e.clientX - r.left) * k, my = (e.clientY - r.top) * k;
+    let best = null, bd = rad * rad;
+    for (const p of heroPts || []) { const d = (p[0] - mx) ** 2 + (p[1] - my) ** 2; if (d < bd) { bd = d; best = p; } }
+    return best && { i: best[2], cx: r.left + best[0] / k, cy: r.top + best[1] / k };
+  };
   cv.addEventListener("mousemove", e => {
-    if (!heroPts) return;
-    const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
-    let best = null, bd = 64;
-    for (const p of heroPts) { const d = (p[0] - mx) ** 2 + (p[1] - my) ** 2; if (d < bd) { bd = d; best = p; } }
-    if (!best) { tip.style.opacity = 0; return; }
-    const i = best[2];
+    const h = pick(e, 8);
+    if (!h) { tip.style.opacity = 0; cv.style.cursor = ""; return; }
+    const hr = host.getBoundingClientRect(), i = h.i;
     tip.textContent = `${D.S.site[i]} · ${D.wards[D.S.ward[i]].name} · ${fmt(D.S.pred[i])} % tomorrow`;
-    tip.style.left = best[0] + "px"; tip.style.top = best[1] + "px"; tip.style.opacity = 1;
+    tip.style.left = (h.cx - hr.left) + "px"; tip.style.top = (h.cy - hr.top) + "px"; tip.style.opacity = 1; cv.style.cursor = "pointer";
   });
   cv.addEventListener("mouseleave", () => tip.style.opacity = 0);
-  cv.addEventListener("click", e => {
-    const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
-    let best = null, bd = 100;
-    for (const p of heroPts || []) { const d = (p[0] - mx) ** 2 + (p[1] - my) ** 2; if (d < bd) { bd = d; best = p; } }
-    if (best) { BS.focusStop(best[2]); $("#console").scrollIntoView(); }
-  });
-  let t; addEventListener("resize", () => { clearTimeout(t); t = setTimeout(drawHero, 150); });
+  cv.addEventListener("click", e => { const h = pick(e, 10); if (h) { BS.focusStop(h.i); $("#console").scrollIntoView(); } });
+  let t; addEventListener("resize", () => { clearTimeout(t); t = setTimeout(drawHero, 180); });
 }
 
 /* ── steps ───────────────────────────────────────── */
@@ -1058,14 +1129,47 @@ function initSources() {
 /* ── nav ─────────────────────────────────────────── */
 function initNav() {
   const links = $$("nav.sections a"), secs = links.map(a => $(a.getAttribute("href")));
-  const top = $("header.top");
+  const top = $("header.top"), cover = $("#heroMap"), bar = $(".progress", top);
   const onScroll = () => {
     top.classList.toggle("scrolled", scrollY > 8);
+    top.classList.toggle("over", !!cover && scrollY < cover.offsetHeight - 64);
+    if (bar) bar.style.transform = `scaleX(${clamp(scrollY / Math.max(1, document.documentElement.scrollHeight - innerHeight), 0, 1)})`;
     let cur = -1; secs.forEach((s, k) => { if (s && s.getBoundingClientRect().top < 140) cur = k; });
     links.forEach((a, k) => a.classList.toggle("on", k === cur));
   };
   addEventListener("scroll", onScroll, { passive: true }); onScroll();
 }
+
+/* ── one continuous scroll: each block of a chapter rises into place as it is reached ── */
+(function initReveal() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
+  let done = false;
+  const start = () => {
+    if (done) return; done = true;
+    const sheet = $(".sheet"); if (!sheet) return;
+    const els = [];
+    $$("section.chapter", sheet).forEach(sec => {
+      for (const ch of sec.children) {
+        if (ch.hidden) continue;
+        if (ch.matches(".chapter-head, .stats, .steps, .sensor-demo, .takeaways3, .methods, .biz-grid")) els.push(...ch.children);
+        else els.push(ch);
+      }
+    });
+    const io = new IntersectionObserver(es => {
+      let k = 0;
+      es.forEach(e => {
+        if (!e.isIntersecting) return;
+        const el = e.target; io.unobserve(el);
+        el.style.transitionDelay = Math.min(k++, 5) * 90 + "ms";
+        el.classList.add("in");
+        setTimeout(() => { el.classList.remove("rv", "in"); el.style.transitionDelay = ""; }, 1700);
+      });
+    }, { threshold: .08, rootMargin: "0px 0px -7% 0px" });
+    els.forEach(el => { if (el.getBoundingClientRect().top > innerHeight * .9) { el.classList.add("rv"); io.observe(el); } });
+  };
+  document.addEventListener("bs:ready", start);
+  setTimeout(start, 4000);
+})();
 
 /* ── problem: animated facts ── */
 (function initStatAnims() {

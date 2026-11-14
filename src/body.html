@@ -1,5 +1,6 @@
 <div class="shell">
 <header class="top" id="top">
+  <span class="progress" aria-hidden="true"></span>
   <div class="wrap">
     <a class="brand" href="#home" aria-label="BinSight home">
       <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="7" y="13" width="18" height="15" rx="3" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M5 13h22" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M11 9.5a7 7 0 0 1 10 0M13.6 6.4a3.4 3.4 0 0 1 4.8 0" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"/><rect x="11" y="20" width="10" height="5" rx="1.5" fill="var(--accent)"/></svg>
@@ -19,23 +20,34 @@
 
 <main id="home">
 <!-- ── HERO ───────────────────────────────────────────── -->
-<section class="cover wrap" aria-labelledby="coverTitle">
-  <div class="cover-card" id="heroMap">
+<section class="cover" id="heroMap" aria-labelledby="coverTitle">
+  <div class="cover-stage"><div class="cover-drift"><div class="cover-cam">
+    <canvas id="heroBase" aria-hidden="true"></canvas>
+    <canvas id="heroDots" aria-hidden="true"></canvas>
     <canvas id="heroCanvas" role="img" aria-label="Edinburgh at night: every general-waste communal bin stop, coloured by how full it is forecast to be tomorrow"></canvas>
+  </div></div></div>
+  <div class="cover-shade" aria-hidden="true"></div>
+  <div class="cover-grain" aria-hidden="true"></div>
+  <span class="cover-bar t" aria-hidden="true"></span><span class="cover-bar b" aria-hidden="true"></span>
+  <div class="cover-ui wrap">
     <span class="cover-tag"><i></i>Edinburgh · <span data-k="forecastShort">3 Nov</span></span>
-    <div class="cover-copy">
-      <h1 id="coverTitle">Empty the bins that are full. <em>Skip the ones that aren’t.</em></h1>
-      <a class="cover-btn" href="#problem">See how <span aria-hidden="true">→</span></a>
+    <div class="cover-row">
+      <div class="cover-copy">
+        <h1 id="coverTitle"><span class="ln"><span>Empty the bins that are full.</span></span> <em class="ln"><span>Skip the ones that aren’t.</span></em></h1>
+        <a class="cover-btn" href="#problem">See how <span aria-hidden="true">→</span></a>
+      </div>
+      <dl class="cover-stats">
+        <div><dt class="num" data-k="stops">4,532</dt><dd>bin stops</dd></div>
+        <div><dt class="num" data-k="overflowCut">−82 %</dt><dd>overflows <small>sim.</small></dd></div>
+        <div><dt class="num">£2</dt><dd>sensor</dd></div>
+      </dl>
     </div>
-    <dl class="cover-stats">
-      <div><dt class="num" data-k="stops">4,532</dt><dd>bin stops</dd></div>
-      <div><dt class="num" data-k="overflowCut">−82 %</dt><dd>overflows <small>sim.</small></dd></div>
-      <div><dt class="num">£2</dt><dd>sensor</dd></div>
-    </dl>
-    <div class="hero-tip" id="heroTip"></div>
   </div>
+  <span class="cover-cue" aria-hidden="true"></span>
+  <div class="hero-tip" id="heroTip"></div>
 </section>
 
+<div class="sheet">
 <!-- ── PROBLEM ────────────────────────────────────────── -->
 <section class="chapter wrap" id="problem">
   <div class="chapter-head">
@@ -447,6 +459,7 @@
   <h3 style="font-size:20px;margin:40px 0 16px">References</h3>
   <ul class="refs" id="refs"></ul>
 </section>
+</div>
 </main>
 
 <footer>
