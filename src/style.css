@@ -1000,3 +1000,4 @@ footer a { color: var(--mint); }
 header.top { backdrop-filter: none; -webkit-backdrop-filter: none; background: color-mix(in srgb, var(--paper) 95%, transparent); }
 header.top.over { background: transparent; }
 .bz-ready .bz:not(.play) :is(.bz-val, .bz-pay) { opacity: 0; }
+.refs li { line-height: 1.55; } .refs a { overflow-wrap: anywhere; word-break: break-word; }
