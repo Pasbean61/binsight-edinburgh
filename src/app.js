@@ -180,18 +180,18 @@ function litDot(c, i) {
   const v = D.S.pred[i], x = CV.x[i], y = CV.y[i], r = CV.r;
   if (v >= 80) {
     const g = c.createRadialGradient(x, y, 0, x, y, r * 4.5);
-    g.addColorStop(0, v >= 90 ? "rgba(201,64,42,.14)" : "rgba(226,129,58,.11)"); g.addColorStop(1, v >= 90 ? "rgba(201,64,42,0)" : "rgba(226,129,58,0)");
-    c.fillStyle = g; c.fillRect(x - r * 4.5, y - r * 4.5, r * 9, r * 9);
+    g.addColorStop(0, v >= 90 ? "rgba(214,80,56,.13)" : "rgba(226,140,70,.1)"); g.addColorStop(1, "rgba(0,0,0,0)");
+    c.globalCompositeOperation = "lighter"; c.fillStyle = g; c.fillRect(x - r * 4.5, y - r * 4.5, r * 9, r * 9); c.globalCompositeOperation = "source-over";
   }
-  c.globalAlpha = v >= 60 ? 1 : .7; c.fillStyle = v >= 60 ? fillColor(v) : "#86a892";
+  c.globalAlpha = v >= 60 ? 1 : .55; c.fillStyle = fillColor(v);
   c.beginPath(); c.arc(x, y, v >= 80 ? r : r * .78, 0, 6.2832); c.fill(); c.globalAlpha = 1;
 }
 function doneDot(c, i) {
   const x = CV.x[i], y = CV.y[i], r = CV.r;
   const g = c.createRadialGradient(x, y, r * .6, x, y, r * 2.4);
-  g.addColorStop(0, "rgba(251,247,238,.95)"); g.addColorStop(1, "rgba(251,247,238,0)");
+  g.addColorStop(0, "rgba(22,30,36,.92)"); g.addColorStop(1, "rgba(22,30,36,0)");
   c.fillStyle = g; c.beginPath(); c.arc(x, y, r * 2.4, 0, 6.2832); c.fill();
-  c.fillStyle = "#0f7a5a"; c.beginPath(); c.arc(x, y, r * .82, 0, 6.2832); c.fill();
+  c.fillStyle = "#57d6a6"; c.beginPath(); c.arc(x, y, r * .82, 0, 6.2832); c.fill();
 }
 function redrawDots() {
   const c = dotsCtx(); c.clearRect(0, 0, CV.W, CV.H);
@@ -207,7 +207,7 @@ function drawHero() {                                       // lay the cover out
   Object.assign(CV, { W, H, dpr, P, r: clamp(P.s / 3200, 1.25, 2.6) });
   for (const cv of [base, $("#heroDots"), fx]) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
   const c = base.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const N = { land: css("--cv-land"), edge: css("--cv-edge"), road: css("--cv-road"), park: css("--cv-park"), ink: css("--cv-ink") };
+  const N = { land: css("--night-land"), edge: css("--night-edge"), road: css("--night-road"), park: css("--night-park"), ink: css("--night-ink") };
   const path = (pts, close) => { c.beginPath(); pts.forEach(([la, lo], k) => k ? c.lineTo(P.x(lo), P.y(la)) : c.moveTo(P.x(lo), P.y(la))); if (close) c.closePath(); };
   c.lineWidth = 1; c.strokeStyle = N.edge; c.fillStyle = N.land;
   for (const w of D.base.wards) for (const ring of w.rings) { path(decode(ring), true); c.fill(); c.stroke(); }
@@ -267,7 +267,7 @@ function coverStep(dt) {
   coverCap(CV.resetAt ? -1 : cap);
   // 3. light: truck trails, flashes
   const f = $("#heroCanvas").getContext("2d"); f.setTransform(CV.dpr, 0, 0, CV.dpr, 0, 0); f.clearRect(0, 0, CV.W, CV.H);
-  f.lineCap = "round"; f.lineJoin = "round";
+  f.globalCompositeOperation = "lighter"; f.lineCap = "round"; f.lineJoin = "round";
   if (SIM.end && tt > 0) SIM.trucks.forEach((tk, k) => {
     const tr = CV.trails[k] || (CV.trails[k] = []);
     const p = tt < DAY_MS ? truckPos(tk, simT) : null, moving = p && p.tr;
@@ -279,23 +279,23 @@ function coverStep(dt) {
       for (let q = 0; q < parts; q++) {
         const from = Math.floor(q * (m - 1) / parts), to = Math.floor((q + 1) * (m - 1) / parts), u = (q + 1) / parts;
         f.beginPath(); f.moveTo(tr[from][0], tr[from][1]); for (let j = from + 1; j <= to; j++) f.lineTo(tr[j][0], tr[j][1]);
-        f.strokeStyle = `rgba(15,106,79,${(u * u * .85).toFixed(3)})`; f.lineWidth = .9 + u * 1.7; f.stroke();
+        f.strokeStyle = `rgba(110,225,180,${(u * u * .75).toFixed(3)})`; f.lineWidth = .8 + u * 1.4; f.stroke();
       }
     }
     if (moving) {
       const h = [hx, hy], gr = CV.r * 4.6, g = f.createRadialGradient(h[0], h[1], 0, h[0], h[1], gr);
-      g.addColorStop(0, "rgba(15,106,79,.26)"); g.addColorStop(1, "rgba(15,106,79,0)");
+      g.addColorStop(0, "rgba(160,245,210,.55)"); g.addColorStop(1, "rgba(160,245,210,0)");
       f.fillStyle = g; f.fillRect(h[0] - gr, h[1] - gr, gr * 2, gr * 2);
-      f.fillStyle = "#fffdf8"; f.beginPath(); f.arc(h[0], h[1], CV.r * 1.55, 0, 6.2832); f.fill();
-      f.fillStyle = "#0f6a4f"; f.beginPath(); f.arc(h[0], h[1], CV.r * 1.05, 0, 6.2832); f.fill();
+      f.fillStyle = "rgba(255,255,255,.95)"; f.beginPath(); f.arc(h[0], h[1], CV.r * .85, 0, 6.2832); f.fill();
     }
   });
   for (let k = CV.fx.length - 1; k >= 0; k--) {
     const e = CV.fx[k], life = e[3] ? 720 : 430, u = (CV.t - e[2]) / life;
     if (u >= 1) { CV.fx.splice(k, 1); continue; }
-    if (e[3]) { f.beginPath(); f.arc(e[0], e[1], 2 + u * 11, 0, 6.2832); f.strokeStyle = `rgba(15,122,90,${((1 - u) * .65).toFixed(3)})`; f.lineWidth = 1.3; f.stroke(); }
-    else { f.beginPath(); f.arc(e[0], e[1], CV.r * (1 + u * 3), 0, 6.2832); f.strokeStyle = `rgba(201,64,42,${((1 - u) * .55).toFixed(3)})`; f.lineWidth = 1.1; f.stroke(); }
+    if (e[3]) { f.beginPath(); f.arc(e[0], e[1], 2 + u * 11, 0, 6.2832); f.strokeStyle = `rgba(110,225,180,${((1 - u) * .7).toFixed(3)})`; f.lineWidth = 1.2; f.stroke(); }
+    else { f.beginPath(); f.arc(e[0], e[1], CV.r * (1 + u * 2.6), 0, 6.2832); f.fillStyle = `rgba(255,196,150,${((1 - u) * .7).toFixed(3)})`; f.fill(); }
   }
+  f.globalCompositeOperation = "source-over";
   // 4. after the shift, hold, fade and play again
   if (SIM.end && tt > DAY_MS + HOLD_MS) {
     const dots = $("#heroDots");
@@ -333,7 +333,7 @@ function initHeroHover() {
     tip.style.left = (h.cx - hr.left) + "px"; tip.style.top = (h.cy - hr.top) + "px"; tip.style.opacity = 1; cv.style.cursor = "pointer";
   });
   cv.addEventListener("mouseleave", () => tip.style.opacity = 0);
-  cv.addEventListener("click", e => { const h = pick(e, 10); if (h) { BS.focusStop(h.i); $("#console").scrollIntoView(); } });
+  cv.addEventListener("click", e => { const h = pick(e, 10); if (h) { BS.focusStop(h.i); BS.jump("#console"); } });
   let t; addEventListener("resize", () => { clearTimeout(t); t = setTimeout(drawHero, 180); });
 }
 
@@ -460,21 +460,23 @@ async function initStreetMap() {
 function platinumStyle(s) {
   const lay = id => s.layers.find(l => l.id === id);
   const P = (ids, k, v) => [].concat(ids).forEach(id => { const l = lay(id); if (l) (l.paint ||= {})[k] = v; });
-  const land = "#f5efe4", bld = "#e6dcc9", ink = "#23302a", txt = "#5d665f", halo = "#f8f3ea";
+  const land = "#f5f5f3", bld = "#e8e9ec", ink = "#3c4043", txt = "#5f6368", halo = "#ffffff";   // Google-Maps-like daylight palette
   P("background", "background-color", land);
-  P("landuse_residential", "fill-color", "#f0e9dc");
-  P("park", "fill-color", "#d7e4cb"); P("landcover_wood", "fill-color", "#cfdfc5");
-  P("water", "fill-color", "#c5d8dd"); P("waterway", "line-color", "#b9cfd6");
-  P("building", "fill-color", bld); P("building", "fill-outline-color", "#d8ccb6");
-  P(["highway_minor", "highway_major_inner", "highway_motorway_inner", "highway_motorway_bridge_inner", "tunnel_motorway_inner", "road_pier"], "line-color", "#ffffff");
-  P("highway_path", "line-color", "#fffdf8");
-  P(["highway_major_casing", "highway_motorway_casing", "highway_motorway_bridge_casing", "tunnel_motorway_casing"], "line-color", "#dccfb9");
-  P(["railway", "railway_transit", "railway_service"], "line-color", "#cfc4b0");
+  P("landuse_residential", "fill-color", "#f1f1ef");
+  P("park", "fill-color", "#c9eac6"); P("landcover_wood", "fill-color", "#bfe4bb");
+  P("water", "fill-color", "#aadaff"); P("waterway", "line-color", "#aadaff");
+  P("building", "fill-color", bld); P("building", "fill-outline-color", "#dadce0");
+  P(["highway_minor", "highway_major_inner", "road_pier"], "line-color", "#ffffff");
+  P(["highway_motorway_inner", "highway_motorway_bridge_inner", "tunnel_motorway_inner"], "line-color", "#fde293");
+  P("highway_path", "line-color", "#ffffff");
+  P("highway_major_casing", "line-color", "#d5d8dc");
+  P(["highway_motorway_casing", "highway_motorway_bridge_casing", "tunnel_motorway_casing"], "line-color", "#f1bf4e");
+  P(["railway", "railway_transit", "railway_service"], "line-color", "#bdc1c6");
   P(["highway-name-path", "highway-name-minor", "highway-name-major"], "text-color", txt);
   P(["highway-name-path", "highway-name-minor", "highway-name-major"], "text-halo-color", halo);
   P(["highway-name-path", "highway-name-minor", "highway-name-major"], "text-halo-width", 1.4);
   s.layers.filter(l => /^label_/.test(l.id)).forEach(l => { l.paint = { ...l.paint, "text-color": ink, "text-halo-color": land, "text-halo-width": 1.4, "text-halo-blur": 0 }; });
-  P(["water_name_point_label", "water_name_line_label", "waterway_line_label"], "text-color", "#5d7f93");
+  P(["water_name_point_label", "water_name_line_label", "waterway_line_label"], "text-color", "#4a7fc1");
   // the building layer starts a little earlier, and street names one zoom earlier, than stock positron
   if (lay("building")) lay("building").minzoom = 13;
   if (lay("highway-name-minor")) lay("highway-name-minor").minzoom = 14.5;
@@ -483,22 +485,22 @@ function platinumStyle(s) {
   const extra = [
     { id: "bs-housenumber", type: "symbol", source: "openmaptiles", "source-layer": "housenumber", minzoom: 17,
       layout: { "text-field": ["get", "housenumber"], "text-font": ["Noto Sans Regular"], "text-size": 10 },
-      paint: { "text-color": "#9a958a", "text-halo-color": bld, "text-halo-width": 1 } },
+      paint: { "text-color": "#80868b", "text-halo-color": bld, "text-halo-width": 1 } },
     { id: "bs-poi", type: "symbol", source: "openmaptiles", "source-layer": "poi", minzoom: 16.5,
       filter: ["!", ["match", ["get", "class"], ["railway", "bus", "park"], true, false]],
       layout: { "text-field": name, "text-font": ["Noto Sans Regular"], "text-size": 10.5, "text-max-width": 8 },
-      paint: { "text-color": "#7d8279", "text-halo-color": halo, "text-halo-width": 1.2 } },
+      paint: { "text-color": "#70757a", "text-halo-color": halo, "text-halo-width": 1.2 } },
     { id: "bs-park", type: "symbol", source: "openmaptiles", "source-layer": "poi", minzoom: 14,
       filter: ["==", ["get", "class"], "park"],
       layout: { "text-field": name, "text-font": ["Noto Sans Italic"], "text-size": 11, "text-max-width": 8 },
-      paint: { "text-color": "#55785f", "text-halo-color": halo, "text-halo-width": 1.2 } },
+      paint: { "text-color": "#2f8a4c", "text-halo-color": halo, "text-halo-width": 1.2 } },
     { id: "bs-station", type: "symbol", source: "openmaptiles", "source-layer": "poi", minzoom: 13.5,
       filter: ["==", ["get", "class"], "railway"],
       layout: { "text-field": name, "text-font": ["Noto Sans Bold"], "text-size": 10.5, "text-max-width": 9, "text-anchor": "top", "text-offset": [0, .5] },
-      paint: { "text-color": "#3e5568", "text-halo-color": halo, "text-halo-width": 1.4 } },
+      paint: { "text-color": "#3367d6", "text-halo-color": halo, "text-halo-width": 1.4 } },
     { id: "bs-station-dot", type: "circle", source: "openmaptiles", "source-layer": "poi", minzoom: 13.5,
       filter: ["==", ["get", "class"], "railway"],
-      paint: { "circle-radius": 3, "circle-color": "#ffffff", "circle-stroke-color": "#3e5568", "circle-stroke-width": 1.4 } },
+      paint: { "circle-radius": 3, "circle-color": "#ffffff", "circle-stroke-color": "#3367d6", "circle-stroke-width": 1.4 } },
   ];
   const at = s.layers.findIndex(l => l.id === "highway-name-path");
   s.layers.splice(at < 0 ? s.layers.length : at, 0, ...extra);
@@ -665,7 +667,7 @@ BS.focusTruck = (ti, opts = {}) => {
     <p class="small" style="margin-top:14px"><button class="linkbtn" id="openDriver">Open driver view with every stop in order</button></p>
   </div>`);
   $("#followBtn").onclick = () => { BS.follow(ti); $("#followBtn").textContent = UI.follow === ti ? "Stop following" : "Follow this truck through the shift"; };
-  $("#openDriver").onclick = () => { BS.openTab("routes"); selectTruckInList(ti); $("#ctabs").scrollIntoView({ block: "start" }); };
+  $("#openDriver").onclick = () => { BS.openTab("routes"); selectTruckInList(ti); BS.jump("#ctabs"); };
 };
 BS.focusWard = wi => {
   UI.ward = wi; $("#wardSel").value = wi; UI.selTruck = -1; highlight.clearLayers(); restyleStops(); renderBins();
@@ -920,7 +922,7 @@ function renderBins() {
     ${rows.map(i => `<tr data-i="${i}"><td><b>${esc(S.site[i])}</b></td><td class="muted" style="max-width:240px;overflow:hidden;text-overflow:ellipsis">${esc(S.loc[i])}</td><td>${esc(D.wards[S.ward[i]].name)}</td><td class="n">${fmt(S.cap[i])} L</td><td class="n">${bar(S.fill[i], fillColor(S.fill[i]))}</td><td class="n">${bar(S.pred[i], fillColor(S.pred[i]))}</td><td class="n">${fmt(S.gain[i])} pts</td><td class="mono">${S.truck[i] >= 0 ? D.trucks[S.truck[i]].truck.replace("EDI-", "") : "–"}</td></tr>`).join("")}
   </tbody></table></div><div class="pager"><span>${fmt(ids.length)} stops${binQuery ? ` on ${esc(binQuery)} <button class="linkbtn" id="clearQ">show all</button>` : ""}${UI.ward >= 0 ? " in " + esc(D.wards[UI.ward].name) : ""} · simulated fill</span><span><button id="pgPrev" ${binPage ? "" : "disabled"}>Previous</button> ${binPage + 1} / ${pages} <button id="pgNext" ${binPage < pages - 1 ? "" : "disabled"}>Next</button></span></div>`;
   $$("th.sortable", host).forEach(t => t.onclick = () => { binSort = { k: t.dataset.k, dir: binSort.k === t.dataset.k ? -binSort.dir : -1 }; renderBins(); });
-  $$("tbody tr", host).forEach(tr => tr.onclick = () => { BS.focusStop(+tr.dataset.i); $(".map-shell").scrollIntoView({ block: "center" }); });
+  $$("tbody tr", host).forEach(tr => tr.onclick = () => { BS.focusStop(+tr.dataset.i); BS.jump(".map-shell", "center"); });
   $("#pgPrev").onclick = () => { binPage--; renderBins(); }; $("#pgNext").onclick = () => { binPage++; renderBins(); };
   $("#clearQ") && ($("#clearQ").onclick = () => { binQuery = ""; renderBins(); });
 }
@@ -939,8 +941,8 @@ function selectTruckInList(ti, fly) {
   $("#driverView").innerHTML = `<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline"><div><span class="eyebrow" style="color:${t.color}">Driver view</span><h3 style="font-size:22px;margin-top:6px">${t.truck} · ${esc(t.driver)}</h3></div><button class="btn ghost" type="button" id="showOnMap" style="padding:7px 14px">Show on map</button></div>
     <p class="muted small" style="margin-top:6px">${t.stops.length} stops in ${t.trips.length} trips · ${fmt(t.km, 1)} km planned, ${fmt(t.road, 1)} km on real streets · ${fmt(t.load)} L of waste</p>
     <div class="manifest"><ol>${trips}</ol></div>`;
-  $$("#driverView li[data-i]").forEach(li => li.onclick = () => { BS.focusStop(+li.dataset.i, { keepTruck: true }); $(".map-shell").scrollIntoView({ block: "center" }); });
-  $("#showOnMap").onclick = () => { BS.focusTruck(ti); $(".map-shell").scrollIntoView({ block: "center" }); };
+  $$("#driverView li[data-i]").forEach(li => li.onclick = () => { BS.focusStop(+li.dataset.i, { keepTruck: true }); BS.jump(".map-shell", "center"); });
+  $("#showOnMap").onclick = () => { BS.focusTruck(ti); BS.jump(".map-shell", "center"); };
   if (fly) BS.focusTruck(ti);
 }
 let wardSort = { k: "flagged", dir: -1 };
@@ -953,7 +955,7 @@ function renderWards() {
     ${rows.map(w => `<tr data-i="${w.i}"><td><b>${esc(w.name)}</b> <span class="muted mono small">${w.code}</span></td><td class="n"><span class="bar-cell">${w.stops}<span class="bar"><span style="width:${w.stops / max * 100}%;background:var(--accent)"></span></span></span></td><td class="n">${fmt(w.bins)}</td><td class="n">${fmt(w.cap_l / 1000)} m³</td><td class="n">${fmt(w.fill)}%</td><td class="n">${fmt(w.pred)}%</td><td class="n">${fmt(w.flagged)}</td><td class="n">${fmt(w.risk)}</td><td class="n">${w.trucks.length}</td></tr>`).join("")}</tbody></table></div>
     <p class="note">Ward boundaries: ONS Wards (December 2024), Edinburgh’s 17 multi-member wards. Stop counts and capacities are real; fill levels are simulated.</p>`;
   $$("th.sortable", host).forEach(t => t.onclick = () => { wardSort = { k: t.dataset.k, dir: wardSort.k === t.dataset.k ? -wardSort.dir : -1 }; renderWards(); });
-  $$("tbody tr", host).forEach(tr => tr.onclick = () => { BS.focusWard(+tr.dataset.i); $(".map-shell").scrollIntoView({ block: "center" }); });
+  $$("tbody tr", host).forEach(tr => tr.onclick = () => { BS.focusWard(+tr.dataset.i); BS.jump(".map-shell", "center"); });
 }
 function renderAlerts() {
   const S = D.S, host = $("#pane-alerts");
@@ -970,7 +972,7 @@ function renderAlerts() {
     <div class="card"><h4 style="font-size:16px">Sensor batteries <span class="tag sim">Sim</span></h4><p class="muted small">${fmt(lowbat.length)} sensors below 80 % for the maintenance team.</p>
       <svg class="chart" viewBox="0 0 300 130" style="margin-top:12px">${bins.map((c, k) => `<rect x="${10 + k * 48}" y="${105 - c / mx * 90}" width="38" height="${c / mx * 90}" rx="3" fill="${k < 2 ? PAL.f[3] : PAL.accent}" opacity=".85"/><text x="${29 + k * 48}" y="122" text-anchor="middle">${70 + k * 5}–${75 + k * 5}</text><text class="val" x="${29 + k * 48}" y="${100 - c / mx * 90}" text-anchor="middle">${c}</text>`).join("")}</svg>
       ${list(lowbat.slice(0, 20), i => fmt(S.bat[i]) + "%")}</div></div>`;
-  $$("li[data-i]", host).forEach(li => li.onclick = () => { BS.focusStop(+li.dataset.i); $(".map-shell").scrollIntoView({ block: "center" }); });
+  $$("li[data-i]", host).forEach(li => li.onclick = () => { BS.focusStop(+li.dataset.i); BS.jump(".map-shell", "center"); });
 }
 function drawWeather() {
   const host = $("#pane-weather"); if (!host || host.hidden && host.dataset.done) return;
@@ -1157,6 +1159,30 @@ function initNav() {
 }
 
 /* ── pages: a chapter scrolls to its last line, stays there, and the next one rises over it ── */
+/* sticky pages report where they are stuck, not where they live; jumps use the page's place in the flow instead */
+function flowY(el) {
+  const pg = el.closest("main > .page");
+  if (!pg) return el.getBoundingClientRect().top + scrollY;
+  let y = pg.parentElement.getBoundingClientRect().top + scrollY, n = pg.parentElement.firstElementChild;
+  for (; n && n !== pg; n = n.nextElementSibling) {
+    const st = getComputedStyle(n); if (st.position === "absolute" || st.position === "fixed" || st.display === "none") continue;
+    y += n.offsetHeight + (n === pg.parentElement.firstElementChild ? 0 : parseFloat(st.marginTop) || 0) + (parseFloat(st.marginBottom) || 0);   // the first child's margin collapses into <main>
+  }
+  return y + (parseFloat(getComputedStyle(pg).marginTop) || 0) + el.getBoundingClientRect().top - pg.getBoundingClientRect().top;
+}
+BS.jump = (el, block = "start") => {
+  if (typeof el === "string") el = $(el); if (!el) return;
+  const head = ($("header.top") || {}).offsetHeight || 0, y = flowY(el);
+  const to = block === "center" ? y - (innerHeight - el.offsetHeight) / 2 : el.matches("section.chapter") ? y : y - head - 12;
+  scrollTo({ top: Math.max(0, Math.round(to)), behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+};
+document.addEventListener("click", e => {
+  const a = e.target.closest && e.target.closest('a[href^="#"]'); if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey) return;
+  const id = a.getAttribute("href").slice(1), el = id && document.getElementById(id); if (!el || !el.closest("main > .page")) return;
+  e.preventDefault(); BS.jump(el); try { history.replaceState(null, "", "#" + id); } catch (_) {}
+});
+addEventListener("load", () => { const el = location.hash.length > 1 && document.getElementById(location.hash.slice(1)); if (el && el.closest("main > .page")) setTimeout(() => BS.jump(el), 60); });
+
 (function initPages() {
   const pages = $$("main > .page"); if (!pages.length) return;
   const stick = () => pages.forEach(p => { p.style.top = Math.min(0, innerHeight - p.offsetHeight) + "px"; });
@@ -1258,20 +1284,23 @@ function initNav() {
   const reduce = matchMedia("(prefers-reduced-motion: reduce)"), still = reduce.matches;
   let loading = null;
   const three = () => window.THREE ? Promise.resolve() : (loading ||= new Promise((ok, no) => { const s = document.createElement("script"); s.src = THREE_JS; s.onload = ok; s.onerror = no; document.head.appendChild(s); }));
+  const scenes = [], studios = [];
   const lazy = (host, build, fail) => {
     if (!host) return;
-    new IntersectionObserver((es, ob) => {
-      if (!es[0].isIntersecting) return; ob.disconnect();
-      three().then(() => { try { build(window.THREE, host); host.classList.add("has3d"); } catch (e) { console.warn("3D scene skipped:", e); fail && fail(); } }, () => fail && fail());
-    }, { rootMargin: "400px" }).observe(host);
+    const sc = { done: false, go: () => { if (sc.done) return; sc.done = true; try { build(window.THREE, host); host.classList.add("has3d"); } catch (e) { console.warn("3D scene skipped:", e); fail && fail(); } } };
+    scenes.push(sc);
+    new IntersectionObserver((es, ob) => { if (!es[0].isIntersecting) return; ob.disconnect(); three().then(sc.go, () => fail && fail()); }, { rootMargin: "400px" }).observe(host);
   };
+  // for checking by hand: build every scene now, then draw frames one at a time
+  BS.build3D = () => three().then(() => scenes.forEach(sc => sc.go()));
+  BS.step3D = (n = 1, dt = 1 / 60) => { for (let k = 0; k < n; k++) studios.forEach(st => st.step(dt)); };
   let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 
   /* a small studio: renderer, soft room light for reflections, a loop that only runs on screen */
   function studio(T3, cvs, host, o = {}) {
     const renderer = new T3.WebGLRenderer({ canvas: cvs, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-    renderer.outputEncoding = T3.sRGBEncoding; renderer.toneMapping = T3.ACESFilmicToneMapping; renderer.toneMappingExposure = o.exposure || 1.08;
+    renderer.outputEncoding = T3.sRGBEncoding; renderer.toneMapping = T3.ACESFilmicToneMapping; renderer.toneMappingExposure = o.exposure || .92;
     renderer.physicallyCorrectLights = true;
     if (o.shadows) { renderer.shadowMap.enabled = true; renderer.shadowMap.type = T3.PCFSoftShadowMap; }
     const scene = new T3.Scene();
@@ -1281,12 +1310,13 @@ function initNav() {
     panel(70, 26, 0, 46, 0, 0, Math.PI / 2, 5); panel(30, 44, -48, 6, 10, Math.PI / 2, 0, 3); panel(30, 44, 48, 0, 20, -Math.PI / 2, 0, 1.6); panel(60, 30, 0, 0, 49, Math.PI, 0, 1.3);
     scene.environment = pm.fromScene(room, .04).texture;
     const camera = o.ortho ? new T3.OrthographicCamera(-1, 1, 1, -1, .1, 400) : new T3.PerspectiveCamera(o.fov || 28, 1, .5, 600);
-    const key = new T3.DirectionalLight(0xfff3df, o.key || 2.4); key.position.set(-16, 30, 20); scene.add(key);
-    scene.add(new T3.HemisphereLight(0xffffff, 0xcfc3ab, o.fill || .85));
+    const key = new T3.DirectionalLight(0xfff3df, o.key || 2.1); key.position.set(-16, 30, 20); scene.add(key);
+    const rim = new T3.DirectionalLight(0x9fe8cc, 1.1); rim.position.set(20, 16, -26); scene.add(rim);   // a cool edge light so shapes lift off the night stage
+    scene.add(new T3.HemisphereLight(0xdfeee8, 0x1c2328, o.fill || .55));
     if (o.shadows) {
       key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.radius = 5; key.shadow.bias = -.0006;
       const sc = key.shadow.camera, R = o.shadowSize || 20; sc.left = -R; sc.right = R; sc.top = R; sc.bottom = -R; sc.near = 1; sc.far = 120;
-      const ground = new T3.Mesh(new T3.PlaneGeometry(300, 300), new T3.ShadowMaterial({ opacity: o.shadowOpacity || .2 })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+      const ground = new T3.Mesh(new T3.PlaneGeometry(300, 300), new T3.ShadowMaterial({ opacity: o.shadowOpacity || .45 })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
     }
     let W = 0, H = 0, onScreen = false, running = false, tick = null, fit = null;
     const size = () => { const r = host.getBoundingClientRect(); if (!r.width || !r.height) return; W = r.width; H = r.height; renderer.setSize(W, H, false); if (camera.isPerspectiveCamera) camera.aspect = W / H; fit && fit(W, H); camera.updateProjectionMatrix(); kick(); };
@@ -1304,6 +1334,8 @@ function initNav() {
     new ResizeObserver(size).observe(host);
     new IntersectionObserver(es => { onScreen = es[0].isIntersecting; kick(); }).observe(host);
     document.addEventListener("visibilitychange", kick);
+    let clock = 0;
+    studios.push({ step: dt => { clock += dt; size(); tick && tick(dt, clock); renderer.render(scene, camera); } });
     return { T3, renderer, scene, camera, key, kick, frame: f => { tick = f; }, fit: f => { fit = f; size(); } };
   }
   /* drag to turn; let go and it eases back into a slow sway */
@@ -1323,9 +1355,9 @@ function initNav() {
   /* a four-wheeled communal bin, about 1.4 m wide (1 unit = 10 cm) */
   function makeBin(T3, o = {}) {
     const g = new T3.Group(), W = 13.7, D = 10.2, Hb = 10.6, y0 = 1.9, k = .84, tx = W / 2, tz = D / 2, bx = tx * k, bz = tz * k, yt = y0 + Hb;
-    const body = new T3.MeshStandardMaterial({ color: 0x2f6b4f, roughness: .5, metalness: .08, side: T3.DoubleSide });
-    const dark = new T3.MeshStandardMaterial({ color: 0x1d2a25, roughness: .42, metalness: .2 });
-    const glass = new T3.MeshStandardMaterial({ color: 0xdff3e8, roughness: .06, transparent: true, opacity: .17, depthWrite: false, side: T3.DoubleSide });
+    const body = new T3.MeshStandardMaterial({ color: 0x245c43, roughness: .5, metalness: .08, side: T3.DoubleSide, envMapIntensity: .6 });
+    const dark = new T3.MeshStandardMaterial({ color: 0x18221e, roughness: .42, metalness: .2, envMapIntensity: .6 });
+    const glass = new T3.MeshStandardMaterial({ color: 0xbfe3d2, roughness: .25, transparent: true, opacity: .07, depthWrite: false, side: T3.DoubleSide, envMapIntensity: .25 });
     const add = (m, shadow = true) => { m.castShadow = shadow; g.add(m); return m; };
     const quad = (a, b, c, d, mat, shadow) => { const geo = new T3.BufferGeometry(); geo.setAttribute("position", new T3.Float32BufferAttribute([...a, ...b, ...c, ...a, ...c, ...d], 3)); geo.computeVertexNormals(); return add(new T3.Mesh(geo, mat), shadow); };
     const B = [[-bx, y0, bz], [bx, y0, bz], [bx, y0, -bz], [-bx, y0, -bz]], T = [[-tx, yt, tz], [tx, yt, tz], [tx, yt, -tz], [-tx, yt, -tz]];
@@ -1347,7 +1379,7 @@ function initNav() {
     const sh = new T3.Shape(); sh.moveTo(c / 2, 0); sh.absarc(0, -(R - h), R, a0, Math.PI - a0, false); sh.lineTo(c / 2, 0);
     const lg = new T3.ExtrudeGeometry(sh, { depth: W + 1.1, bevelEnabled: true, bevelSize: .14, bevelThickness: .14, bevelSegments: 2, curveSegments: 30 });
     lg.translate(0, 0, -(W + 1.1) / 2); lg.rotateY(Math.PI / 2);
-    const lidMat = o.cutaway ? new T3.MeshStandardMaterial({ color: 0x1d2a25, roughness: .25, metalness: .1, transparent: true, opacity: .34, depthWrite: false }) : dark;
+    const lidMat = o.cutaway ? new T3.MeshStandardMaterial({ color: 0x18221e, roughness: .35, metalness: .1, transparent: true, opacity: .3, depthWrite: false, envMapIntensity: .3 }) : dark;
     const lid = new T3.Mesh(lg, lidMat); lid.castShadow = !o.cutaway; lid.position.set(0, 0, c / 2);
     const hinge = new T3.Group(); hinge.position.set(0, yt + .4, -c / 2); hinge.add(lid); g.add(hinge);
     return { group: g, hinge, d: { W, D, Hb, y0, yt, k, tx, tz } };
@@ -1355,7 +1387,7 @@ function initNav() {
   /* rubbish bags: crumpled, a little squashed */
   function bagKit(T3) {
     const geos = [0, 1, 2].map(s => { const geo = new T3.IcosahedronGeometry(1, 2), p = geo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), n = 1 + .17 * Math.sin(x * 3.1 + s * 2) * Math.cos(y * 2.7 + s) + .1 * Math.sin(z * 4.3 + s * 5); p.setXYZ(i, x * n, y * n * .78, z * n); } geo.computeVertexNormals(); return geo; });
-    const mats = [[0x22262a, .3], [0x22262a, .3], [0x3b4046, .38], [0xe9e5db, .5], [0x2d5fa8, .42]].map(([c, r]) => new T3.MeshStandardMaterial({ color: c, roughness: r, metalness: 0 }));
+    const mats = [[0x1b1e21, .3], [0x1b1e21, .3], [0x30353a, .38], [0xd9d4c8, .5], [0x24509a, .42]].map(([c, r]) => new T3.MeshStandardMaterial({ color: c, roughness: r, metalness: 0, envMapIntensity: .7 }));
     return () => { const m = new T3.Mesh(geos[(rnd() * 3) | 0], mats[(rnd() * mats.length) | 0]); m.rotation.set(rnd() * 6, rnd() * 6, rnd() * 6); m.castShadow = true; return m; };
   }
 
@@ -1428,10 +1460,10 @@ function initNav() {
     const cols = 16, rows = 6, n = cols * rows, dx = 1.62, dz = 1.5;
     const bodyG = new T3.BoxGeometry(1, 1.05, .8); bodyG.translate(0, .62, 0);
     const lidG = new T3.BoxGeometry(1.12, .2, .92); lidG.translate(0, 1.25, 0);
-    const bodies = new T3.InstancedMesh(bodyG, new T3.MeshStandardMaterial({ color: 0xffffff, roughness: .5, metalness: .05 }), n);
-    const lids = new T3.InstancedMesh(lidG, new T3.MeshStandardMaterial({ color: 0x1d2a25, roughness: .4, metalness: .2 }), n);
+    const bodies = new T3.InstancedMesh(bodyG, new T3.MeshStandardMaterial({ color: 0xffffff, roughness: .5, metalness: .05, envMapIntensity: .6 }), n);
+    const lids = new T3.InstancedMesh(lidG, new T3.MeshStandardMaterial({ color: 0x18221e, roughness: .4, metalness: .2, envMapIntensity: .6 }), n);
     bodies.castShadow = lids.castShadow = true; st.scene.add(bodies, lids);
-    const green = new T3.Color(0x2f6b4f), hot = new T3.Color(0xd9472b), col = new T3.Color(), M = new T3.Matrix4(), P = new T3.Vector3(), Q = new T3.Quaternion(), S = new T3.Vector3();
+    const green = new T3.Color(0x245c43), hot = new T3.Color(0xc93a22), col = new T3.Color(), M = new T3.Matrix4(), P = new T3.Vector3(), Q = new T3.Quaternion(), S = new T3.Vector3();
     const info = [];
     for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) info.push({ x: (c - (cols - 1) / 2) * dx, z: (r - (rows - 1) / 2) * dz, delay: .15 + c * .045 + r * .09, hot: rnd() < .15, ph: rnd() * 6.28 });
     const place = (k, s) => { const i = info[k]; P.set(i.x, 0, i.z); S.setScalar(Math.max(.001, s)); M.compose(P, Q, S); bodies.setMatrixAt(k, M); lids.setMatrixAt(k, M); };
