@@ -682,49 +682,10 @@ body { background: var(--night); }
 .cover-bar { position: absolute; left: 0; right: 0; height: 12vh; background: #05080a; z-index: 3; pointer-events: none; animation: barOut 1.5s var(--ease-out) .25s both; }
 .cover-bar.t { top: 0; transform-origin: 50% 0; } .cover-bar.b { bottom: 0; transform-origin: 50% 100%; }
 @keyframes barOut { from { transform: scaleY(1); } to { transform: scaleY(0); } }
-.cover-ui { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; justify-content: space-between; padding-top: 104px; padding-bottom: 64px; pointer-events: none;
-  transform: translate3d(0, calc(var(--p) * -70px), 0); opacity: calc(1 - var(--p) * 1.5); }
-.cover-tag { display: inline-flex; align-items: center; gap: 10px; font: 500 13px var(--mono); letter-spacing: .06em; color: var(--night-ink-2); animation: fadeUp 1s var(--ease-out) 2.2s both; }
-.cover-tag i { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 4px rgba(110, 225, 180, .18); animation: breathe 2.4s ease-in-out infinite; }
-@keyframes breathe { 50% { box-shadow: 0 0 0 8px rgba(110, 225, 180, .04); } }
-.cover-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; }
-.cover-copy { max-width: min(760px, 60%); }
-.cover h1 { font-size: clamp(44px, 6.5vw, 100px); font-weight: 720; line-height: .96; letter-spacing: -.042em; color: var(--night-ink); text-wrap: balance; }
-.cover h1 .ln { display: block; overflow: hidden; padding: .09em .04em .12em 0; margin: -.09em 0 -.12em; font-style: normal; }
-.cover h1 .ln > span { display: block; transform: translate3d(0, 112%, 0); animation: lineUp 1.25s var(--ease-out) 1.25s both; }
-.cover h1 em.ln { margin-top: -.02em; }
-.cover h1 em.ln > span { animation-delay: 1.75s; background: linear-gradient(92deg, #8be9c2 0%, #4fb58d 80%); -webkit-background-clip: text; background-clip: text; color: transparent; }
-@keyframes lineUp { from { transform: translate3d(0, 112%, 0); } to { transform: none; } }
-@keyframes fadeUp { from { opacity: 0; transform: translate3d(0, 18px, 0); } to { opacity: 1; transform: none; } }
-.cover-btn { pointer-events: auto; margin-top: 34px; display: inline-flex; align-items: center; gap: 10px; padding: 15px 26px; border-radius: 99px;
-  background: var(--night-ink); color: var(--night); font-weight: 650; font-size: 15px; text-decoration: none; transition: transform .25s var(--ease-out), background .2s, box-shadow .25s;
-  animation: fadeUp 1s var(--ease-out) 2.5s both; }
-.cover-btn:hover { transform: translateY(-2px); background: #fff; box-shadow: 0 10px 30px rgba(110, 225, 180, .25); }
-.cover-btn span { transition: transform .25s var(--ease-out); } .cover-btn:hover span { transform: translateX(4px); }
-.cover-stats { margin: 0; display: flex; gap: 10px; }
-.cover-stats div { min-width: 118px; padding: 15px 17px; border-radius: 16px; background: rgba(255, 255, 255, .055); border: 1px solid rgba(255, 255, 255, .1);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); animation: fadeUp 1s var(--ease-out) both; }
-.cover-stats div:nth-child(1) { animation-delay: 2.7s; } .cover-stats div:nth-child(2) { animation-delay: 2.82s; } .cover-stats div:nth-child(3) { animation-delay: 2.94s; }
-.cover-stats dt { font: 700 27px/1 var(--display); letter-spacing: -.02em; color: var(--night-ink); }
-.cover-stats dd { margin: 7px 0 0; font-size: 12.5px; color: var(--night-ink-2); }
-.cover-stats small { font: 500 10px var(--mono); letter-spacing: .04em; color: #e2bd5f; border: 1px dashed currentColor; border-radius: 99px; padding: 0 5px; margin-left: 3px; }
 .cover-cue { position: absolute; z-index: 2; left: 50%; bottom: 18px; width: 1px; height: 34px; background: rgba(255, 255, 255, .16); overflow: hidden; opacity: calc(1 - var(--p) * 4); animation: fadeUp 1s ease 3.4s both; }
 .cover-cue::after { content: ""; position: absolute; left: 0; top: 0; width: 1px; height: 14px; background: var(--mint); animation: cue 1.9s cubic-bezier(.6, 0, .3, 1) infinite; }
 @keyframes cue { from { transform: translateY(-16px); } to { transform: translateY(36px); } }
 .cover .hero-tip { z-index: 4; background: var(--night-ink); color: var(--night); }
-@media (max-width: 900px) {
-  .cover-shade { background: linear-gradient(180deg, rgba(11, 16, 20, .7) 0, rgba(11, 16, 20, 0) 130px), linear-gradient(0deg, rgba(11, 16, 20, .97) 0%, rgba(11, 16, 20, .85) 36%, rgba(11, 16, 20, 0) 62%); }
-  .cover-ui { padding-top: 84px; padding-bottom: 44px; }
-  .cover-row { flex-direction: column; align-items: stretch; gap: 26px; }
-  .cover-copy { max-width: none; }
-  .cover h1 { font-size: clamp(40px, 11.5vw, 68px); }
-  .cover-btn { margin-top: 26px; }
-  .cover-stats div { flex: 1; min-width: 0; padding: 12px; }
-  .cover-stats dt { font-size: 21px; }
-  .cover-cue { display: none; }
-  .cover-cam, .cover-stage { transform-origin: 50% 30%; }
-}
-@media (max-width: 420px) { .cover-stats { gap: 7px; } .cover-stats dt { font-size: 18px; } }
 
 /* header: clear over the cover, solid on the sheet; a hairline shows how far through the story you are */
 header.top { transition: background .35s ease, border-color .2s, color .35s; animation: fadeDown .9s var(--ease-out) 1.9s both; }
@@ -752,6 +713,89 @@ footer b { color: var(--night-ink) !important; }
 footer a { color: var(--mint); }
 
 @media (prefers-reduced-motion: reduce) { .cover h1 .ln > span { transform: none; } .cover-bar { display: none; } }
+
+/* ── night: one world from the cover to the last line ── */
+:root {
+  --paper: #0d1318; --surface: #141b21; --raised: #1a232a;
+  --ink: #eef2f0; --ink-2: #b6c0bc; --ink-3: #83908b;
+  --line: #242f37; --line-2: #34414b;
+  --accent: #62d6aa; --accent-ink: #06281d; --accent-soft: #14312a;
+  --land: #171f25; --sea: #0b1115; --road: #2c3842; --park: #172a21;
+  --f0: #6f837b; --f1: #84c4a8; --f2: #e6c463; --f3: #e98f4c; --f4: #e5573f;
+  --good: #5fd3a8; --warn: #e6c463; --bad: #ef6a50;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 32px rgba(0, 0, 0, .32);
+  --shadow-2: 0 2px 6px rgba(0, 0, 0, .35), 0 30px 70px rgba(0, 0, 0, .5);
+  --stage-a: #26323a; --stage-b: #0f151a; --bin-b: #214d39; --waste: #8f8166; --waste-2: #7c6f56;
+  color-scheme: dark;
+}
+::selection { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+.sheet { background-color: var(--paper); background-image: linear-gradient(180deg, #131b21 0%, var(--paper) 560px); box-shadow: 0 -30px 90px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .09); }
+footer { background: #070a0d; }
+.card { background-image: linear-gradient(180deg, rgba(255, 255, 255, .028), rgba(255, 255, 255, 0) 46%); }
+.btn.primary:hover { color: var(--accent-ink); }
+#map { background: var(--land); }
+
+/* chapters open like title cards: a soft light, a rule, a large line */
+.sheet section.chapter { background-image: radial-gradient(closest-side, rgba(98, 214, 170, .075), rgba(98, 214, 170, 0)); background-repeat: no-repeat; background-size: min(900px, 100%) 520px; background-position: 0 0; }
+.chapter-head { margin-bottom: 44px; }
+.chapter-head .eyebrow { display: inline-flex; align-items: center; gap: 12px; }
+.chapter-head .eyebrow::before { content: ""; width: 30px; height: 1px; background: var(--accent); }
+.chapter-head h2 { font-size: clamp(34px, 4.5vw, 62px); line-height: 1.02; letter-spacing: -.032em; margin-top: 16px; }
+.chapter-head p.say { color: var(--ink-2); }
+.chapter-head p.say b { color: var(--ink); }
+
+/* ── the cover's words: a small title, a caption that follows the film, a clock ── */
+.cover-stage { transform-origin: 50% 46%; } .cover-drift { transform-origin: 50% 46%; } .cover-cam { transform-origin: 56% 42%; }
+.cover-shade { background:
+    linear-gradient(180deg, rgba(11, 16, 20, .78) 0, rgba(11, 16, 20, 0) 150px),
+    linear-gradient(0deg, rgba(11, 16, 20, .97) 0%, rgba(11, 16, 20, .78) 20%, rgba(11, 16, 20, 0) 46%),
+    radial-gradient(110% 85% at 50% 42%, rgba(11, 16, 20, 0) 58%, rgba(11, 16, 20, .72) 100%); }
+.cover-ui { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; justify-content: flex-end; gap: 30px; padding-bottom: 60px; pointer-events: none;
+  transform: translate3d(0, calc(var(--p) * -70px), 0); opacity: calc(1 - var(--p) * 1.5); }
+.cover-caps { position: relative; height: 1.5em; margin: 0; text-align: center; font: 500 clamp(17px, 1.65vw, 23px)/1.5 var(--body); color: var(--night-ink); text-shadow: 0 1px 14px rgba(0, 0, 0, .9), 0 0 2px rgba(0, 0, 0, .6); }
+.cover-caps span[data-c] { position: absolute; left: 0; right: 0; top: 0; opacity: 0; transform: translate3d(0, 10px, 0); transition: opacity .7s ease, transform .9s var(--ease-out); }
+.cover-caps span[data-c].on { opacity: 1; transform: none; transition-delay: .25s; }
+.cover-caps b { color: var(--mint); font-weight: 650; }
+.cover-caps small, .hud-day small { font: 500 10.5px var(--mono); letter-spacing: .04em; color: #e2bd5f; border: 1px dashed currentColor; border-radius: 99px; padding: 1px 7px; margin-left: 6px; white-space: nowrap; text-shadow: none; vertical-align: 2px; }
+.cover-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; }
+.cover h1 { font-size: clamp(30px, 3.7vw, 56px); font-weight: 700; line-height: 1.02; letter-spacing: -.035em; color: var(--night-ink); }
+.cover h1 .ln { display: block; overflow: hidden; padding: .08em .04em .12em 0; margin: -.08em 0 -.12em; font-style: normal; }
+.cover h1 .ln > span { display: block; transform: translate3d(0, 112%, 0); animation: lineUp 1.2s var(--ease-out) 1.2s both; }
+.cover h1 em.ln > span { animation-delay: 1.55s; background: linear-gradient(92deg, #8be9c2 0%, #4fb58d 90%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+@keyframes lineUp { from { transform: translate3d(0, 112%, 0); } to { transform: none; } }
+@keyframes fadeUp { from { opacity: 0; transform: translate3d(0, 18px, 0); } to { opacity: 1; transform: none; } }
+@keyframes breathe { 50% { box-shadow: 0 0 0 8px rgba(110, 225, 180, .04); } }
+.cover-btn { pointer-events: auto; margin-top: 22px; display: inline-flex; align-items: center; gap: 9px; padding: 12px 21px; border-radius: 99px;
+  background: var(--night-ink); color: var(--night); font-weight: 650; font-size: 14.5px; text-decoration: none; transition: transform .25s var(--ease-out), background .2s, box-shadow .25s;
+  animation: fadeUp 1s var(--ease-out) 2.2s both; }
+.cover-btn:hover { transform: translateY(-2px); background: #fff; box-shadow: 0 10px 30px rgba(110, 225, 180, .25); }
+.cover-btn span { transition: transform .25s var(--ease-out); } .cover-btn:hover span { transform: translateX(4px); }
+.cover-hud { min-width: 340px; padding: 16px 20px 17px; border-radius: 18px; background: rgba(13, 19, 24, .5); border: 1px solid rgba(255, 255, 255, .1);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); animation: fadeUp 1s var(--ease-out) 2.4s both; }
+.hud-top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.hud-clock { font: 600 34px/1 var(--mono); letter-spacing: -.02em; color: var(--night-ink); }
+.hud-day { font-size: 12.5px; color: var(--night-ink-2); white-space: nowrap; }
+.hud-bar { height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .12); margin: 13px 0 14px; overflow: hidden; }
+.hud-bar i { display: block; height: 100%; background: var(--mint); transform-origin: 0 50%; transform: scaleX(0); }
+.hud-leg { display: grid; grid-template-columns: repeat(3, auto); justify-content: space-between; gap: 6px 20px; margin: 0; }
+.hud-leg dt { display: flex; align-items: center; gap: 8px; font: 700 20px/1 var(--display); letter-spacing: -.01em; color: var(--night-ink); }
+.hud-leg dd { margin: 5px 0 0; font-size: 11.5px; color: var(--night-ink-2); white-space: nowrap; }
+.hud-leg .d { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.hud-leg .d.full { background: var(--f4); box-shadow: 0 0 8px rgba(229, 87, 63, .7); } .hud-leg .d.done { background: #57d6a6; } .hud-leg .d.skip { background: var(--f1); opacity: .55; }
+@media (max-width: 900px) {
+  .cover-shade { background: linear-gradient(180deg, rgba(11, 16, 20, .75) 0, rgba(11, 16, 20, 0) 120px), linear-gradient(0deg, rgba(11, 16, 20, .98) 0%, rgba(11, 16, 20, .9) 40%, rgba(11, 16, 20, 0) 62%); }
+  .cover-ui { gap: 18px; padding-bottom: 30px; }
+  .cover-caps { height: 3em; text-align: left; font-size: 17px; }
+  .cover-caps span[data-c] { top: auto; bottom: 0; }
+  .cover-row { flex-direction: column; align-items: stretch; gap: 20px; }
+  .cover h1 { font-size: clamp(32px, 9.4vw, 46px); }
+  .cover-btn { margin-top: 18px; }
+  .cover-hud { min-width: 0; padding: 13px 15px 14px; }
+  .hud-clock { font-size: 26px; } .hud-leg dt { font-size: 17px; } .hud-leg { gap: 6px 10px; } .hud-leg dd { font-size: 11px; }
+  .cover-cue { display: none; }
+  .cover-cam, .cover-stage, .cover-drift { transform-origin: 50% 28%; }
+}
+@media (prefers-reduced-motion: reduce) { .cover h1 .ln > span { transform: none; } }
 
 </style>
 </head>
@@ -788,17 +832,28 @@ footer a { color: var(--mint); }
   <div class="cover-grain" aria-hidden="true"></div>
   <span class="cover-bar t" aria-hidden="true"></span><span class="cover-bar b" aria-hidden="true"></span>
   <div class="cover-ui wrap">
-    <span class="cover-tag"><i></i>Edinburgh · <span data-k="forecastShort">3 Nov</span></span>
+    <p class="cover-caps" aria-hidden="true">
+      <span data-c="0">Each dot is a shared street bin.</span>
+      <span data-c="1">Red means it will be full tomorrow.</span>
+      <span data-c="2">So the trucks visit only the red ones.</span>
+      <span data-c="3">A £2 sensor in each bin tells us which.</span>
+      <span data-c="4">The result: <b data-k="overflowCutWord">82&nbsp;%</b> fewer overflowing bins. <small>simulated week</small></span>
+    </p>
+    <p class="sr">Each dot is a shared street bin. Red means it will be full tomorrow, so the trucks visit only the red ones. A £2 sensor in each bin tells us which. The result in a simulated week: <span data-k="overflowCutWord">82&nbsp;%</span> fewer overflowing bins.</p>
     <div class="cover-row">
       <div class="cover-copy">
-        <h1 id="coverTitle"><span class="ln"><span>Empty the bins that are full.</span></span> <em class="ln"><span>Skip the ones that aren’t.</span></em></h1>
-        <a class="cover-btn" href="#problem">See how <span aria-hidden="true">→</span></a>
+        <h1 id="coverTitle"><span class="ln"><span>Empty the full bins.</span></span> <em class="ln"><span>Skip the rest.</span></em></h1>
+        <a class="cover-btn" href="#problem">See how it works <span aria-hidden="true">→</span></a>
       </div>
-      <dl class="cover-stats">
-        <div><dt class="num" data-k="stops">4,532</dt><dd>bin stops</dd></div>
-        <div><dt class="num" data-k="overflowCut">−82 %</dt><dd>overflows <small>sim.</small></dd></div>
-        <div><dt class="num">£2</dt><dd>sensor</dd></div>
-      </dl>
+      <div class="cover-hud">
+        <div class="hud-top"><span class="hud-clock num" id="cvClock">06:00</span><span class="hud-day">Tomorrow’s plan · <span data-k="forecastShort">3 Nov</span> <small>sim.</small></span></div>
+        <div class="hud-bar"><i id="cvBar"></i></div>
+        <dl class="hud-leg">
+          <div><dt><i class="d full"></i><span class="num" id="cvFull" data-k="flagged">2,127</span></dt><dd>full by tomorrow</dd></div>
+          <div><dt><i class="d done"></i><span class="num" id="cvDone">0</span></dt><dd>emptied</dd></div>
+          <div><dt><i class="d skip"></i><span class="num" id="cvSkip">2,405</span></dt><dd>not full, skipped</dd></div>
+        </dl>
+      </div>
     </div>
   </div>
   <span class="cover-cue" aria-hidden="true"></span>
@@ -1397,14 +1452,15 @@ function projector(w, h, pad = 18) {
 let heroPts = null;
 const CV = { W: 0, H: 0, dpr: 1, P: null, r: 2, x: null, y: null, delay: null, order: null, state: null, t: 0, t0: 0, last: 0, raf: 0, ig: 0, ev: 0, fx: [], trails: [], resetAt: 0, started: false, box: null };
 const coverStill = matchMedia("(prefers-reduced-motion: reduce)");
-const IGNITE_MS = 1900, TRUCKS_AT = 2700, DAY_MS = 46000, HOLD_MS = 4200, TRAIL_MS = 2600;
+const IGNITE_MS = 2100, TRUCKS_AT = 6200, DAY_MS = 46000, HOLD_MS = 5200, TRAIL_MS = 2600;
+const CAPS = [600, 3300, 6200, 19000, 33000];             // when each line of the cover's caption comes in (ms into the film)
 function coverProjector(W, H) {
   if (!CV.box) {
     const q = (arr, p) => { const s = [...arr].sort((m, n) => m - n); return s[Math.floor((s.length - 1) * p)]; };
     CV.box = { s: q(D.S.lat, .02), n: q(D.S.lat, .985), w: q(D.S.lon, .03), e: q(D.S.lon, .985) };
   }
   const b = CV.box, kx = Math.cos(55.94 * Math.PI / 180), narrow = W < 760;
-  const [x0, y0, x1, y1] = narrow ? [W * .04, 96, W * .96, H * .47] : [W * .44, H * .15, W * .965, H * .85];
+  const [x0, y0, x1, y1] = narrow ? [W * .02, 78, W * .98, H * .43] : [W * .05, H * .12, W * .95, H * .72];
   const s = Math.min((x1 - x0) / ((b.e - b.w) * kx), (y1 - y0) / (b.n - b.s));
   const ox = x0 + ((x1 - x0) - (b.e - b.w) * kx * s) / 2, oy = y0 + ((y1 - y0) - (b.n - b.s) * s) / 2;
   return { x: lon => ox + (lon - b.w) * kx * s, y: lat => oy + (b.n - lat) * s, s };
@@ -1461,7 +1517,8 @@ function drawHero() {                                       // lay the cover out
   CV.order = [...S.pred.keys()].sort((m, k) => CV.delay[m] - CV.delay[k]);
   CV.trails = []; CV.fx = [];
   host.classList.add("live");
-  if (coverStill.matches) { CV.state.fill(1); redrawDots(); return; }
+  coverHud(0, 0, true);
+  if (coverStill.matches) { CV.state.fill(1); redrawDots(); coverCap(1); return; }
   redrawDots();
   if (!CV.started) { CV.started = true; addEventListener("scroll", coverKick, { passive: true }); document.addEventListener("visibilitychange", coverKick); }
   coverKick();
@@ -1495,6 +1552,9 @@ function coverStep(dt) {
     CV.state[i] = 2; doneDot(dc, i);
     if ((i & 3) === 0) CV.fx.push([CV.x[i], CV.y[i], CV.t, 1]);
   }
+  coverHud(simT, CV.ev);
+  let cap = -1; for (let k = 0; k < CAPS.length; k++) if (t >= CAPS[k]) cap = k;
+  coverCap(CV.resetAt ? -1 : cap);
   // 3. light: truck trails, flashes
   const f = $("#heroCanvas").getContext("2d"); f.setTransform(CV.dpr, 0, 0, CV.dpr, 0, 0); f.clearRect(0, 0, CV.W, CV.H);
   f.globalCompositeOperation = "lighter"; f.lineCap = "round"; f.lineJoin = "round";
@@ -1535,6 +1595,17 @@ function coverStep(dt) {
     }
   }
 }
+// the clock and the three counts beside the film, and its caption
+const hudLast = {};
+function hudSet(id, v) { if (hudLast[id] !== v) { hudLast[id] = v; const e = $("#" + id); if (e) e.textContent = v; } }
+function coverHud(simT, done, init) {
+  const flagged = D.site.plan.flagged, m = Math.round((D.R.shift_start_h || 6) * 60 + simT);
+  hudSet("cvClock", String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0"));
+  hudSet("cvDone", fmt(done)); hudSet("cvFull", fmt(Math.max(0, flagged - done)));
+  if (init) hudSet("cvSkip", fmt(D.site.totals.stops - flagged));
+  const bar = $("#cvBar"); if (bar) bar.style.transform = `scaleX(${SIM.end ? clamp(simT / SIM.end, 0, 1).toFixed(4) : 0})`;
+}
+function coverCap(k) { if (hudLast.cap === k) return; hudLast.cap = k; $$(".cover-caps span[data-c]").forEach(e => e.classList.toggle("on", +e.dataset.c === k)); }
 BS.coverAdvance = ms => { for (let k = 0; k < ms / 16; k++) coverStep(16); return Math.round(CV.t - CV.t0); };   // for checking a frame of the film by hand
 function initHeroHover() {
   const cv = $("#heroCanvas"), host = $("#heroMap"), tip = $("#heroTip");
@@ -1679,21 +1750,21 @@ async function initStreetMap() {
 function platinumStyle(s) {
   const lay = id => s.layers.find(l => l.id === id);
   const P = (ids, k, v) => [].concat(ids).forEach(id => { const l = lay(id); if (l) (l.paint ||= {})[k] = v; });
-  const land = "#eef0f2", bld = "#d8dce1", ink = "#2a3038", txt = "#59616a", halo = "#f5f6f7";
+  const land = "#141b21", bld = "#1e2830", ink = "#dfe6e3", txt = "#9aa6a2", halo = "#10161b";
   P("background", "background-color", land);
-  P("landuse_residential", "fill-color", "#eaecef");
-  P("park", "fill-color", "#dbe5de"); P("landcover_wood", "fill-color", "#d5e0d8");
-  P("water", "fill-color", "#ccd5dd"); P("waterway", "line-color", "#bfc9d2");
-  P("building", "fill-color", bld); P("building", "fill-outline-color", "#c9ced4");
-  P(["highway_minor", "highway_major_inner", "highway_motorway_inner", "highway_motorway_bridge_inner", "tunnel_motorway_inner", "road_pier"], "line-color", "#ffffff");
-  P("highway_path", "line-color", "#fbfbfc");
-  P(["highway_major_casing", "highway_motorway_casing", "highway_motorway_bridge_casing", "tunnel_motorway_casing"], "line-color", "#d0d5db");
-  P(["railway", "railway_transit", "railway_service"], "line-color", "#c6ccd3");
+  P("landuse_residential", "fill-color", "#161e25");
+  P("park", "fill-color", "#16281f"); P("landcover_wood", "fill-color", "#14241c");
+  P("water", "fill-color", "#0a1015"); P("waterway", "line-color", "#0e161c");
+  P("building", "fill-color", bld); P("building", "fill-outline-color", "#28333c");
+  P(["highway_minor", "highway_major_inner", "highway_motorway_inner", "highway_motorway_bridge_inner", "tunnel_motorway_inner", "road_pier"], "line-color", "#33404c");
+  P("highway_path", "line-color", "#232d36");
+  P(["highway_major_casing", "highway_motorway_casing", "highway_motorway_bridge_casing", "tunnel_motorway_casing"], "line-color", "#12191e");
+  P(["railway", "railway_transit", "railway_service"], "line-color", "#2a343d");
   P(["highway-name-path", "highway-name-minor", "highway-name-major"], "text-color", txt);
   P(["highway-name-path", "highway-name-minor", "highway-name-major"], "text-halo-color", halo);
   P(["highway-name-path", "highway-name-minor", "highway-name-major"], "text-halo-width", 1.4);
   s.layers.filter(l => /^label_/.test(l.id)).forEach(l => { l.paint = { ...l.paint, "text-color": ink, "text-halo-color": land, "text-halo-width": 1.4, "text-halo-blur": 0 }; });
-  P(["water_name_point_label", "water_name_line_label", "waterway_line_label"], "text-color", "#61778a");
+  P(["water_name_point_label", "water_name_line_label", "waterway_line_label"], "text-color", "#5f7f97");
   // the building layer starts a little earlier, and street names one zoom earlier, than stock positron
   if (lay("building")) lay("building").minzoom = 13;
   if (lay("highway-name-minor")) lay("highway-name-minor").minzoom = 14.5;
@@ -1702,22 +1773,22 @@ function platinumStyle(s) {
   const extra = [
     { id: "bs-housenumber", type: "symbol", source: "openmaptiles", "source-layer": "housenumber", minzoom: 17,
       layout: { "text-field": ["get", "housenumber"], "text-font": ["Noto Sans Regular"], "text-size": 10 },
-      paint: { "text-color": "#98a0a8", "text-halo-color": bld, "text-halo-width": 1 } },
+      paint: { "text-color": "#6f7a82", "text-halo-color": bld, "text-halo-width": 1 } },
     { id: "bs-poi", type: "symbol", source: "openmaptiles", "source-layer": "poi", minzoom: 16.5,
       filter: ["!", ["match", ["get", "class"], ["railway", "bus", "park"], true, false]],
       layout: { "text-field": name, "text-font": ["Noto Sans Regular"], "text-size": 10.5, "text-max-width": 8 },
-      paint: { "text-color": "#80878f", "text-halo-color": halo, "text-halo-width": 1.2 } },
+      paint: { "text-color": "#8a959d", "text-halo-color": halo, "text-halo-width": 1.2 } },
     { id: "bs-park", type: "symbol", source: "openmaptiles", "source-layer": "poi", minzoom: 14,
       filter: ["==", ["get", "class"], "park"],
       layout: { "text-field": name, "text-font": ["Noto Sans Italic"], "text-size": 11, "text-max-width": 8 },
-      paint: { "text-color": "#5f7d68", "text-halo-color": halo, "text-halo-width": 1.2 } },
+      paint: { "text-color": "#6fa487", "text-halo-color": halo, "text-halo-width": 1.2 } },
     { id: "bs-station", type: "symbol", source: "openmaptiles", "source-layer": "poi", minzoom: 13.5,
       filter: ["==", ["get", "class"], "railway"],
       layout: { "text-field": name, "text-font": ["Noto Sans Bold"], "text-size": 10.5, "text-max-width": 9, "text-anchor": "top", "text-offset": [0, .5] },
-      paint: { "text-color": "#3e5568", "text-halo-color": halo, "text-halo-width": 1.4 } },
+      paint: { "text-color": "#9db7cc", "text-halo-color": halo, "text-halo-width": 1.4 } },
     { id: "bs-station-dot", type: "circle", source: "openmaptiles", "source-layer": "poi", minzoom: 13.5,
       filter: ["==", ["get", "class"], "railway"],
-      paint: { "circle-radius": 3, "circle-color": "#ffffff", "circle-stroke-color": "#3e5568", "circle-stroke-width": 1.4 } },
+      paint: { "circle-radius": 3, "circle-color": "#10161b", "circle-stroke-color": "#9db7cc", "circle-stroke-width": 1.4 } },
   ];
   const at = s.layers.findIndex(l => l.id === "highway-name-path");
   s.layers.splice(at < 0 ? s.layers.length : at, 0, ...extra);

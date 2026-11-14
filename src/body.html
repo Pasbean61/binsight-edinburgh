@@ -30,17 +30,28 @@
   <div class="cover-grain" aria-hidden="true"></div>
   <span class="cover-bar t" aria-hidden="true"></span><span class="cover-bar b" aria-hidden="true"></span>
   <div class="cover-ui wrap">
-    <span class="cover-tag"><i></i>Edinburgh · <span data-k="forecastShort">3 Nov</span></span>
+    <p class="cover-caps" aria-hidden="true">
+      <span data-c="0">Each dot is a shared street bin.</span>
+      <span data-c="1">Red means it will be full tomorrow.</span>
+      <span data-c="2">So the trucks visit only the red ones.</span>
+      <span data-c="3">A £2 sensor in each bin tells us which.</span>
+      <span data-c="4">The result: <b data-k="overflowCutWord">82&nbsp;%</b> fewer overflowing bins. <small>simulated week</small></span>
+    </p>
+    <p class="sr">Each dot is a shared street bin. Red means it will be full tomorrow, so the trucks visit only the red ones. A £2 sensor in each bin tells us which. The result in a simulated week: <span data-k="overflowCutWord">82&nbsp;%</span> fewer overflowing bins.</p>
     <div class="cover-row">
       <div class="cover-copy">
-        <h1 id="coverTitle"><span class="ln"><span>Empty the bins that are full.</span></span> <em class="ln"><span>Skip the ones that aren’t.</span></em></h1>
-        <a class="cover-btn" href="#problem">See how <span aria-hidden="true">→</span></a>
+        <h1 id="coverTitle"><span class="ln"><span>Empty the full bins.</span></span> <em class="ln"><span>Skip the rest.</span></em></h1>
+        <a class="cover-btn" href="#problem">See how it works <span aria-hidden="true">→</span></a>
       </div>
-      <dl class="cover-stats">
-        <div><dt class="num" data-k="stops">4,532</dt><dd>bin stops</dd></div>
-        <div><dt class="num" data-k="overflowCut">−82 %</dt><dd>overflows <small>sim.</small></dd></div>
-        <div><dt class="num">£2</dt><dd>sensor</dd></div>
-      </dl>
+      <div class="cover-hud">
+        <div class="hud-top"><span class="hud-clock num" id="cvClock">06:00</span><span class="hud-day">Tomorrow’s plan · <span data-k="forecastShort">3 Nov</span> <small>sim.</small></span></div>
+        <div class="hud-bar"><i id="cvBar"></i></div>
+        <dl class="hud-leg">
+          <div><dt><i class="d full"></i><span class="num" id="cvFull" data-k="flagged">2,127</span></dt><dd>full by tomorrow</dd></div>
+          <div><dt><i class="d done"></i><span class="num" id="cvDone">0</span></dt><dd>emptied</dd></div>
+          <div><dt><i class="d skip"></i><span class="num" id="cvSkip">2,405</span></dt><dd>not full, skipped</dd></div>
+        </dl>
+      </div>
     </div>
   </div>
   <span class="cover-cue" aria-hidden="true"></span>

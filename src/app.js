@@ -162,14 +162,15 @@ function projector(w, h, pad = 18) {
 let heroPts = null;
 const CV = { W: 0, H: 0, dpr: 1, P: null, r: 2, x: null, y: null, delay: null, order: null, state: null, t: 0, t0: 0, last: 0, raf: 0, ig: 0, ev: 0, fx: [], trails: [], resetAt: 0, started: false, box: null };
 const coverStill = matchMedia("(prefers-reduced-motion: reduce)");
-const IGNITE_MS = 1900, TRUCKS_AT = 2700, DAY_MS = 46000, HOLD_MS = 4200, TRAIL_MS = 2600;
+const IGNITE_MS = 2100, TRUCKS_AT = 6200, DAY_MS = 46000, HOLD_MS = 5200, TRAIL_MS = 2600;
+const CAPS = [600, 3300, 6200, 19000, 33000];             // when each line of the cover's caption comes in (ms into the film)
 function coverProjector(W, H) {
   if (!CV.box) {
     const q = (arr, p) => { const s = [...arr].sort((m, n) => m - n); return s[Math.floor((s.length - 1) * p)]; };
     CV.box = { s: q(D.S.lat, .02), n: q(D.S.lat, .985), w: q(D.S.lon, .03), e: q(D.S.lon, .985) };
   }
   const b = CV.box, kx = Math.cos(55.94 * Math.PI / 180), narrow = W < 760;
-  const [x0, y0, x1, y1] = narrow ? [W * .04, 96, W * .96, H * .47] : [W * .44, H * .15, W * .965, H * .85];
+  const [x0, y0, x1, y1] = narrow ? [W * .02, 78, W * .98, H * .43] : [W * .05, H * .12, W * .95, H * .72];
   const s = Math.min((x1 - x0) / ((b.e - b.w) * kx), (y1 - y0) / (b.n - b.s));
   const ox = x0 + ((x1 - x0) - (b.e - b.w) * kx * s) / 2, oy = y0 + ((y1 - y0) - (b.n - b.s) * s) / 2;
   return { x: lon => ox + (lon - b.w) * kx * s, y: lat => oy + (b.n - lat) * s, s };
@@ -226,7 +227,8 @@ function drawHero() {                                       // lay the cover out
   CV.order = [...S.pred.keys()].sort((m, k) => CV.delay[m] - CV.delay[k]);
   CV.trails = []; CV.fx = [];
   host.classList.add("live");
-  if (coverStill.matches) { CV.state.fill(1); redrawDots(); return; }
+  coverHud(0, 0, true);
+  if (coverStill.matches) { CV.state.fill(1); redrawDots(); coverCap(1); return; }
   redrawDots();
   if (!CV.started) { CV.started = true; addEventListener("scroll", coverKick, { passive: true }); document.addEventListener("visibilitychange", coverKick); }
   coverKick();
@@ -260,6 +262,9 @@ function coverStep(dt) {
     CV.state[i] = 2; doneDot(dc, i);
     if ((i & 3) === 0) CV.fx.push([CV.x[i], CV.y[i], CV.t, 1]);
   }
+  coverHud(simT, CV.ev);
+  let cap = -1; for (let k = 0; k < CAPS.length; k++) if (t >= CAPS[k]) cap = k;
+  coverCap(CV.resetAt ? -1 : cap);
   // 3. light: truck trails, flashes
   const f = $("#heroCanvas").getContext("2d"); f.setTransform(CV.dpr, 0, 0, CV.dpr, 0, 0); f.clearRect(0, 0, CV.W, CV.H);
   f.globalCompositeOperation = "lighter"; f.lineCap = "round"; f.lineJoin = "round";
@@ -300,6 +305,17 @@ function coverStep(dt) {
     }
   }
 }
+// the clock and the three counts beside the film, and its caption
+const hudLast = {};
+function hudSet(id, v) { if (hudLast[id] !== v) { hudLast[id] = v; const e = $("#" + id); if (e) e.textContent = v; } }
+function coverHud(simT, done, init) {
+  const flagged = D.site.plan.flagged, m = Math.round((D.R.shift_start_h || 6) * 60 + simT);
+  hudSet("cvClock", String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0"));
+  hudSet("cvDone", fmt(done)); hudSet("cvFull", fmt(Math.max(0, flagged - done)));
+  if (init) hudSet("cvSkip", fmt(D.site.totals.stops - flagged));
+  const bar = $("#cvBar"); if (bar) bar.style.transform = `scaleX(${SIM.end ? clamp(simT / SIM.end, 0, 1).toFixed(4) : 0})`;
+}
+function coverCap(k) { if (hudLast.cap === k) return; hudLast.cap = k; $$(".cover-caps span[data-c]").forEach(e => e.classList.toggle("on", +e.dataset.c === k)); }
 BS.coverAdvance = ms => { for (let k = 0; k < ms / 16; k++) coverStep(16); return Math.round(CV.t - CV.t0); };   // for checking a frame of the film by hand
 function initHeroHover() {
   const cv = $("#heroCanvas"), host = $("#heroMap"), tip = $("#heroTip");
@@ -444,21 +460,21 @@ async function initStreetMap() {
 function platinumStyle(s) {
   const lay = id => s.layers.find(l => l.id === id);
   const P = (ids, k, v) => [].concat(ids).forEach(id => { const l = lay(id); if (l) (l.paint ||= {})[k] = v; });
-  const land = "#eef0f2", bld = "#d8dce1", ink = "#2a3038", txt = "#59616a", halo = "#f5f6f7";
+  const land = "#141b21", bld = "#1e2830", ink = "#dfe6e3", txt = "#9aa6a2", halo = "#10161b";
   P("background", "background-color", land);
-  P("landuse_residential", "fill-color", "#eaecef");
-  P("park", "fill-color", "#dbe5de"); P("landcover_wood", "fill-color", "#d5e0d8");
-  P("water", "fill-color", "#ccd5dd"); P("waterway", "line-color", "#bfc9d2");
-  P("building", "fill-color", bld); P("building", "fill-outline-color", "#c9ced4");
-  P(["highway_minor", "highway_major_inner", "highway_motorway_inner", "highway_motorway_bridge_inner", "tunnel_motorway_inner", "road_pier"], "line-color", "#ffffff");
-  P("highway_path", "line-color", "#fbfbfc");
-  P(["highway_major_casing", "highway_motorway_casing", "highway_motorway_bridge_casing", "tunnel_motorway_casing"], "line-color", "#d0d5db");
-  P(["railway", "railway_transit", "railway_service"], "line-color", "#c6ccd3");
+  P("landuse_residential", "fill-color", "#161e25");
+  P("park", "fill-color", "#16281f"); P("landcover_wood", "fill-color", "#14241c");
+  P("water", "fill-color", "#0a1015"); P("waterway", "line-color", "#0e161c");
+  P("building", "fill-color", bld); P("building", "fill-outline-color", "#28333c");
+  P(["highway_minor", "highway_major_inner", "highway_motorway_inner", "highway_motorway_bridge_inner", "tunnel_motorway_inner", "road_pier"], "line-color", "#33404c");
+  P("highway_path", "line-color", "#232d36");
+  P(["highway_major_casing", "highway_motorway_casing", "highway_motorway_bridge_casing", "tunnel_motorway_casing"], "line-color", "#12191e");
+  P(["railway", "railway_transit", "railway_service"], "line-color", "#2a343d");
   P(["highway-name-path", "highway-name-minor", "highway-name-major"], "text-color", txt);
   P(["highway-name-path", "highway-name-minor", "highway-name-major"], "text-halo-color", halo);
   P(["highway-name-path", "highway-name-minor", "highway-name-major"], "text-halo-width", 1.4);
   s.layers.filter(l => /^label_/.test(l.id)).forEach(l => { l.paint = { ...l.paint, "text-color": ink, "text-halo-color": land, "text-halo-width": 1.4, "text-halo-blur": 0 }; });
-  P(["water_name_point_label", "water_name_line_label", "waterway_line_label"], "text-color", "#61778a");
+  P(["water_name_point_label", "water_name_line_label", "waterway_line_label"], "text-color", "#5f7f97");
   // the building layer starts a little earlier, and street names one zoom earlier, than stock positron
   if (lay("building")) lay("building").minzoom = 13;
   if (lay("highway-name-minor")) lay("highway-name-minor").minzoom = 14.5;
@@ -467,22 +483,22 @@ function platinumStyle(s) {
   const extra = [
     { id: "bs-housenumber", type: "symbol", source: "openmaptiles", "source-layer": "housenumber", minzoom: 17,
       layout: { "text-field": ["get", "housenumber"], "text-font": ["Noto Sans Regular"], "text-size": 10 },
-      paint: { "text-color": "#98a0a8", "text-halo-color": bld, "text-halo-width": 1 } },
+      paint: { "text-color": "#6f7a82", "text-halo-color": bld, "text-halo-width": 1 } },
     { id: "bs-poi", type: "symbol", source: "openmaptiles", "source-layer": "poi", minzoom: 16.5,
       filter: ["!", ["match", ["get", "class"], ["railway", "bus", "park"], true, false]],
       layout: { "text-field": name, "text-font": ["Noto Sans Regular"], "text-size": 10.5, "text-max-width": 8 },
-      paint: { "text-color": "#80878f", "text-halo-color": halo, "text-halo-width": 1.2 } },
+      paint: { "text-color": "#8a959d", "text-halo-color": halo, "text-halo-width": 1.2 } },
     { id: "bs-park", type: "symbol", source: "openmaptiles", "source-layer": "poi", minzoom: 14,
       filter: ["==", ["get", "class"], "park"],
       layout: { "text-field": name, "text-font": ["Noto Sans Italic"], "text-size": 11, "text-max-width": 8 },
-      paint: { "text-color": "#5f7d68", "text-halo-color": halo, "text-halo-width": 1.2 } },
+      paint: { "text-color": "#6fa487", "text-halo-color": halo, "text-halo-width": 1.2 } },
     { id: "bs-station", type: "symbol", source: "openmaptiles", "source-layer": "poi", minzoom: 13.5,
       filter: ["==", ["get", "class"], "railway"],
       layout: { "text-field": name, "text-font": ["Noto Sans Bold"], "text-size": 10.5, "text-max-width": 9, "text-anchor": "top", "text-offset": [0, .5] },
-      paint: { "text-color": "#3e5568", "text-halo-color": halo, "text-halo-width": 1.4 } },
+      paint: { "text-color": "#9db7cc", "text-halo-color": halo, "text-halo-width": 1.4 } },
     { id: "bs-station-dot", type: "circle", source: "openmaptiles", "source-layer": "poi", minzoom: 13.5,
       filter: ["==", ["get", "class"], "railway"],
-      paint: { "circle-radius": 3, "circle-color": "#ffffff", "circle-stroke-color": "#3e5568", "circle-stroke-width": 1.4 } },
+      paint: { "circle-radius": 3, "circle-color": "#10161b", "circle-stroke-color": "#9db7cc", "circle-stroke-width": 1.4 } },
   ];
   const at = s.layers.findIndex(l => l.id === "highway-name-path");
   s.layers.splice(at < 0 ? s.layers.length : at, 0, ...extra);
