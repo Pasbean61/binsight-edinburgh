@@ -1415,7 +1415,7 @@ addEventListener("load", () => { const el = location.hash.length > 1 && document
     const rings = [0, 1, 2, 3].map(() => { const r = new T3.Mesh(new T3.TorusGeometry(1, .045, 8, 60), new T3.MeshBasicMaterial({ color: 0x16a070, transparent: true, opacity: 0, depthWrite: false })); r.rotation.x = Math.PI / 2; bin.group.add(r); return r; });
     const hit = new T3.Mesh(new T3.RingGeometry(.82, 1, 56), new T3.MeshBasicMaterial({ color: 0xe0a02a, transparent: true, opacity: 0, side: T3.DoubleSide, depthWrite: false })); hit.rotation.x = -Math.PI / 2; bin.group.add(hit);
     const out = new T3.Color(0x16a070), back = new T3.Color(0xe0a02a);
-    const orb = orbit(cvs, host, st, { yaw: -.5, pitch: 0, pMin: -.25, pMax: .35, sway: .32 });
+    const orb = { yaw: -.5, pitch: 0, step() {} };   // the bin holds still: no drag, no sway
     st.fit((W, H) => { const a = W / H, z = a < 1.15 ? 46 * 1.15 / a : 46; st.camera.position.set(0, 17 + (z - 46) * .2, z); st.camera.lookAt(0, 7.4, 0); });
     let fill = 0, ph = 0;
     st.frame((dt, t) => {

@@ -882,6 +882,7 @@ footer a { color: var(--mint); }
 /* the live map's own controls read like Google Maps: white cards, grey type, soft shadows */
 .map-shell { --surface: #ffffff; --raised: #ffffff; --paper: #f8f9fa; --ink: #202124; --ink-2: #3c4043; --ink-3: #5f6368;
   --line: #e3e5e8; --line-2: #c9cdd2; --shadow: 0 1px 2px rgba(60, 64, 67, .3), 0 2px 6px rgba(60, 64, 67, .15); --shadow-2: 0 2px 4px rgba(60, 64, 67, .3), 0 6px 18px rgba(60, 64, 67, .18); color-scheme: light; color: var(--ink); --warn: #b26a00; }
+#binStage canvas { cursor: default; }
 
 </style>
 </head>
@@ -1051,7 +1052,6 @@ footer a { color: var(--mint); }
   <div class="sensor-demo" id="sensor">
     <div class="stage stage-bin" id="binStage">
       <canvas id="bin3d" role="img" aria-label="A communal bin cut open in 3D: the sensor under the lid sends ultrasound down to the rubbish and times the echo"></canvas>
-      <span class="stage-hint">Drag to turn ↻</span>
       <p class="stage-fallback" id="binFallback" hidden>The 3D model needs an internet connection to load.</p>
     </div>
     <div class="sensor-side">
@@ -3052,7 +3052,7 @@ addEventListener("load", () => { const el = location.hash.length > 1 && document
     const rings = [0, 1, 2, 3].map(() => { const r = new T3.Mesh(new T3.TorusGeometry(1, .045, 8, 60), new T3.MeshBasicMaterial({ color: 0x16a070, transparent: true, opacity: 0, depthWrite: false })); r.rotation.x = Math.PI / 2; bin.group.add(r); return r; });
     const hit = new T3.Mesh(new T3.RingGeometry(.82, 1, 56), new T3.MeshBasicMaterial({ color: 0xe0a02a, transparent: true, opacity: 0, side: T3.DoubleSide, depthWrite: false })); hit.rotation.x = -Math.PI / 2; bin.group.add(hit);
     const out = new T3.Color(0x16a070), back = new T3.Color(0xe0a02a);
-    const orb = orbit(cvs, host, st, { yaw: -.5, pitch: 0, pMin: -.25, pMax: .35, sway: .32 });
+    const orb = { yaw: -.5, pitch: 0, step() {} };   // the bin holds still: no drag, no sway
     st.fit((W, H) => { const a = W / H, z = a < 1.15 ? 46 * 1.15 / a : 46; st.camera.position.set(0, 17 + (z - 46) * .2, z); st.camera.lookAt(0, 7.4, 0); });
     let fill = 0, ph = 0;
     st.frame((dt, t) => {
