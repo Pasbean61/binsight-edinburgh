@@ -989,3 +989,14 @@ footer a { color: var(--mint); }
 .bz-f { transition: opacity .5s ease calc(var(--d) + .7s); } .bz-ready .bz:not(.play) .bz-f { opacity: 0; }
 @media (max-width: 520px) { .bz-risk { grid-template-columns: 12px minmax(0, 1fr); } .bz-ar { display: none; } .bz-f { grid-column: 2; } }
 @media (prefers-reduced-motion: reduce) { .bz-halo, .bz-tile.star .bz-l { animation: none; } }
+
+/* ── smooth scrolling: the page-turn costs one small layer per frame ── */
+.page { overflow: visible; }
+.page::after { content: none; }
+.page.under { transform: none; }
+.page-dim { position: absolute; left: 0; right: 0; bottom: 0; height: 100vh; height: 100lvh; z-index: 6; pointer-events: none; background: #000; opacity: 0; will-change: opacity; display: block; }
+.page.buried { visibility: hidden; }
+.page.buried *, .page.buried *::before, .page.buried *::after { animation-play-state: paused !important; }
+header.top { backdrop-filter: none; -webkit-backdrop-filter: none; background: color-mix(in srgb, var(--paper) 95%, transparent); }
+header.top.over { background: transparent; }
+.bz-ready .bz:not(.play) :is(.bz-val, .bz-pay) { opacity: 0; }

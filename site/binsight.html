@@ -998,6 +998,17 @@ footer a { color: var(--mint); }
 @media (max-width: 520px) { .bz-risk { grid-template-columns: 12px minmax(0, 1fr); } .bz-ar { display: none; } .bz-f { grid-column: 2; } }
 @media (prefers-reduced-motion: reduce) { .bz-halo, .bz-tile.star .bz-l { animation: none; } }
 
+/* ── smooth scrolling: the page-turn costs one small layer per frame ── */
+.page { overflow: visible; }
+.page::after { content: none; }
+.page.under { transform: none; }
+.page-dim { position: absolute; left: 0; right: 0; bottom: 0; height: 100vh; height: 100lvh; z-index: 6; pointer-events: none; background: #000; opacity: 0; will-change: opacity; display: block; }
+.page.buried { visibility: hidden; }
+.page.buried *, .page.buried *::before, .page.buried *::after { animation-play-state: paused !important; }
+header.top { backdrop-filter: none; -webkit-backdrop-filter: none; background: color-mix(in srgb, var(--paper) 95%, transparent); }
+header.top.over { background: transparent; }
+.bz-ready .bz:not(.play) :is(.bz-val, .bz-pay) { opacity: 0; }
+
 </style>
 <div class="shell">
 <header class="top" id="top">
@@ -1719,7 +1730,8 @@ function drawHero() {                                       // lay the cover out
 }
 function coverKick() {
   const host = $("#heroMap"); if (!host) return;
-  host.style.setProperty("--p", clamp(scrollY / Math.max(1, host.offsetHeight), 0, 1).toFixed(3));
+  const p = clamp(scrollY / Math.max(1, host.offsetHeight), 0, 1).toFixed(3);
+  if (host._p !== p) { host._p = p; host.style.setProperty("--p", p); }
   if (!CV.raf && CV.started && !coverStill.matches && !document.hidden && scrollY < host.offsetHeight) { CV.last = 0; CV.raf = requestAnimationFrame(coverFrame); }
 }
 function coverFrame(now) {
@@ -2836,6 +2848,11 @@ function initBusiness() {
     return out + "</svg>";
   };
   $("#partnersSvg").innerHTML = svgFor("wide", LAYOUTS.wide) + svgFor("narrow", LAYOUTS.narrow);
+  if ("IntersectionObserver" in window) {
+    const svgs = $$("#partnersSvg svg"), host = $("#partnersSvg"), pg = host.closest(".page");
+    let vis = false; const sync = () => svgs.forEach(sv => (vis && !(pg && pg.classList.contains("buried"))) ? sv.unpauseAnimations() : sv.pauseAnimations());
+    new IntersectionObserver(es => { vis = es[0].isIntersecting; sync(); }).observe(host); addEventListener("bs:pages", sync);
+  }
 
   // 2. seven revenue models as tiles
   $("#modelTiles").innerHTML = MODELS.map(([k, t, who, line], i) => `<div class="bz-tile${k === "B" ? " star" : ""}" style="--d:${i * 90}ms"><span class="bz-l">${k}</span><div><b>${t}</b><span class="bz-who">${who}</span><p>${line}</p></div></div>`).join("");
@@ -3014,12 +3031,17 @@ addEventListener("load", () => { const el = location.hash.length > 1 && document
   if ("ResizeObserver" in window) { const ro = new ResizeObserver(stick); pages.forEach(p => ro.observe(p)); }
   addEventListener("resize", stick); stick();
   let raf = 0;
+  // the page being covered darkens a little. Only one small layer's opacity changes per frame (no style recalc of the page),
+  // and a page that is fully covered is hidden, so nothing under the pile is painted or animated.
+  const dims = pages.map(p => { const d = document.createElement("i"); d.className = "page-dim"; d.setAttribute("aria-hidden", "true"); p.append(d); return d; });
   const upd = () => {
-    raf = 0; const vh = innerHeight;
+    raf = 0; const vh = innerHeight, tops = pages.map(p => p.getBoundingClientRect().top);
     pages.forEach((p, k) => {
-      const nx = pages[k + 1], c = nx ? clamp((vh - nx.getBoundingClientRect().top) / vh, 0, 1) : 0;
-      if (p._c === c) return; p._c = c;
-      p.style.setProperty("--c", c.toFixed(3)); p.classList.toggle("under", c > 0);
+      const c = k + 1 < pages.length ? clamp((vh - tops[k + 1]) / vh, 0, 1) : 0, q = Math.round(c * 100) / 100;
+      if (p._c === q) return; p._c = q;
+      dims[k].style.opacity = (q * .5).toFixed(2);
+      const buried = q >= 1;
+      if (buried !== !!p._b) { p._b = buried; p.classList.toggle("buried", buried); dispatchEvent(new Event("bs:pages")); }
     });
   };
   addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(upd); }, { passive: true }); upd();
@@ -3145,10 +3167,11 @@ addEventListener("load", () => { const el = location.hash.length > 1 && document
     }
     let W = 0, H = 0, onScreen = false, running = false, tick = null, fit = null;
     const size = () => { const r = host.getBoundingClientRect(); if (!r.width || !r.height) return; W = r.width; H = r.height; renderer.setSize(W, H, false); if (camera.isPerspectiveCamera) camera.aspect = W / H; fit && fit(W, H); camera.updateProjectionMatrix(); kick(); };
+    const page = host.closest(".page"), seen = () => onScreen && !document.hidden && !(page && page.classList.contains("buried"));
     const kick = () => {
-      if (running || !onScreen) return; running = true; let last = performance.now();
+      if (running || !seen()) return; running = true; let last = performance.now();
       const step = now => {
-        if (!onScreen || document.hidden) { running = false; return; }
+        if (!seen()) { running = false; return; }
         const dt = Math.min(.05, (now - last) / 1000); last = now;
         tick && tick(still ? 0 : dt, now / 1000); renderer.render(scene, camera);
         if (still) { running = false; return; }                // reduced motion: draw once, again only when touched
@@ -3158,7 +3181,7 @@ addEventListener("load", () => { const el = location.hash.length > 1 && document
     };
     new ResizeObserver(size).observe(host);
     new IntersectionObserver(es => { onScreen = es[0].isIntersecting; kick(); }).observe(host);
-    document.addEventListener("visibilitychange", kick);
+    document.addEventListener("visibilitychange", kick); addEventListener("bs:pages", kick);
     let clock = 0;
     studios.push({ step: dt => { clock += dt; size(); tick && tick(dt, clock); renderer.render(scene, camera); } });
     return { T3, renderer, scene, camera, key, kick, frame: f => { tick = f; }, fit: f => { fit = f; size(); } };
@@ -3444,12 +3467,14 @@ addEventListener("load", () => { const el = location.hash.length > 1 && document
     };
     new ResizeObserver(size).observe(stage); size();
     let onScreen = true;
-    new IntersectionObserver(es => { onScreen = es[0].isIntersecting; if (onScreen) loop(); }).observe(stage);
+    const sPage = stage.closest(".page"), seen = () => onScreen && !document.hidden && !(sPage && sPage.classList.contains("buried"));
+    new IntersectionObserver(es => { onScreen = es[0].isIntersecting; if (seen()) loop(); }).observe(stage);
+    addEventListener("bs:pages", () => { if (seen()) loop(); }); document.addEventListener("visibilitychange", () => { if (seen()) loop(); });
     let running = false;
     function loop() {
       if (running) return; running = true;
       const step = now => {
-        if (!onScreen) { running = false; return; }
+        if (!seen()) { running = false; return; }
         const dt = Math.min(.05, (now - t0) / 1000); t0 = now; idle += dt;
         if (!drag) {
           yaw += vy; pitch = Math.max(-.9, Math.min(1.1, pitch + vp)); vy *= .94; vp *= .9;
