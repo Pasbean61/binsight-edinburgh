@@ -58,8 +58,8 @@
   <div class="hero-tip" id="heroTip"></div>
 </section>
 
-<div class="sheet">
 <!-- ── PROBLEM ────────────────────────────────────────── -->
+<div class="page">
 <section class="chapter wrap" id="problem">
   <div class="chapter-head">
     <div><span class="eyebrow">The problem</span><h2>Bins fill at different speeds. A timetable can’t see that.</h2></div>
@@ -67,16 +67,18 @@
   </div>
   <div class="stats" id="statAnims">
     <div class="card stat anim">
-      <div class="stat-viz"><svg viewBox="0 0 320 120" id="vBins" aria-hidden="true"><g class="bins-grid"></g><text x="316" y="114" text-anchor="end" class="v-note">1 icon ≈ 110 bins</text></svg></div>
+      <div class="stat-viz" id="vField3d"><canvas aria-hidden="true"></canvas><svg viewBox="0 0 320 120" id="vBins" aria-hidden="true"><g class="bins-grid flat"></g><text x="316" y="114" text-anchor="end" class="v-note">1 icon ≈ 110 bins</text></svg></div>
       <b data-count="10657">10,657</b><p>communal bins on the streets, at 4,532 stops</p>
       <span class="src">City of Edinburgh Council, <a href="https://data.edinburghcouncilmaps.info/datasets/283caa7cb2434db3874526d16efe8c67_27/about" target="_blank" rel="noopener">Communal Bins register</a> (open data)</span>
     </div>
     <div class="card stat anim">
-      <div class="stat-viz"><svg viewBox="0 0 320 120" aria-hidden="true">
+      <div class="stat-viz" id="vOver3d"><canvas aria-hidden="true"></canvas><svg viewBox="0 0 320 120" aria-hidden="true">
+        <g class="flat">
         <g class="stink"><path d="M58 30c-4-6 4-9 0-15"/><path d="M76 24c-4-6 4-9 0-15"/><path d="M94 30c-4-6 4-9 0-15"/></g>
         <path d="M38 52h76l-7 56a6 6 0 0 1-6 5H51a6 6 0 0 1-6-5z" fill="var(--bin-a)"/>
         <g class="bags"><circle cx="56" cy="50" r="11" fill="var(--waste-2)"/><circle cx="77" cy="44" r="13" fill="var(--waste)"/><circle cx="97" cy="51" r="10" fill="var(--waste-2)"/><circle cx="66" cy="38" r="7" fill="#d9cdb2"/></g>
         <rect class="lid" x="30" y="40" width="88" height="7" rx="3.5" fill="var(--ink)"/>
+        </g>
         <g class="reps">
           <g class="rep" style="--i:0"><rect x="148" y="72" width="160" height="26" rx="13"/><circle cx="163" cy="85" r="4.5"/><text x="175" y="89">Full bin reported</text></g>
           <g class="rep" style="--i:1"><rect x="148" y="72" width="160" height="26" rx="13"/><circle cx="163" cy="85" r="4.5"/><text x="175" y="89">Bin overflowing</text></g>
@@ -143,9 +145,10 @@
     </div>
   </div>
 </section>
+</div>
 
 <!-- ── HOW IT WORKS ───────────────────────────────────── -->
-<div class="band">
+<div class="page band">
 <section class="chapter wrap" id="how">
   <div class="chapter-head">
     <div><span class="eyebrow">Our answer</span><h2>Measure, forecast, route, collect</h2></div>
@@ -159,33 +162,26 @@
   </div>
 
   <div class="sensor-demo" id="sensor">
-    <div class="stage" id="stage">
-      <canvas id="sensor3d" role="img" aria-label="3D model of the sensor: an HC-SR04 ultrasonic module with two round transducers on a blue circuit board"></canvas>
-      <span class="stage-tag">HC-SR04 · 45 × 20 mm · £2</span>
-      <span class="stage-hint" id="stageHint">Drag to turn ↻</span>
-      <p class="stage-fallback" id="stageFallback" hidden>The 3D model needs an internet connection to load.</p>
+    <div class="stage stage-bin" id="binStage">
+      <canvas id="bin3d" role="img" aria-label="A communal bin cut open in 3D: the sensor under the lid sends ultrasound down to the rubbish and times the echo"></canvas>
+      <span class="stage-hint">Drag to turn ↻</span>
+      <p class="stage-fallback" id="binFallback" hidden>The 3D model needs an internet connection to load.</p>
     </div>
-    <div class="echo">
-      <svg id="echoSvg" viewBox="0 0 240 280" role="img" aria-label="A bin with the sensor under its lid, sending ultrasound down to the rubbish">
-        <defs>
-          <linearGradient id="binG" x1="0" x2="1"><stop offset="0" stop-color="var(--bin-a)"/><stop offset="1" stop-color="var(--bin-b)"/></linearGradient>
-          <clipPath id="binClip"><path d="M44 58h152l-10 196a10 10 0 0 1-10 9H64a10 10 0 0 1-10-9z"/></clipPath>
-        </defs>
-        <path d="M44 58h152l-10 196a10 10 0 0 1-10 9H64a10 10 0 0 1-10-9z" fill="url(#binG)" stroke="var(--line-2)"/>
-        <g clip-path="url(#binClip)"><rect id="echoWaste" x="40" y="160" width="160" height="110" fill="var(--waste)"/><path id="echoTop" d="" fill="var(--waste-2)"/></g>
-        <rect x="34" y="44" width="172" height="14" rx="5" fill="var(--ink)"/>
-        <rect x="108" y="58" width="24" height="8" rx="2" fill="var(--sensor-blue)"/>
-        <circle cx="114" cy="66" r="3.4" fill="var(--sensor-can)"/><circle cx="126" cy="66" r="3.4" fill="var(--sensor-can)"/>
-        <g id="echoWaves" fill="none" stroke="var(--wave)" stroke-width="2.2" stroke-linecap="round"></g>
-        <line id="echoLine" x1="210" y1="66" x2="210" y2="160" stroke="var(--ink-3)" stroke-dasharray="3 3"/>
-        <path id="echoArrA" d="" fill="var(--ink-3)"/><path id="echoArrB" d="" fill="var(--ink-3)"/>
-      </svg>
-      <input type="range" id="eFill" min="0" max="100" step="1" value="65" aria-label="How full the bin is">
-      <output id="oFill" class="sr">65 %</output>
-      <div class="echo-out">
-        <div><b id="eTime" class="num">–</b><span>echo</span></div>
-        <div><b id="eDist" class="num">–</b><span>distance</span></div>
-        <div><b id="ePct" class="num">–</b><span>fill</span></div>
+    <div class="sensor-side">
+      <div class="stage" id="stage">
+        <canvas id="sensor3d" role="img" aria-label="3D model of the sensor: an HC-SR04 ultrasonic module with two round transducers on a blue circuit board"></canvas>
+        <span class="stage-tag">HC-SR04 · 45 × 20 mm · £2</span>
+        <span class="stage-hint" id="stageHint">Drag to turn ↻</span>
+        <p class="stage-fallback" id="stageFallback" hidden>The 3D model needs an internet connection to load.</p>
+      </div>
+      <div class="echo">
+        <input type="range" id="eFill" min="0" max="100" step="1" value="65" aria-label="How full the bin is">
+        <output id="oFill" class="sr">65 %</output>
+        <div class="echo-out">
+          <div><b id="eTime" class="num">–</b><span>echo</span></div>
+          <div><b id="eDist" class="num">–</b><span>distance</span></div>
+          <div><b id="ePct" class="num">–</b><span>fill</span></div>
+        </div>
       </div>
     </div>
   </div>
@@ -193,6 +189,7 @@
 </div>
 
 <!-- ── CONSOLE ────────────────────────────────────────── -->
+<div class="page">
 <section class="chapter wrap console" id="console">
   <div class="chapter-head">
     <div><span class="eyebrow">See it working</span><h2>Tomorrow’s plan, stop by stop</h2></div>
@@ -236,9 +233,10 @@
   <div class="tabpane" id="pane-alerts" hidden></div>
   <div class="tabpane" id="pane-weather" hidden></div>
 </section>
+</div>
 
 <!-- ── THE MATHS ──────────────────────────────────────── -->
-<div class="band">
+<div class="page band">
 <section class="chapter wrap" id="maths">
   <div class="chapter-head">
     <div><span class="eyebrow">How the plan is made</span><h2>Five steps behind the plan</h2></div>
@@ -387,6 +385,7 @@
 </div>
 
 <!-- ── RESULTS ────────────────────────────────────────── -->
+<div class="page">
 <section class="chapter wrap" id="results">
   <div class="chapter-head">
     <div><span class="eyebrow">Does it work?</span><h2>Fewer overflows, lower cost</h2><span class="tag sim" style="margin-top:12px">Simulated week · same 34 trucks</span></div>
@@ -395,9 +394,10 @@
   <h3 class="res-h">Why forecasting wins</h3>
   <div class="methods" id="methods"></div>
 </section>
+</div>
 
 <!-- ── BUSINESS ───────────────────────────────────────── -->
-<div class="band">
+<div class="page band">
 <section class="chapter wrap" id="business">
   <div class="chapter-head">
     <div><span class="eyebrow">Who pays for it</span><h2>Three partners, one service</h2></div>
@@ -459,6 +459,7 @@
 </div>
 
 <!-- ── SOURCES ────────────────────────────────────────── -->
+<div class="page">
 <section class="chapter wrap" id="sources">
   <div class="chapter-head">
     <div><span class="eyebrow">Sources</span><h2>What is real, what is simulated</h2></div>

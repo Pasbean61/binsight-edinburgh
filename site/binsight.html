@@ -647,11 +647,11 @@ div.card.step { cursor: default; }
 }
 
 /* ── the film: a full-screen night cover, then the page rises over it as one sheet ── */
-:root { --night: #0b1014; --night-land: #161e24; --night-edge: #27323a; --night-road: #303c46; --night-park: #16271f; --night-ink: #eef2f0; --night-ink-2: #9aa7a2; --mint: #6ee1b4;
+:root { --cv-bg: #0b1014; --cv-land: #161e24; --cv-edge: #27323a; --cv-road: #303c46; --cv-park: #16271f; --cv-ink: #eef2f0; --cv-ink-2: #9aa7a2; --mint: #6ee1b4;
   --ease-out: cubic-bezier(.16, 1, .3, 1); }
-body { background: var(--night); }
+body { background: var(--cv-bg); }
 .cover { position: sticky; top: 0; z-index: 0; height: 100vh; height: 100svh; min-height: 560px; margin-top: -60px; overflow: hidden; isolation: isolate;
-  background: radial-gradient(80% 70% at 70% 45%, #121c1b 0%, var(--night) 72%); color: var(--night-ink); --p: 0; }
+  background: radial-gradient(80% 70% at 70% 45%, #121c1b 0%, var(--cv-bg) 72%); color: var(--cv-ink); --p: 0; }
 .cover-stage, .cover-drift, .cover-cam { position: absolute; inset: 0; }
 .cover-stage { transform: scale(calc(1 + var(--p) * .1)); opacity: calc(1 - var(--p) * .75); transform-origin: 68% 50%; will-change: transform, opacity; }
 .cover-drift { animation: coverDrift 46s ease-in-out infinite alternate; transform-origin: 70% 50%; }
@@ -676,58 +676,60 @@ body { background: var(--night); }
 .cover-cue { position: absolute; z-index: 2; left: 50%; bottom: 18px; width: 1px; height: 34px; background: rgba(255, 255, 255, .16); overflow: hidden; opacity: calc(1 - var(--p) * 4); animation: fadeUp 1s ease 3.4s both; }
 .cover-cue::after { content: ""; position: absolute; left: 0; top: 0; width: 1px; height: 14px; background: var(--mint); animation: cue 1.9s cubic-bezier(.6, 0, .3, 1) infinite; }
 @keyframes cue { from { transform: translateY(-16px); } to { transform: translateY(36px); } }
-.cover .hero-tip { z-index: 4; background: var(--night-ink); color: var(--night); }
+.cover .hero-tip { z-index: 4; background: var(--cv-ink); color: var(--cv-bg); }
 
 /* header: clear over the cover, solid on the sheet; a hairline shows how far through the story you are */
 header.top { transition: background .35s ease, border-color .2s, color .35s; animation: fadeDown .9s var(--ease-out) 1.9s both; }
 @keyframes fadeDown { from { opacity: 0; transform: translate3d(0, -12px, 0); } to { opacity: 1; transform: none; } }
 header.top.over { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; border-bottom-color: transparent; }
-header.top.over .brand { color: var(--night-ink); }
-header.top.over .brand svg [stroke="var(--accent)"] { stroke: var(--mint); } header.top.over .brand svg [fill="var(--accent)"] { fill: var(--mint); }
-header.top.over nav.sections a { color: rgba(238, 242, 240, .74); }
-header.top.over nav.sections a:hover { background: rgba(255, 255, 255, .1); color: #fff; }
 header.top .progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--accent); transform: scaleX(0); transform-origin: 0 50%; pointer-events: none; }
 header.top.over .progress { opacity: 0; }
 
 /* the sheet */
-.sheet { position: relative; z-index: 2; border-radius: 34px 34px 0 0; box-shadow: 0 -30px 90px rgba(0, 0, 0, .45);
-  background-color: var(--paper); background-image: linear-gradient(180deg, #f3f4f6 0%, var(--paper) 560px); background-repeat: no-repeat; }
-.sheet::before { content: ""; position: absolute; left: 50%; top: 12px; width: 44px; height: 4px; margin-left: -22px; border-radius: 4px; background: var(--line-2); }
-.sheet > section.chapter:first-child { padding-top: 104px; }
-@media (max-width: 640px) { .sheet { border-radius: 24px 24px 0 0; } .sheet > section.chapter:first-child { padding-top: 72px; } }
 .rv { opacity: 0; transform: translate3d(0, 38px, 0); }
 .rv.in { opacity: 1; transform: none; transition: opacity 1s var(--ease-out), transform 1.1s var(--ease-out); }
 
-/* closing frame: back to the night */
-footer { position: relative; z-index: 2; margin-top: 0; background: var(--night); color: var(--night-ink-2); border-top: 0; padding-block: 64px 72px; }
-footer b { color: var(--night-ink) !important; }
-footer a { color: var(--mint); }
 
 @media (prefers-reduced-motion: reduce) { .cover h1 .ln > span { transform: none; } .cover-bar { display: none; } }
 
-/* ── night: one world from the cover to the last line ── */
+
+/* ── sandstone and moss: Edinburgh's stone, its green hills, and an ember red for a full bin ── */
 :root {
-  --paper: #0d1318; --surface: #141b21; --raised: #1a232a;
-  --ink: #eef2f0; --ink-2: #b6c0bc; --ink-3: #83908b;
-  --line: #242f37; --line-2: #34414b;
-  --accent: #62d6aa; --accent-ink: #06281d; --accent-soft: #14312a;
-  --land: #171f25; --sea: #0b1115; --road: #2c3842; --park: #172a21;
-  --f0: #6f837b; --f1: #84c4a8; --f2: #e6c463; --f3: #e98f4c; --f4: #e5573f;
-  --good: #5fd3a8; --warn: #e6c463; --bad: #ef6a50;
-  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 32px rgba(0, 0, 0, .32);
-  --shadow-2: 0 2px 6px rgba(0, 0, 0, .35), 0 30px 70px rgba(0, 0, 0, .5);
-  --stage-a: #26323a; --stage-b: #0f151a; --bin-b: #214d39; --waste: #8f8166; --waste-2: #7c6f56;
-  color-scheme: dark;
+  --paper: #f3ede2; --surface: #faf6ee; --raised: #fffdf8;
+  --ink: #17231e; --ink-2: #46534c; --ink-3: #7b857d;
+  --line: #e3d9c7; --line-2: #cfc3ad;
+  --accent: #0f6a4f; --accent-ink: #ffffff; --accent-soft: #dce8dc;
+  --land: #f8f3e9; --sea: #cfdddf; --road: #d9cdb8; --park: #d6e3cb;
+  --f0: #c3d2c2; --f1: #8cbd9d; --f2: #e2b340; --f3: #e2813a; --f4: #c9402a;
+  --good: #2c7a57; --warn: #a2660f; --bad: #bb3d27;
+  --shadow: 0 1px 2px rgba(70, 52, 20, .07), 0 10px 28px rgba(70, 52, 20, .09);
+  --shadow-2: 0 2px 6px rgba(70, 52, 20, .1), 0 26px 60px rgba(70, 52, 20, .17);
+  --stage-a: #fffdf8; --stage-b: #e7dcc8; --bin-a: #2f6b4f; --bin-b: #24563f; --waste: #c9b796; --waste-2: #b9a57f;
+  --cv-bg: #ece3d2; --cv-land: #fbf7ee; --cv-edge: #d8ccb6; --cv-road: #dccfb8; --cv-park: #d5e3c9; --cv-ink: #17231e; --cv-ink-2: #55625b; --mint: #0f6a4f;
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  color-scheme: light;
 }
-::selection { background: color-mix(in srgb, var(--accent) 35%, transparent); }
-.sheet { background-color: var(--paper); background-image: linear-gradient(180deg, #131b21 0%, var(--paper) 560px); box-shadow: 0 -30px 90px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .09); }
-footer { background: #070a0d; }
-.card { background-image: linear-gradient(180deg, rgba(255, 255, 255, .028), rgba(255, 255, 255, 0) 46%); }
-.btn.primary:hover { color: var(--accent-ink); }
+::selection { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+body { background: var(--cv-bg); }
+.card { background-image: linear-gradient(180deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 50%); }
 #map { background: var(--land); }
 
-/* chapters open like title cards: a soft light, a rule, a large line */
-.sheet section.chapter { background-image: radial-gradient(closest-side, rgba(98, 214, 170, .075), rgba(98, 214, 170, 0)); background-repeat: no-repeat; background-size: min(900px, 100%) 520px; background-position: 0 0; }
+/* ── pages: a chapter scrolls to its last line, stays, and the next one rises over it ── */
+.page { position: sticky; top: 0; z-index: 2; min-height: 100vh; min-height: 100svh; border-radius: 34px 34px 0 0; overflow: clip;
+  background-color: var(--paper); background-image: linear-gradient(180deg, #f9f4ea 0%, var(--paper) 520px); background-repeat: no-repeat;
+  box-shadow: 0 -22px 70px rgba(70, 52, 20, .22), inset 0 1px 0 rgba(255, 255, 255, .9); transform-origin: 50% calc(100% - 50vh); }
+.page.band { margin-top: 0; border: 0; background-color: var(--surface); background-image: linear-gradient(180deg, #fffdf8 0%, var(--surface) 520px); }
+.page::before { content: ""; position: absolute; left: 50%; top: 12px; width: 44px; height: 4px; margin-left: -22px; border-radius: 4px; background: var(--line-2); z-index: 1; }
+.page::after { content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none; border-radius: inherit; background: #4a3a18; opacity: calc(var(--c, 0) * .2); }
+.page.under { transform: scale(calc(1 - var(--c, 0) * .045)); }
+.page > section.chapter { padding-top: 104px; padding-bottom: 112px; }
+@media (max-width: 640px) { .page { border-radius: 24px 24px 0 0; } .page > section.chapter { padding-top: 72px; padding-bottom: 84px; } }
+footer { position: relative; z-index: 3; margin-top: 0; background: #e9dfcc; color: var(--ink-3); border-top: 1px solid var(--line-2); padding-block: 56px 64px; }
+footer b { color: var(--ink) !important; }
+footer a { color: var(--accent); }
+
+/* chapters open like title cards: a pool of light, a rule, a large line */
+.page > section.chapter { background-image: radial-gradient(closest-side, rgba(255, 253, 246, .95), rgba(255, 253, 246, 0)); background-repeat: no-repeat; background-size: min(900px, 100%) 520px; background-position: 0 0; }
 .chapter-head { margin-bottom: 44px; }
 .chapter-head .eyebrow { display: inline-flex; align-items: center; gap: 12px; }
 .chapter-head .eyebrow::before { content: ""; width: 30px; height: 1px; background: var(--accent); }
@@ -735,46 +737,52 @@ footer { background: #070a0d; }
 .chapter-head p.say { color: var(--ink-2); }
 .chapter-head p.say b { color: var(--ink); }
 
-/* ── the cover's words: a small title, a caption that follows the film, a clock ── */
+/* ── cover: the city at first light ── */
+.cover { background: linear-gradient(180deg, #d6e2e2 0%, #e6e4d8 30%, var(--cv-bg) 62%); color: var(--cv-ink); }
 .cover-stage { transform-origin: 50% 46%; } .cover-drift { transform-origin: 50% 46%; } .cover-cam { transform-origin: 56% 42%; }
 .cover-shade { background:
-    linear-gradient(180deg, rgba(11, 16, 20, .78) 0, rgba(11, 16, 20, 0) 150px),
-    linear-gradient(0deg, rgba(11, 16, 20, .97) 0%, rgba(11, 16, 20, .78) 20%, rgba(11, 16, 20, 0) 46%),
-    radial-gradient(110% 85% at 50% 42%, rgba(11, 16, 20, 0) 58%, rgba(11, 16, 20, .72) 100%); }
+    linear-gradient(180deg, rgba(240, 235, 224, .9) 0, rgba(240, 235, 224, 0) 150px),
+    linear-gradient(0deg, rgba(243, 237, 226, .98) 0%, rgba(243, 237, 226, .82) 20%, rgba(243, 237, 226, 0) 46%),
+    radial-gradient(110% 85% at 50% 42%, rgba(120, 92, 40, 0) 58%, rgba(120, 92, 40, .16) 100%); }
+.cover-grain { opacity: .07; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25  0 0 0 0 .2  0 0 0 0 .1  0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.cover-bar { background: var(--accent); }
+.cover-cue { background: rgba(23, 35, 30, .18); } .cover-cue::after { background: var(--accent); }
+.cover .hero-tip { z-index: 4; background: var(--ink); color: var(--paper); }
 .cover-ui { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; justify-content: flex-end; gap: 30px; padding-bottom: 60px; pointer-events: none;
   transform: translate3d(0, calc(var(--p) * -70px), 0); opacity: calc(1 - var(--p) * 1.5); }
-.cover-caps { position: relative; height: 1.5em; margin: 0; text-align: center; font: 500 clamp(17px, 1.65vw, 23px)/1.5 var(--body); color: var(--night-ink); text-shadow: 0 1px 14px rgba(0, 0, 0, .9), 0 0 2px rgba(0, 0, 0, .6); }
+.cover-caps { position: relative; height: 1.5em; margin: 0; text-align: center; font: 550 clamp(17px, 1.65vw, 23px)/1.5 var(--body); color: var(--cv-ink);
+  text-shadow: 0 0 14px rgba(250, 246, 238, 1), 0 0 4px rgba(250, 246, 238, 1), 0 0 26px rgba(250, 246, 238, .9); }
 .cover-caps span[data-c] { position: absolute; left: 0; right: 0; top: 0; opacity: 0; transform: translate3d(0, 10px, 0); transition: opacity .7s ease, transform .9s var(--ease-out); }
 .cover-caps span[data-c].on { opacity: 1; transform: none; transition-delay: .25s; }
-.cover-caps b { color: var(--mint); font-weight: 650; }
-.cover-caps small, .hud-day small { font: 500 10.5px var(--mono); letter-spacing: .04em; color: #e2bd5f; border: 1px dashed currentColor; border-radius: 99px; padding: 1px 7px; margin-left: 6px; white-space: nowrap; text-shadow: none; vertical-align: 2px; }
+.cover-caps b { color: var(--accent); font-weight: 700; }
+.cover-caps small, .hud-day small { font: 500 10.5px var(--mono); letter-spacing: .04em; color: var(--warn); border: 1px dashed currentColor; border-radius: 99px; padding: 1px 7px; margin-left: 6px; white-space: nowrap; text-shadow: none; vertical-align: 2px; }
 .cover-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; }
-.cover h1 { font-size: clamp(30px, 3.7vw, 56px); font-weight: 700; line-height: 1.02; letter-spacing: -.035em; color: var(--night-ink); }
+.cover h1 { font-size: clamp(30px, 3.7vw, 56px); font-weight: 700; line-height: 1.02; letter-spacing: -.035em; color: var(--cv-ink); }
 .cover h1 .ln { display: block; overflow: hidden; padding: .08em .04em .12em 0; margin: -.08em 0 -.12em; font-style: normal; }
 .cover h1 .ln > span { display: block; transform: translate3d(0, 112%, 0); animation: lineUp 1.2s var(--ease-out) 1.2s both; }
-.cover h1 em.ln > span { animation-delay: 1.55s; background: linear-gradient(92deg, #8be9c2 0%, #4fb58d 90%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.cover h1 em.ln > span { animation-delay: 1.55s; background: linear-gradient(92deg, #0f6a4f 0%, #23a078 95%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 @keyframes lineUp { from { transform: translate3d(0, 112%, 0); } to { transform: none; } }
 @keyframes fadeUp { from { opacity: 0; transform: translate3d(0, 18px, 0); } to { opacity: 1; transform: none; } }
-@keyframes breathe { 50% { box-shadow: 0 0 0 8px rgba(110, 225, 180, .04); } }
 .cover-btn { pointer-events: auto; margin-top: 22px; display: inline-flex; align-items: center; gap: 9px; padding: 12px 21px; border-radius: 99px;
-  background: var(--night-ink); color: var(--night); font-weight: 650; font-size: 14.5px; text-decoration: none; transition: transform .25s var(--ease-out), background .2s, box-shadow .25s;
-  animation: fadeUp 1s var(--ease-out) 2.2s both; }
-.cover-btn:hover { transform: translateY(-2px); background: #fff; box-shadow: 0 10px 30px rgba(110, 225, 180, .25); }
+  background: var(--ink); color: var(--raised); font-weight: 650; font-size: 14.5px; text-decoration: none; transition: transform .25s var(--ease-out), background .2s, box-shadow .25s;
+  box-shadow: 0 8px 22px rgba(23, 35, 30, .2); animation: fadeUp 1s var(--ease-out) 2.2s both; }
+.cover-btn:hover { transform: translateY(-2px); background: var(--accent); box-shadow: 0 12px 30px rgba(15, 106, 79, .3); }
 .cover-btn span { transition: transform .25s var(--ease-out); } .cover-btn:hover span { transform: translateX(4px); }
-.cover-hud { min-width: 340px; padding: 16px 20px 17px; border-radius: 18px; background: rgba(13, 19, 24, .5); border: 1px solid rgba(255, 255, 255, .1);
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); animation: fadeUp 1s var(--ease-out) 2.4s both; }
+.cover-hud { min-width: 340px; padding: 16px 20px 17px; border-radius: 18px; background: rgba(255, 253, 248, .74); border: 1px solid rgba(23, 35, 30, .09);
+  box-shadow: 0 10px 34px rgba(70, 52, 20, .14); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); animation: fadeUp 1s var(--ease-out) 2.4s both; }
 .hud-top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
-.hud-clock { font: 600 34px/1 var(--mono); letter-spacing: -.02em; color: var(--night-ink); }
-.hud-day { font-size: 12.5px; color: var(--night-ink-2); white-space: nowrap; }
-.hud-bar { height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .12); margin: 13px 0 14px; overflow: hidden; }
-.hud-bar i { display: block; height: 100%; background: var(--mint); transform-origin: 0 50%; transform: scaleX(0); }
+.hud-clock { font: 600 34px/1 var(--mono); letter-spacing: -.02em; color: var(--cv-ink); }
+.hud-day { font-size: 12.5px; color: var(--cv-ink-2); white-space: nowrap; }
+.hud-bar { height: 3px; border-radius: 3px; background: rgba(23, 35, 30, .12); margin: 13px 0 14px; overflow: hidden; }
+.hud-bar i { display: block; height: 100%; background: var(--accent); transform-origin: 0 50%; transform: scaleX(0); }
 .hud-leg { display: grid; grid-template-columns: repeat(3, auto); justify-content: space-between; gap: 6px 20px; margin: 0; }
-.hud-leg dt { display: flex; align-items: center; gap: 8px; font: 700 20px/1 var(--display); letter-spacing: -.01em; color: var(--night-ink); }
-.hud-leg dd { margin: 5px 0 0; font-size: 11.5px; color: var(--night-ink-2); white-space: nowrap; }
+.hud-leg dt { display: flex; align-items: center; gap: 8px; font: 700 20px/1 var(--display); letter-spacing: -.01em; color: var(--cv-ink); }
+.hud-leg dd { margin: 5px 0 0; font-size: 11.5px; color: var(--cv-ink-2); white-space: nowrap; }
 .hud-leg .d { width: 9px; height: 9px; border-radius: 50%; flex: none; }
-.hud-leg .d.full { background: var(--f4); box-shadow: 0 0 8px rgba(229, 87, 63, .7); } .hud-leg .d.done { background: #57d6a6; } .hud-leg .d.skip { background: var(--f1); opacity: .55; }
+.hud-leg .d.full { background: var(--f4); box-shadow: 0 0 0 3px rgba(201, 64, 42, .16); } .hud-leg .d.done { background: #0f7a5a; } .hud-leg .d.skip { background: #86a892; opacity: .8; }
 @media (max-width: 900px) {
-  .cover-shade { background: linear-gradient(180deg, rgba(11, 16, 20, .75) 0, rgba(11, 16, 20, 0) 120px), linear-gradient(0deg, rgba(11, 16, 20, .98) 0%, rgba(11, 16, 20, .9) 40%, rgba(11, 16, 20, 0) 62%); }
+  .cover-shade { background: linear-gradient(180deg, rgba(240, 235, 224, .9) 0, rgba(240, 235, 224, 0) 120px), linear-gradient(0deg, rgba(243, 237, 226, .99) 0%, rgba(243, 237, 226, .93) 40%, rgba(243, 237, 226, 0) 62%); }
   .cover-ui { gap: 18px; padding-bottom: 30px; }
   .cover-caps { height: 3em; text-align: left; font-size: 17px; }
   .cover-caps span[data-c] { top: auto; bottom: 0; }
@@ -787,6 +795,23 @@ footer { background: #070a0d; }
   .cover-cam, .cover-stage, .cover-drift { transform-origin: 50% 28%; }
 }
 @media (prefers-reduced-motion: reduce) { .cover h1 .ln > span { transform: none; } }
+
+/* ── 3D stages ── */
+.sensor-demo { grid-template-columns: minmax(0, 1.5fr) minmax(0, .85fr); gap: 16px; }
+.sensor-demo .stage { aspect-ratio: auto; min-height: 0; }
+.sensor-demo .stage-bin { min-height: 540px; }
+.sensor-side { display: grid; grid-template-rows: minmax(250px, 1fr) auto; gap: 16px; min-width: 0; }
+.stage { background: radial-gradient(120% 90% at 50% 28%, var(--stage-a) 0%, var(--stage-b) 100%); }
+.echo { background: var(--raised); gap: 16px; padding: 22px 22px 20px; }
+@media (max-width: 860px) {
+  .sensor-demo { grid-template-columns: minmax(0, 1fr); }
+  .sensor-demo .stage-bin { min-height: 0; aspect-ratio: 1 / 1.08; }
+  .sensor-side { grid-template-rows: auto auto; } .sensor-side .stage { aspect-ratio: 1.35; }
+}
+.stat-viz { position: relative; height: 150px; }
+.stat-viz canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.stat-viz svg { position: relative; }
+.stat-viz.has3d .flat { display: none; }
 
 </style>
 <div class="shell">
@@ -849,8 +874,8 @@ footer { background: #070a0d; }
   <div class="hero-tip" id="heroTip"></div>
 </section>
 
-<div class="sheet">
 <!-- ── PROBLEM ────────────────────────────────────────── -->
+<div class="page">
 <section class="chapter wrap" id="problem">
   <div class="chapter-head">
     <div><span class="eyebrow">The problem</span><h2>Bins fill at different speeds. A timetable can’t see that.</h2></div>
@@ -858,16 +883,18 @@ footer { background: #070a0d; }
   </div>
   <div class="stats" id="statAnims">
     <div class="card stat anim">
-      <div class="stat-viz"><svg viewBox="0 0 320 120" id="vBins" aria-hidden="true"><g class="bins-grid"></g><text x="316" y="114" text-anchor="end" class="v-note">1 icon ≈ 110 bins</text></svg></div>
+      <div class="stat-viz" id="vField3d"><canvas aria-hidden="true"></canvas><svg viewBox="0 0 320 120" id="vBins" aria-hidden="true"><g class="bins-grid flat"></g><text x="316" y="114" text-anchor="end" class="v-note">1 icon ≈ 110 bins</text></svg></div>
       <b data-count="10657">10,657</b><p>communal bins on the streets, at 4,532 stops</p>
       <span class="src">City of Edinburgh Council, <a href="https://data.edinburghcouncilmaps.info/datasets/283caa7cb2434db3874526d16efe8c67_27/about" target="_blank" rel="noopener">Communal Bins register</a> (open data)</span>
     </div>
     <div class="card stat anim">
-      <div class="stat-viz"><svg viewBox="0 0 320 120" aria-hidden="true">
+      <div class="stat-viz" id="vOver3d"><canvas aria-hidden="true"></canvas><svg viewBox="0 0 320 120" aria-hidden="true">
+        <g class="flat">
         <g class="stink"><path d="M58 30c-4-6 4-9 0-15"/><path d="M76 24c-4-6 4-9 0-15"/><path d="M94 30c-4-6 4-9 0-15"/></g>
         <path d="M38 52h76l-7 56a6 6 0 0 1-6 5H51a6 6 0 0 1-6-5z" fill="var(--bin-a)"/>
         <g class="bags"><circle cx="56" cy="50" r="11" fill="var(--waste-2)"/><circle cx="77" cy="44" r="13" fill="var(--waste)"/><circle cx="97" cy="51" r="10" fill="var(--waste-2)"/><circle cx="66" cy="38" r="7" fill="#d9cdb2"/></g>
         <rect class="lid" x="30" y="40" width="88" height="7" rx="3.5" fill="var(--ink)"/>
+        </g>
         <g class="reps">
           <g class="rep" style="--i:0"><rect x="148" y="72" width="160" height="26" rx="13"/><circle cx="163" cy="85" r="4.5"/><text x="175" y="89">Full bin reported</text></g>
           <g class="rep" style="--i:1"><rect x="148" y="72" width="160" height="26" rx="13"/><circle cx="163" cy="85" r="4.5"/><text x="175" y="89">Bin overflowing</text></g>
@@ -934,9 +961,10 @@ footer { background: #070a0d; }
     </div>
   </div>
 </section>
+</div>
 
 <!-- ── HOW IT WORKS ───────────────────────────────────── -->
-<div class="band">
+<div class="page band">
 <section class="chapter wrap" id="how">
   <div class="chapter-head">
     <div><span class="eyebrow">Our answer</span><h2>Measure, forecast, route, collect</h2></div>
@@ -950,33 +978,26 @@ footer { background: #070a0d; }
   </div>
 
   <div class="sensor-demo" id="sensor">
-    <div class="stage" id="stage">
-      <canvas id="sensor3d" role="img" aria-label="3D model of the sensor: an HC-SR04 ultrasonic module with two round transducers on a blue circuit board"></canvas>
-      <span class="stage-tag">HC-SR04 · 45 × 20 mm · £2</span>
-      <span class="stage-hint" id="stageHint">Drag to turn ↻</span>
-      <p class="stage-fallback" id="stageFallback" hidden>The 3D model needs an internet connection to load.</p>
+    <div class="stage stage-bin" id="binStage">
+      <canvas id="bin3d" role="img" aria-label="A communal bin cut open in 3D: the sensor under the lid sends ultrasound down to the rubbish and times the echo"></canvas>
+      <span class="stage-hint">Drag to turn ↻</span>
+      <p class="stage-fallback" id="binFallback" hidden>The 3D model needs an internet connection to load.</p>
     </div>
-    <div class="echo">
-      <svg id="echoSvg" viewBox="0 0 240 280" role="img" aria-label="A bin with the sensor under its lid, sending ultrasound down to the rubbish">
-        <defs>
-          <linearGradient id="binG" x1="0" x2="1"><stop offset="0" stop-color="var(--bin-a)"/><stop offset="1" stop-color="var(--bin-b)"/></linearGradient>
-          <clipPath id="binClip"><path d="M44 58h152l-10 196a10 10 0 0 1-10 9H64a10 10 0 0 1-10-9z"/></clipPath>
-        </defs>
-        <path d="M44 58h152l-10 196a10 10 0 0 1-10 9H64a10 10 0 0 1-10-9z" fill="url(#binG)" stroke="var(--line-2)"/>
-        <g clip-path="url(#binClip)"><rect id="echoWaste" x="40" y="160" width="160" height="110" fill="var(--waste)"/><path id="echoTop" d="" fill="var(--waste-2)"/></g>
-        <rect x="34" y="44" width="172" height="14" rx="5" fill="var(--ink)"/>
-        <rect x="108" y="58" width="24" height="8" rx="2" fill="var(--sensor-blue)"/>
-        <circle cx="114" cy="66" r="3.4" fill="var(--sensor-can)"/><circle cx="126" cy="66" r="3.4" fill="var(--sensor-can)"/>
-        <g id="echoWaves" fill="none" stroke="var(--wave)" stroke-width="2.2" stroke-linecap="round"></g>
-        <line id="echoLine" x1="210" y1="66" x2="210" y2="160" stroke="var(--ink-3)" stroke-dasharray="3 3"/>
-        <path id="echoArrA" d="" fill="var(--ink-3)"/><path id="echoArrB" d="" fill="var(--ink-3)"/>
-      </svg>
-      <input type="range" id="eFill" min="0" max="100" step="1" value="65" aria-label="How full the bin is">
-      <output id="oFill" class="sr">65 %</output>
-      <div class="echo-out">
-        <div><b id="eTime" class="num">–</b><span>echo</span></div>
-        <div><b id="eDist" class="num">–</b><span>distance</span></div>
-        <div><b id="ePct" class="num">–</b><span>fill</span></div>
+    <div class="sensor-side">
+      <div class="stage" id="stage">
+        <canvas id="sensor3d" role="img" aria-label="3D model of the sensor: an HC-SR04 ultrasonic module with two round transducers on a blue circuit board"></canvas>
+        <span class="stage-tag">HC-SR04 · 45 × 20 mm · £2</span>
+        <span class="stage-hint" id="stageHint">Drag to turn ↻</span>
+        <p class="stage-fallback" id="stageFallback" hidden>The 3D model needs an internet connection to load.</p>
+      </div>
+      <div class="echo">
+        <input type="range" id="eFill" min="0" max="100" step="1" value="65" aria-label="How full the bin is">
+        <output id="oFill" class="sr">65 %</output>
+        <div class="echo-out">
+          <div><b id="eTime" class="num">–</b><span>echo</span></div>
+          <div><b id="eDist" class="num">–</b><span>distance</span></div>
+          <div><b id="ePct" class="num">–</b><span>fill</span></div>
+        </div>
       </div>
     </div>
   </div>
@@ -984,6 +1005,7 @@ footer { background: #070a0d; }
 </div>
 
 <!-- ── CONSOLE ────────────────────────────────────────── -->
+<div class="page">
 <section class="chapter wrap console" id="console">
   <div class="chapter-head">
     <div><span class="eyebrow">See it working</span><h2>Tomorrow’s plan, stop by stop</h2></div>
@@ -1027,9 +1049,10 @@ footer { background: #070a0d; }
   <div class="tabpane" id="pane-alerts" hidden></div>
   <div class="tabpane" id="pane-weather" hidden></div>
 </section>
+</div>
 
 <!-- ── THE MATHS ──────────────────────────────────────── -->
-<div class="band">
+<div class="page band">
 <section class="chapter wrap" id="maths">
   <div class="chapter-head">
     <div><span class="eyebrow">How the plan is made</span><h2>Five steps behind the plan</h2></div>
@@ -1178,6 +1201,7 @@ footer { background: #070a0d; }
 </div>
 
 <!-- ── RESULTS ────────────────────────────────────────── -->
+<div class="page">
 <section class="chapter wrap" id="results">
   <div class="chapter-head">
     <div><span class="eyebrow">Does it work?</span><h2>Fewer overflows, lower cost</h2><span class="tag sim" style="margin-top:12px">Simulated week · same 34 trucks</span></div>
@@ -1186,9 +1210,10 @@ footer { background: #070a0d; }
   <h3 class="res-h">Why forecasting wins</h3>
   <div class="methods" id="methods"></div>
 </section>
+</div>
 
 <!-- ── BUSINESS ───────────────────────────────────────── -->
-<div class="band">
+<div class="page band">
 <section class="chapter wrap" id="business">
   <div class="chapter-head">
     <div><span class="eyebrow">Who pays for it</span><h2>Three partners, one service</h2></div>
@@ -1250,6 +1275,7 @@ footer { background: #070a0d; }
 </div>
 
 <!-- ── SOURCES ────────────────────────────────────────── -->
+<div class="page">
 <section class="chapter wrap" id="sources">
   <div class="chapter-head">
     <div><span class="eyebrow">Sources</span><h2>What is real, what is simulated</h2></div>
@@ -1459,18 +1485,18 @@ function litDot(c, i) {
   const v = D.S.pred[i], x = CV.x[i], y = CV.y[i], r = CV.r;
   if (v >= 80) {
     const g = c.createRadialGradient(x, y, 0, x, y, r * 4.5);
-    g.addColorStop(0, v >= 90 ? "rgba(214,80,56,.13)" : "rgba(226,140,70,.1)"); g.addColorStop(1, "rgba(0,0,0,0)");
-    c.globalCompositeOperation = "lighter"; c.fillStyle = g; c.fillRect(x - r * 4.5, y - r * 4.5, r * 9, r * 9); c.globalCompositeOperation = "source-over";
+    g.addColorStop(0, v >= 90 ? "rgba(201,64,42,.14)" : "rgba(226,129,58,.11)"); g.addColorStop(1, v >= 90 ? "rgba(201,64,42,0)" : "rgba(226,129,58,0)");
+    c.fillStyle = g; c.fillRect(x - r * 4.5, y - r * 4.5, r * 9, r * 9);
   }
-  c.globalAlpha = v >= 60 ? 1 : .55; c.fillStyle = fillColor(v);
+  c.globalAlpha = v >= 60 ? 1 : .7; c.fillStyle = v >= 60 ? fillColor(v) : "#86a892";
   c.beginPath(); c.arc(x, y, v >= 80 ? r : r * .78, 0, 6.2832); c.fill(); c.globalAlpha = 1;
 }
 function doneDot(c, i) {
   const x = CV.x[i], y = CV.y[i], r = CV.r;
   const g = c.createRadialGradient(x, y, r * .6, x, y, r * 2.4);
-  g.addColorStop(0, "rgba(22,30,36,.92)"); g.addColorStop(1, "rgba(22,30,36,0)");
+  g.addColorStop(0, "rgba(251,247,238,.95)"); g.addColorStop(1, "rgba(251,247,238,0)");
   c.fillStyle = g; c.beginPath(); c.arc(x, y, r * 2.4, 0, 6.2832); c.fill();
-  c.fillStyle = "#57d6a6"; c.beginPath(); c.arc(x, y, r * .82, 0, 6.2832); c.fill();
+  c.fillStyle = "#0f7a5a"; c.beginPath(); c.arc(x, y, r * .82, 0, 6.2832); c.fill();
 }
 function redrawDots() {
   const c = dotsCtx(); c.clearRect(0, 0, CV.W, CV.H);
@@ -1486,7 +1512,7 @@ function drawHero() {                                       // lay the cover out
   Object.assign(CV, { W, H, dpr, P, r: clamp(P.s / 3200, 1.25, 2.6) });
   for (const cv of [base, $("#heroDots"), fx]) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
   const c = base.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const N = { land: css("--night-land"), edge: css("--night-edge"), road: css("--night-road"), park: css("--night-park"), ink: css("--night-ink") };
+  const N = { land: css("--cv-land"), edge: css("--cv-edge"), road: css("--cv-road"), park: css("--cv-park"), ink: css("--cv-ink") };
   const path = (pts, close) => { c.beginPath(); pts.forEach(([la, lo], k) => k ? c.lineTo(P.x(lo), P.y(la)) : c.moveTo(P.x(lo), P.y(la))); if (close) c.closePath(); };
   c.lineWidth = 1; c.strokeStyle = N.edge; c.fillStyle = N.land;
   for (const w of D.base.wards) for (const ring of w.rings) { path(decode(ring), true); c.fill(); c.stroke(); }
@@ -1546,7 +1572,7 @@ function coverStep(dt) {
   coverCap(CV.resetAt ? -1 : cap);
   // 3. light: truck trails, flashes
   const f = $("#heroCanvas").getContext("2d"); f.setTransform(CV.dpr, 0, 0, CV.dpr, 0, 0); f.clearRect(0, 0, CV.W, CV.H);
-  f.globalCompositeOperation = "lighter"; f.lineCap = "round"; f.lineJoin = "round";
+  f.lineCap = "round"; f.lineJoin = "round";
   if (SIM.end && tt > 0) SIM.trucks.forEach((tk, k) => {
     const tr = CV.trails[k] || (CV.trails[k] = []);
     const p = tt < DAY_MS ? truckPos(tk, simT) : null, moving = p && p.tr;
@@ -1558,23 +1584,23 @@ function coverStep(dt) {
       for (let q = 0; q < parts; q++) {
         const from = Math.floor(q * (m - 1) / parts), to = Math.floor((q + 1) * (m - 1) / parts), u = (q + 1) / parts;
         f.beginPath(); f.moveTo(tr[from][0], tr[from][1]); for (let j = from + 1; j <= to; j++) f.lineTo(tr[j][0], tr[j][1]);
-        f.strokeStyle = `rgba(110,225,180,${(u * u * .75).toFixed(3)})`; f.lineWidth = .8 + u * 1.4; f.stroke();
+        f.strokeStyle = `rgba(15,106,79,${(u * u * .85).toFixed(3)})`; f.lineWidth = .9 + u * 1.7; f.stroke();
       }
     }
     if (moving) {
       const h = [hx, hy], gr = CV.r * 4.6, g = f.createRadialGradient(h[0], h[1], 0, h[0], h[1], gr);
-      g.addColorStop(0, "rgba(160,245,210,.55)"); g.addColorStop(1, "rgba(160,245,210,0)");
+      g.addColorStop(0, "rgba(15,106,79,.26)"); g.addColorStop(1, "rgba(15,106,79,0)");
       f.fillStyle = g; f.fillRect(h[0] - gr, h[1] - gr, gr * 2, gr * 2);
-      f.fillStyle = "rgba(255,255,255,.95)"; f.beginPath(); f.arc(h[0], h[1], CV.r * .85, 0, 6.2832); f.fill();
+      f.fillStyle = "#fffdf8"; f.beginPath(); f.arc(h[0], h[1], CV.r * 1.55, 0, 6.2832); f.fill();
+      f.fillStyle = "#0f6a4f"; f.beginPath(); f.arc(h[0], h[1], CV.r * 1.05, 0, 6.2832); f.fill();
     }
   });
   for (let k = CV.fx.length - 1; k >= 0; k--) {
     const e = CV.fx[k], life = e[3] ? 720 : 430, u = (CV.t - e[2]) / life;
     if (u >= 1) { CV.fx.splice(k, 1); continue; }
-    if (e[3]) { f.beginPath(); f.arc(e[0], e[1], 2 + u * 11, 0, 6.2832); f.strokeStyle = `rgba(110,225,180,${((1 - u) * .7).toFixed(3)})`; f.lineWidth = 1.2; f.stroke(); }
-    else { f.beginPath(); f.arc(e[0], e[1], CV.r * (1 + u * 2.6), 0, 6.2832); f.fillStyle = `rgba(255,196,150,${((1 - u) * .7).toFixed(3)})`; f.fill(); }
+    if (e[3]) { f.beginPath(); f.arc(e[0], e[1], 2 + u * 11, 0, 6.2832); f.strokeStyle = `rgba(15,122,90,${((1 - u) * .65).toFixed(3)})`; f.lineWidth = 1.3; f.stroke(); }
+    else { f.beginPath(); f.arc(e[0], e[1], CV.r * (1 + u * 3), 0, 6.2832); f.strokeStyle = `rgba(201,64,42,${((1 - u) * .55).toFixed(3)})`; f.lineWidth = 1.1; f.stroke(); }
   }
-  f.globalCompositeOperation = "source-over";
   // 4. after the shift, hold, fade and play again
   if (SIM.end && tt > DAY_MS + HOLD_MS) {
     const dots = $("#heroDots");
@@ -1739,21 +1765,21 @@ async function initStreetMap() {
 function platinumStyle(s) {
   const lay = id => s.layers.find(l => l.id === id);
   const P = (ids, k, v) => [].concat(ids).forEach(id => { const l = lay(id); if (l) (l.paint ||= {})[k] = v; });
-  const land = "#141b21", bld = "#1e2830", ink = "#dfe6e3", txt = "#9aa6a2", halo = "#10161b";
+  const land = "#f5efe4", bld = "#e6dcc9", ink = "#23302a", txt = "#5d665f", halo = "#f8f3ea";
   P("background", "background-color", land);
-  P("landuse_residential", "fill-color", "#161e25");
-  P("park", "fill-color", "#16281f"); P("landcover_wood", "fill-color", "#14241c");
-  P("water", "fill-color", "#0a1015"); P("waterway", "line-color", "#0e161c");
-  P("building", "fill-color", bld); P("building", "fill-outline-color", "#28333c");
-  P(["highway_minor", "highway_major_inner", "highway_motorway_inner", "highway_motorway_bridge_inner", "tunnel_motorway_inner", "road_pier"], "line-color", "#33404c");
-  P("highway_path", "line-color", "#232d36");
-  P(["highway_major_casing", "highway_motorway_casing", "highway_motorway_bridge_casing", "tunnel_motorway_casing"], "line-color", "#12191e");
-  P(["railway", "railway_transit", "railway_service"], "line-color", "#2a343d");
+  P("landuse_residential", "fill-color", "#f0e9dc");
+  P("park", "fill-color", "#d7e4cb"); P("landcover_wood", "fill-color", "#cfdfc5");
+  P("water", "fill-color", "#c5d8dd"); P("waterway", "line-color", "#b9cfd6");
+  P("building", "fill-color", bld); P("building", "fill-outline-color", "#d8ccb6");
+  P(["highway_minor", "highway_major_inner", "highway_motorway_inner", "highway_motorway_bridge_inner", "tunnel_motorway_inner", "road_pier"], "line-color", "#ffffff");
+  P("highway_path", "line-color", "#fffdf8");
+  P(["highway_major_casing", "highway_motorway_casing", "highway_motorway_bridge_casing", "tunnel_motorway_casing"], "line-color", "#dccfb9");
+  P(["railway", "railway_transit", "railway_service"], "line-color", "#cfc4b0");
   P(["highway-name-path", "highway-name-minor", "highway-name-major"], "text-color", txt);
   P(["highway-name-path", "highway-name-minor", "highway-name-major"], "text-halo-color", halo);
   P(["highway-name-path", "highway-name-minor", "highway-name-major"], "text-halo-width", 1.4);
   s.layers.filter(l => /^label_/.test(l.id)).forEach(l => { l.paint = { ...l.paint, "text-color": ink, "text-halo-color": land, "text-halo-width": 1.4, "text-halo-blur": 0 }; });
-  P(["water_name_point_label", "water_name_line_label", "waterway_line_label"], "text-color", "#5f7f97");
+  P(["water_name_point_label", "water_name_line_label", "waterway_line_label"], "text-color", "#5d7f93");
   // the building layer starts a little earlier, and street names one zoom earlier, than stock positron
   if (lay("building")) lay("building").minzoom = 13;
   if (lay("highway-name-minor")) lay("highway-name-minor").minzoom = 14.5;
@@ -1762,22 +1788,22 @@ function platinumStyle(s) {
   const extra = [
     { id: "bs-housenumber", type: "symbol", source: "openmaptiles", "source-layer": "housenumber", minzoom: 17,
       layout: { "text-field": ["get", "housenumber"], "text-font": ["Noto Sans Regular"], "text-size": 10 },
-      paint: { "text-color": "#6f7a82", "text-halo-color": bld, "text-halo-width": 1 } },
+      paint: { "text-color": "#9a958a", "text-halo-color": bld, "text-halo-width": 1 } },
     { id: "bs-poi", type: "symbol", source: "openmaptiles", "source-layer": "poi", minzoom: 16.5,
       filter: ["!", ["match", ["get", "class"], ["railway", "bus", "park"], true, false]],
       layout: { "text-field": name, "text-font": ["Noto Sans Regular"], "text-size": 10.5, "text-max-width": 8 },
-      paint: { "text-color": "#8a959d", "text-halo-color": halo, "text-halo-width": 1.2 } },
+      paint: { "text-color": "#7d8279", "text-halo-color": halo, "text-halo-width": 1.2 } },
     { id: "bs-park", type: "symbol", source: "openmaptiles", "source-layer": "poi", minzoom: 14,
       filter: ["==", ["get", "class"], "park"],
       layout: { "text-field": name, "text-font": ["Noto Sans Italic"], "text-size": 11, "text-max-width": 8 },
-      paint: { "text-color": "#6fa487", "text-halo-color": halo, "text-halo-width": 1.2 } },
+      paint: { "text-color": "#55785f", "text-halo-color": halo, "text-halo-width": 1.2 } },
     { id: "bs-station", type: "symbol", source: "openmaptiles", "source-layer": "poi", minzoom: 13.5,
       filter: ["==", ["get", "class"], "railway"],
       layout: { "text-field": name, "text-font": ["Noto Sans Bold"], "text-size": 10.5, "text-max-width": 9, "text-anchor": "top", "text-offset": [0, .5] },
-      paint: { "text-color": "#9db7cc", "text-halo-color": halo, "text-halo-width": 1.4 } },
+      paint: { "text-color": "#3e5568", "text-halo-color": halo, "text-halo-width": 1.4 } },
     { id: "bs-station-dot", type: "circle", source: "openmaptiles", "source-layer": "poi", minzoom: 13.5,
       filter: ["==", ["get", "class"], "railway"],
-      paint: { "circle-radius": 3, "circle-color": "#10161b", "circle-stroke-color": "#9db7cc", "circle-stroke-width": 1.4 } },
+      paint: { "circle-radius": 3, "circle-color": "#ffffff", "circle-stroke-color": "#3e5568", "circle-stroke-width": 1.4 } },
   ];
   const at = s.layers.findIndex(l => l.id === "highway-name-path");
   s.layers.splice(at < 0 ? s.layers.length : at, 0, ...extra);
@@ -2696,13 +2722,31 @@ function initNav() {
   addEventListener("scroll", onScroll, { passive: true }); onScroll();
 }
 
+/* ── pages: a chapter scrolls to its last line, stays there, and the next one rises over it ── */
+(function initPages() {
+  const pages = $$("main > .page"); if (!pages.length) return;
+  const stick = () => pages.forEach(p => { p.style.top = Math.min(0, innerHeight - p.offsetHeight) + "px"; });
+  if ("ResizeObserver" in window) { const ro = new ResizeObserver(stick); pages.forEach(p => ro.observe(p)); }
+  addEventListener("resize", stick); stick();
+  let raf = 0;
+  const upd = () => {
+    raf = 0; const vh = innerHeight;
+    pages.forEach((p, k) => {
+      const nx = pages[k + 1], c = nx ? clamp((vh - nx.getBoundingClientRect().top) / vh, 0, 1) : 0;
+      if (p._c === c) return; p._c = c;
+      p.style.setProperty("--c", c.toFixed(3)); p.classList.toggle("under", c > 0);
+    });
+  };
+  addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(upd); }, { passive: true }); upd();
+})();
+
 /* ── one continuous scroll: each block of a chapter rises into place as it is reached ── */
 (function initReveal() {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
   let done = false;
   const start = () => {
     if (done) return; done = true;
-    const sheet = $(".sheet"); if (!sheet) return;
+    const sheet = $("main"); if (!sheet) return;
     const els = [];
     $$("section.chapter", sheet).forEach(sec => {
       for (const ch of sec.children) {
@@ -2773,24 +2817,206 @@ function initNav() {
   cards.forEach(c => io.observe(c));
 })();
 
-/* ── the sensor (Step 1, up close): copied from the BinSight business demo ── */
-(function initSensor() {
-  /* ---------- the sensor: a 3D model of the HC-SR04 module, to scale in millimetres ---------- */
+/* ── 3D: the sensor, a communal bin cut open, an overflowing bin, the city's bins ──
+   Built with three.js (r128), loaded only when a scene is about to come on screen. */
+(function init3D() {
   const THREE_JS = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
-  const stage = $("#stage");
-  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
-  if (stage) {
-  let sensorStarted = false;
-  new IntersectionObserver((es, ob) => {
-    if (!es[0].isIntersecting || sensorStarted) return;
-    sensorStarted = true; ob.disconnect();
-    const go = () => { try { buildSensor(); } catch (e) { $("#stageFallback").hidden = false; } };
-    if (window.THREE) go();
-    else { const s = document.createElement("script"); s.src = THREE_JS; s.onload = go; s.onerror = () => { $("#stageFallback").hidden = false; }; document.head.appendChild(s); }
-  }, { rootMargin: "300px" }).observe(stage);
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)"), still = reduce.matches;
+  let loading = null;
+  const three = () => window.THREE ? Promise.resolve() : (loading ||= new Promise((ok, no) => { const s = document.createElement("script"); s.src = THREE_JS; s.onload = ok; s.onerror = no; document.head.appendChild(s); }));
+  const lazy = (host, build, fail) => {
+    if (!host) return;
+    new IntersectionObserver((es, ob) => {
+      if (!es[0].isIntersecting) return; ob.disconnect();
+      three().then(() => { try { build(window.THREE, host); host.classList.add("has3d"); } catch (e) { console.warn("3D scene skipped:", e); fail && fail(); } }, () => fail && fail());
+    }, { rootMargin: "400px" }).observe(host);
+  };
+  let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+  /* a small studio: renderer, soft room light for reflections, a loop that only runs on screen */
+  function studio(T3, cvs, host, o = {}) {
+    const renderer = new T3.WebGLRenderer({ canvas: cvs, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    renderer.outputEncoding = T3.sRGBEncoding; renderer.toneMapping = T3.ACESFilmicToneMapping; renderer.toneMappingExposure = o.exposure || 1.08;
+    renderer.physicallyCorrectLights = true;
+    if (o.shadows) { renderer.shadowMap.enabled = true; renderer.shadowMap.type = T3.PCFSoftShadowMap; }
+    const scene = new T3.Scene();
+    const pm = new T3.PMREMGenerator(renderer), room = new T3.Scene();
+    room.add(new T3.Mesh(new T3.BoxGeometry(100, 100, 100), new T3.MeshBasicMaterial({ color: 0x8a8578, side: T3.BackSide })));
+    const panel = (w, h, x, y, z, ry, rx, k) => { const m = new T3.Mesh(new T3.PlaneGeometry(w, h), new T3.MeshBasicMaterial({ color: new T3.Color(k, k * .97, k * .9), side: T3.DoubleSide })); m.position.set(x, y, z); m.rotation.set(rx, ry, 0); room.add(m); };
+    panel(70, 26, 0, 46, 0, 0, Math.PI / 2, 5); panel(30, 44, -48, 6, 10, Math.PI / 2, 0, 3); panel(30, 44, 48, 0, 20, -Math.PI / 2, 0, 1.6); panel(60, 30, 0, 0, 49, Math.PI, 0, 1.3);
+    scene.environment = pm.fromScene(room, .04).texture;
+    const camera = o.ortho ? new T3.OrthographicCamera(-1, 1, 1, -1, .1, 400) : new T3.PerspectiveCamera(o.fov || 28, 1, .5, 600);
+    const key = new T3.DirectionalLight(0xfff3df, o.key || 2.4); key.position.set(-16, 30, 20); scene.add(key);
+    scene.add(new T3.HemisphereLight(0xffffff, 0xcfc3ab, o.fill || .85));
+    if (o.shadows) {
+      key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.radius = 5; key.shadow.bias = -.0006;
+      const sc = key.shadow.camera, R = o.shadowSize || 20; sc.left = -R; sc.right = R; sc.top = R; sc.bottom = -R; sc.near = 1; sc.far = 120;
+      const ground = new T3.Mesh(new T3.PlaneGeometry(300, 300), new T3.ShadowMaterial({ opacity: o.shadowOpacity || .2 })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+    }
+    let W = 0, H = 0, onScreen = false, running = false, tick = null, fit = null;
+    const size = () => { const r = host.getBoundingClientRect(); if (!r.width || !r.height) return; W = r.width; H = r.height; renderer.setSize(W, H, false); if (camera.isPerspectiveCamera) camera.aspect = W / H; fit && fit(W, H); camera.updateProjectionMatrix(); kick(); };
+    const kick = () => {
+      if (running || !onScreen) return; running = true; let last = performance.now();
+      const step = now => {
+        if (!onScreen || document.hidden) { running = false; return; }
+        const dt = Math.min(.05, (now - last) / 1000); last = now;
+        tick && tick(still ? 0 : dt, now / 1000); renderer.render(scene, camera);
+        if (still) { running = false; return; }                // reduced motion: draw once, again only when touched
+        requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+    new ResizeObserver(size).observe(host);
+    new IntersectionObserver(es => { onScreen = es[0].isIntersecting; kick(); }).observe(host);
+    document.addEventListener("visibilitychange", kick);
+    return { T3, renderer, scene, camera, key, kick, frame: f => { tick = f; }, fit: f => { fit = f; size(); } };
+  }
+  /* drag to turn; let go and it eases back into a slow sway */
+  function orbit(cvs, host, st, o) {
+    const s = { yaw: o.yaw, pitch: o.pitch, vy: 0, idle: 9, drag: null };
+    cvs.addEventListener("pointerdown", e => { s.drag = [e.clientX, e.clientY]; cvs.setPointerCapture(e.pointerId); host.classList.add("grabbing"); const h = host.querySelector(".stage-hint"); if (h) h.style.opacity = 0; });
+    cvs.addEventListener("pointermove", e => { if (!s.drag) return; const dx = e.clientX - s.drag[0], dy = e.clientY - s.drag[1]; s.drag = [e.clientX, e.clientY]; s.vy = dx * .011; s.yaw += s.vy; s.pitch = clamp(s.pitch + dy * .006, o.pMin, o.pMax); s.idle = 0; st.kick(); });
+    const up = () => { s.drag = null; host.classList.remove("grabbing"); };
+    cvs.addEventListener("pointerup", up); cvs.addEventListener("pointercancel", up);
+    s.step = (dt, t) => {
+      s.idle += dt;
+      if (!s.drag) { s.yaw += s.vy; s.vy *= .93; if (s.idle > 2.2) { s.yaw += (o.yaw + Math.sin(t / (o.period || 3.4)) * (o.sway || .3) - s.yaw) * .014; s.pitch += (o.pitch - s.pitch) * .02; } }
+    };
+    return s;
+  }
+
+  /* a four-wheeled communal bin, about 1.4 m wide (1 unit = 10 cm) */
+  function makeBin(T3, o = {}) {
+    const g = new T3.Group(), W = 13.7, D = 10.2, Hb = 10.6, y0 = 1.9, k = .84, tx = W / 2, tz = D / 2, bx = tx * k, bz = tz * k, yt = y0 + Hb;
+    const body = new T3.MeshStandardMaterial({ color: 0x2f6b4f, roughness: .5, metalness: .08, side: T3.DoubleSide });
+    const dark = new T3.MeshStandardMaterial({ color: 0x1d2a25, roughness: .42, metalness: .2 });
+    const glass = new T3.MeshStandardMaterial({ color: 0xdff3e8, roughness: .06, transparent: true, opacity: .17, depthWrite: false, side: T3.DoubleSide });
+    const add = (m, shadow = true) => { m.castShadow = shadow; g.add(m); return m; };
+    const quad = (a, b, c, d, mat, shadow) => { const geo = new T3.BufferGeometry(); geo.setAttribute("position", new T3.Float32BufferAttribute([...a, ...b, ...c, ...a, ...c, ...d], 3)); geo.computeVertexNormals(); return add(new T3.Mesh(geo, mat), shadow); };
+    const B = [[-bx, y0, bz], [bx, y0, bz], [bx, y0, -bz], [-bx, y0, -bz]], T = [[-tx, yt, tz], [tx, yt, tz], [tx, yt, -tz], [-tx, yt, -tz]];
+    quad(B[0], B[1], T[1], T[0], o.cutaway ? glass : body, !o.cutaway);                                   // front (a window when cut away)
+    quad(B[1], B[2], T[2], T[1], body); quad(B[2], B[3], T[3], T[2], body); quad(B[3], B[0], T[0], T[3], body); quad(B[3], B[2], B[1], B[0], body);
+    for (const [w, d, x, z] of [[W + .9, .75, 0, tz], [W + .9, .75, 0, -tz], [.75, D + .1, tx, 0], [.75, D + .1, -tx, 0]]) { const m = add(new T3.Mesh(new T3.BoxGeometry(w, .75, d), body)); m.position.set(x, yt, z); }
+    for (const s of [-1, 1]) {                                                                             // window frame posts, lifting pins
+      const len = Math.hypot(Hb, tx - bx, tz - bz), post = add(new T3.Mesh(new T3.BoxGeometry(.5, len, .5), body));
+      post.position.set(s * (tx + bx) / 2, y0 + Hb / 2, (tz + bz) / 2); post.rotation.set(Math.atan2(tz - bz, Hb), 0, -s * Math.atan2(tx - bx, Hb));
+      const pin = add(new T3.Mesh(new T3.CylinderGeometry(.3, .3, 1.5, 14), dark)); pin.rotation.z = Math.PI / 2; pin.position.set(s * (tx + .75), yt - 2.3, 0);
+    }
+    const sill = add(new T3.Mesh(new T3.BoxGeometry(bx * 2 + .5, .5, .5), body)); sill.position.set(0, y0, bz);
+    for (const [x, z] of [[-bx + .7, bz - .9], [bx - .7, bz - .9], [-bx + .7, -bz + .9], [bx - .7, -bz + .9]]) {
+      const w = add(new T3.Mesh(new T3.CylinderGeometry(.95, .95, .6, 26), dark)); w.rotation.z = Math.PI / 2; w.position.set(x, .95, z);
+      const f = add(new T3.Mesh(new T3.BoxGeometry(.95, .8, 1.3), dark)); f.position.set(x, 1.6, z);
+    }
+    // the curved lid, hinged along the back edge
+    const c = D + 1.3, h = 2.1, R = (c * c / 4 + h * h) / (2 * h), a0 = Math.atan2(R - h, c / 2);
+    const sh = new T3.Shape(); sh.moveTo(c / 2, 0); sh.absarc(0, -(R - h), R, a0, Math.PI - a0, false); sh.lineTo(c / 2, 0);
+    const lg = new T3.ExtrudeGeometry(sh, { depth: W + 1.1, bevelEnabled: true, bevelSize: .14, bevelThickness: .14, bevelSegments: 2, curveSegments: 30 });
+    lg.translate(0, 0, -(W + 1.1) / 2); lg.rotateY(Math.PI / 2);
+    const lidMat = o.cutaway ? new T3.MeshStandardMaterial({ color: 0x1d2a25, roughness: .25, metalness: .1, transparent: true, opacity: .34, depthWrite: false }) : dark;
+    const lid = new T3.Mesh(lg, lidMat); lid.castShadow = !o.cutaway; lid.position.set(0, 0, c / 2);
+    const hinge = new T3.Group(); hinge.position.set(0, yt + .4, -c / 2); hinge.add(lid); g.add(hinge);
+    return { group: g, hinge, d: { W, D, Hb, y0, yt, k, tx, tz } };
+  }
+  /* rubbish bags: crumpled, a little squashed */
+  function bagKit(T3) {
+    const geos = [0, 1, 2].map(s => { const geo = new T3.IcosahedronGeometry(1, 2), p = geo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), n = 1 + .17 * Math.sin(x * 3.1 + s * 2) * Math.cos(y * 2.7 + s) + .1 * Math.sin(z * 4.3 + s * 5); p.setXYZ(i, x * n, y * n * .78, z * n); } geo.computeVertexNormals(); return geo; });
+    const mats = [[0x22262a, .3], [0x22262a, .3], [0x3b4046, .38], [0xe9e5db, .5], [0x2d5fa8, .42]].map(([c, r]) => new T3.MeshStandardMaterial({ color: c, roughness: r, metalness: 0 }));
+    return () => { const m = new T3.Mesh(geos[(rnd() * 3) | 0], mats[(rnd() * mats.length) | 0]); m.rotation.set(rnd() * 6, rnd() * 6, rnd() * 6); m.castShadow = true; return m; };
+  }
+
+  /* How it works: a bin cut open. The sensor under the lid pings the rubbish; the slider fills the bin. */
+  let binFill = .65, setBinFill = null;
+  function buildBinScene(T3, host) {
+    const cvs = $("#bin3d"), st = studio(T3, cvs, host, { fov: 26, shadows: true });
+    const bin = makeBin(T3, { cutaway: true }), d = bin.d, pivot = new T3.Group(); pivot.add(bin.group); st.scene.add(pivot);
+    const bag = bagKit(T3), bags = [], layers = 7, innerH = d.Hb - .7, lh = innerH / layers;
+    for (let L = 0; L < layers; L++) {
+      const y = d.y0 + .35 + (L + .5) * lh, s = d.k + (1 - d.k) * (y - d.y0) / d.Hb, sx = (d.W - 2.3) * s / 4, sz = (d.D - 2.1) * s / 3;
+      for (let ix = 0; ix < 4; ix++) for (let iz = 0; iz < 3; iz++) {
+        const m = bag(); m.position.set((ix - 1.5) * sx + (rnd() - .5) * .7, y + (rnd() - .5) * .35, (iz - 1) * sz + (rnd() - .5) * .6);
+        m.userData = { s: 1.42 + rnd() * .4, need: (L + .4) / layers, cur: 0 }; m.scale.setScalar(.001); bin.group.add(m); bags.push(m);
+      }
+    }
+    // the sensor (drawn six times its real size so it can be seen) and its sound
+    const ys = d.yt - .55, sensor = new T3.Group(); sensor.position.set(0, ys, 0);
+    const pcb = new T3.Mesh(new T3.BoxGeometry(2.9, .14, 1.3), new T3.MeshStandardMaterial({ color: 0x1d4fa6, roughness: .5 })); pcb.position.y = .35; sensor.add(pcb);
+    const metal = new T3.MeshStandardMaterial({ color: 0xdfe3e7, metalness: 1, roughness: .28 });
+    for (const x of [-.82, .82]) { const can = new T3.Mesh(new T3.CylinderGeometry(.5, .5, .62, 28), metal); can.position.set(x, 0, 0); sensor.add(can); }
+    const led = new T3.Mesh(new T3.SphereGeometry(.11, 12, 12), new T3.MeshBasicMaterial({ color: 0x3fe0a0 })); led.position.set(1.25, .26, .45); sensor.add(led);
+    bin.group.add(sensor);
+    const beam = new T3.Mesh(new T3.ConeGeometry(1, 1, 44, 1, true), new T3.MeshBasicMaterial({ color: 0x16a070, transparent: true, opacity: .1, side: T3.DoubleSide, depthWrite: false })); bin.group.add(beam);
+    const rings = [0, 1, 2, 3].map(() => { const r = new T3.Mesh(new T3.TorusGeometry(1, .045, 8, 60), new T3.MeshBasicMaterial({ color: 0x16a070, transparent: true, opacity: 0, depthWrite: false })); r.rotation.x = Math.PI / 2; bin.group.add(r); return r; });
+    const hit = new T3.Mesh(new T3.RingGeometry(.82, 1, 56), new T3.MeshBasicMaterial({ color: 0xe0a02a, transparent: true, opacity: 0, side: T3.DoubleSide, depthWrite: false })); hit.rotation.x = -Math.PI / 2; bin.group.add(hit);
+    const out = new T3.Color(0x16a070), back = new T3.Color(0xe0a02a);
+    const orb = orbit(cvs, host, st, { yaw: -.5, pitch: 0, pMin: -.25, pMax: .35, sway: .32 });
+    st.fit((W, H) => { const a = W / H, z = a < 1.15 ? 46 * 1.15 / a : 46; st.camera.position.set(0, 17 + (z - 46) * .2, z); st.camera.lookAt(0, 7.4, 0); });
+    let fill = 0, ph = 0;
+    st.frame((dt, t) => {
+      orb.step(dt, t); pivot.rotation.y = orb.yaw; pivot.rotation.x = orb.pitch * .5;
+      fill += (binFill - fill) * (still ? 1 : Math.min(1, dt * 4));
+      for (const m of bags) { const u = m.userData, to = fill >= u.need ? 1 : 0; u.cur += (to - u.cur) * (still ? 1 : Math.min(1, dt * 7)); m.scale.setScalar(Math.max(.001, u.cur * u.s)); m.visible = u.cur > .01; }
+      const top = d.y0 + .35 + Math.min(fill, .985) * innerH + .5, dist = Math.max(.5, ys - .4 - top), r = Math.min(4.2, .5 + dist * .3);
+      beam.position.y = ys - .35 - dist / 2; beam.scale.set(r, dist, r);
+      ph = (ph + dt / (.9 + dist * .13)) % 1;                                        // an emptier bin: a longer wait for the echo
+      rings.forEach((m, k) => {
+        const p = (ph + k / 4) % 1, down = p < .5, u = down ? p * 2 : (1 - p) * 2, rr = .4 + u * (r - .4);
+        m.position.y = ys - .35 - u * dist; m.scale.set(rr, rr, 1); m.material.color.copy(down ? out : back); m.material.opacity = still ? (k % 2 ? 0 : .5) : Math.sin(Math.PI * (p * 2 % 1)) * .85;
+      });
+      const q = (ph % .25) / .25; hit.position.y = top + .08; hit.scale.setScalar(r * (.72 + q * .5)); hit.material.opacity = still ? .4 : (1 - q) * .6;
+    });
+    setBinFill = () => st.kick();
+  }
+
+  /* Problem: a bin that nobody came for */
+  function buildOverflow(T3, host) {
+    const cvs = host.querySelector("canvas"), st = studio(T3, cvs, host, { fov: 24, shadows: true, shadowOpacity: .16 });
+    const bin = makeBin(T3), d = bin.d, pivot = new T3.Group(); pivot.add(bin.group); st.scene.add(pivot);
+    const bag = bagKit(T3), heap = [];
+    for (let k = 0; k < 13; k++) {
+      const a = k / 13 * 6.28 + rnd(), rr = k < 5 ? 1.2 : 3.6 + rnd(), m = bag();
+      m.position.set(Math.cos(a) * rr * 1.15, d.yt - .2 + (k < 5 ? 2.3 + rnd() * .9 : rnd() * 1.3), Math.sin(a) * rr * .8); m.scale.setScalar(1.55 + rnd() * .45); m.userData.y = m.position.y; m.userData.p = rnd() * 6; bin.group.add(m); heap.push(m);
+    }
+    for (const [x, z, s] of [[d.tx + 2.6, 2.4, 1.7], [d.tx + 4.6, -.6, 1.5], [-d.tx - 2.4, 3.2, 1.6], [d.tx + 3.1, 4.6, 1.3]]) { const m = bag(); m.position.set(x, s * .72, z); m.scale.setScalar(s); pivot.add(m); }
+    bin.hinge.rotation.x = -.72;
+    const orbS = { yaw: -.55 };
+    st.fit((W, H) => { st.camera.position.set(0, 19, 62); st.camera.lookAt(0, 8.6, 0); st.camera.setViewOffset(W, H, W * .27, 0, W, H); });
+    st.frame((dt, t) => {
+      pivot.rotation.y = orbS.yaw + (still ? 0 : Math.sin(t / 3.1) * .22);
+      bin.hinge.rotation.x = -.72 + (still ? 0 : Math.sin(t * 1.9) * .035);
+      if (!still) for (const m of heap) m.position.y = m.userData.y + Math.sin(t * 1.6 + m.userData.p) * .07;
+    });
+  }
+
+  /* Problem: 96 bins, one for about every 110 on Edinburgh's streets */
+  function buildField(T3, host) {
+    const cvs = host.querySelector("canvas"), st = studio(T3, cvs, host, { ortho: true, shadows: true, shadowSize: 22, shadowOpacity: .18 });
+    const cols = 16, rows = 6, n = cols * rows, dx = 1.62, dz = 1.5;
+    const bodyG = new T3.BoxGeometry(1, 1.05, .8); bodyG.translate(0, .62, 0);
+    const lidG = new T3.BoxGeometry(1.12, .2, .92); lidG.translate(0, 1.25, 0);
+    const bodies = new T3.InstancedMesh(bodyG, new T3.MeshStandardMaterial({ color: 0xffffff, roughness: .5, metalness: .05 }), n);
+    const lids = new T3.InstancedMesh(lidG, new T3.MeshStandardMaterial({ color: 0x1d2a25, roughness: .4, metalness: .2 }), n);
+    bodies.castShadow = lids.castShadow = true; st.scene.add(bodies, lids);
+    const green = new T3.Color(0x2f6b4f), hot = new T3.Color(0xd9472b), col = new T3.Color(), M = new T3.Matrix4(), P = new T3.Vector3(), Q = new T3.Quaternion(), S = new T3.Vector3();
+    const info = [];
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) info.push({ x: (c - (cols - 1) / 2) * dx, z: (r - (rows - 1) / 2) * dz, delay: .15 + c * .045 + r * .09, hot: rnd() < .15, ph: rnd() * 6.28 });
+    const place = (k, s) => { const i = info[k]; P.set(i.x, 0, i.z); S.setScalar(Math.max(.001, s)); M.compose(P, Q, S); bodies.setMatrixAt(k, M); lids.setMatrixAt(k, M); };
+    info.forEach((i, k) => { place(k, still ? 1 : 0); bodies.setColorAt(k, i.hot && still ? hot : green); });
+    const yaw = -.52, pitch = .62, dir = new T3.Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
+    st.fit((W, H) => { const a = W / H, hh = Math.max(14.4 / a, 6.9), cam = st.camera; cam.left = -hh * a; cam.right = hh * a; cam.top = hh; cam.bottom = -hh; cam.position.copy(dir).multiplyScalar(60); cam.lookAt(0, .4, 0); });
+    const back = x => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+    let t0 = -1;
+    st.frame((dt, t) => {
+      if (still) return;
+      if (t0 < 0) t0 = t; const e = t - t0;
+      if (e < 3.2) { info.forEach((i, k) => place(k, back(clamp((e - i.delay) / .55, 0, 1)))); bodies.instanceMatrix.needsUpdate = lids.instanceMatrix.needsUpdate = true; }
+      info.forEach((i, k) => { if (!i.hot) return; const u = clamp((Math.sin(e * 1.1 + i.ph) - .2) * 2.2, 0, 1); col.copy(green).lerp(hot, e > 2.4 ? u : 0); bodies.setColorAt(k, col); });
+      bodies.instanceColor.needsUpdate = true;
+    });
+  }
 
   function buildSensor() {
-    const T3 = window.THREE, cvs = $("#sensor3d");
+    const T3 = window.THREE, cvs = $("#sensor3d"), stage = $("#stage");
     const renderer = new T3.WebGLRenderer({ canvas: cvs, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
     renderer.outputEncoding = T3.sRGBEncoding;
@@ -2873,6 +3099,13 @@ function initNav() {
       board.add(g);
     };
     can(-13); can(13);
+    // sound leaving the left can and coming back to the right one
+    const rings = [];
+    for (let k = 0; k < 3; k++) for (const [x, colr, dirn] of [[-13, 0x12906a, 1], [13, 0xd9982b, -1]]) {
+      const r = new T3.Mesh(new T3.RingGeometry(.93, 1, 64), new T3.MeshBasicMaterial({ color: colr, transparent: true, opacity: 0, depthWrite: false, side: T3.DoubleSide }));
+      r.position.set(x, 1, 14); board.add(r); rings.push([r, k, dirn]);
+    }
+    const pulse = now => rings.forEach(([m, k, dirn]) => { let u = (now / 2400 + k / 3) % 1; if (dirn < 0) u = 1 - u; m.position.z = 14 + u * 24; const sc = 7 + u * 8; m.scale.set(sc, sc, 1); m.material.opacity = still ? 0 : Math.sin(Math.PI * u) * .6; });
     // the crystal oscillator (HC-49/S): a rounded metal can lying between the transducers
     const xs = new T3.Shape(), L = 5.5, Rr = 2.3;
     xs.moveTo(-L + Rr, -Rr); xs.lineTo(L - Rr, -Rr); xs.absarc(L - Rr, 0, Rr, -Math.PI / 2, Math.PI / 2, false); xs.lineTo(-L + Rr, Rr); xs.absarc(-L + Rr, 0, Rr, Math.PI / 2, Math.PI * 1.5, false);
@@ -2930,10 +3163,10 @@ function initNav() {
         if (!drag) {
           yaw += vy; pitch = Math.max(-.9, Math.min(1.1, pitch + vp)); vy *= .94; vp *= .9;
           if (!still && idle > 2.5) { yaw += (-.55 + Math.sin(now / 2600) * .45 - yaw) * .012; pitch += (.32 - pitch) * .015; }
-          if (Math.abs(vy) > 1e-4 || Math.abs(vp) > 1e-4 || (!still && idle > 2.5)) dirty = true;
+          if (!still || Math.abs(vy) > 1e-4 || Math.abs(vp) > 1e-4) dirty = true;
         }
         if (dirty) {
-          pivot.rotation.set(pitch, yaw, 0); pivot.position.y = still ? 0 : Math.sin(now / 1800) * .6;
+          pulse(now); pivot.rotation.set(pitch, yaw, 0); pivot.position.y = still ? 0 : Math.sin(now / 1800) * .6;
           renderer.render(scene, camera);
           pivot.updateMatrixWorld();
           nrm.set(0, 0, 1).transformDirection(board.matrixWorld);
@@ -2959,36 +3192,26 @@ function initNav() {
     loop();
   }
 
-  }
 
-  /* ---------- how the sensor measures: time the echo, get the distance, get the fill ---------- */
-  {
-    const DEPTH = 1.2, LID = 66, FLOOR = 262, SOUND = 343;     // an example bin 1.2 m deep, drawn from y=66 (sensor) to y=262 (floor)
-    const fillIn = $("#eFill");
-    if (fillIn) {
+  lazy($("#stage"), buildSensor, () => { const f = $("#stageFallback"); if (f) f.hidden = false; });
+  lazy($("#binStage"), buildBinScene, () => { const f = $("#binFallback"); if (f) f.hidden = false; });
+  lazy($("#vOver3d"), buildOverflow);
+  lazy($("#vField3d"), buildField);
+
+  /* how the sensor measures: time the echo, get the distance, get the fill (an example bin 1.2 m deep) */
+  const fillIn = $("#eFill");
+  if (fillIn) {
+    const DEPTH = 1.2, SOUND = 343;
     const upd = () => {
-      const f = +fillIn.value / 100;
-      const dist = Math.max(.02, DEPTH * (1 - f));
-      const top = LID + (FLOOR - LID) * (dist / DEPTH);
+      const f = +fillIn.value / 100, dist = Math.max(.02, DEPTH * (1 - f));
       $("#oFill").textContent = Math.round(f * 100) + " %";
       $("#eTime").textContent = (2 * dist / SOUND * 1000).toFixed(1) + " ms";
       $("#eDist").textContent = dist.toFixed(2) + " m";
       $("#ePct").textContent = Math.round((1 - dist / DEPTH) * 100) + " %";
-      const w = $("#echoWaste"); w.setAttribute("y", top); w.setAttribute("height", FLOOR + 10 - top);
-      $("#echoTop").setAttribute("d", `M40 ${top + 2} q 20 -7 40 -2 t 40 -1 t 40 -3 t 40 2 V ${top + 6} H 40 z`);
-      $("#echoLine").setAttribute("y2", top - 2);
-      $("#echoArrA").setAttribute("d", `M206 72 l4 -6 l4 6 z`);
-      $("#echoArrB").setAttribute("d", `M206 ${top - 8} l4 6 l4 -6 z`);
-      const span = top - LID - 4, n = Math.max(1, Math.min(4, Math.floor(span / 26)));
-      $("#echoWaves").innerHTML = Array.from({ length: n }, (_, k) => {
-        const y = LID + 10 + (span - 12) * (k + .5) / n, half = 10 + (y - LID) * .27;
-        return `<path d="M${120 - half} ${y} Q 120 ${y + 9} ${120 + half} ${y}" style="animation-delay:${(k * .35).toFixed(2)}s"/>`;
-      }).join("");
+      binFill = f; setBinFill && setBinFill();
     };
     fillIn.addEventListener("input", upd); upd();
-    }
   }
-
 })();
 
 boot().catch(err => {

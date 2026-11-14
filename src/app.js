@@ -180,18 +180,18 @@ function litDot(c, i) {
   const v = D.S.pred[i], x = CV.x[i], y = CV.y[i], r = CV.r;
   if (v >= 80) {
     const g = c.createRadialGradient(x, y, 0, x, y, r * 4.5);
-    g.addColorStop(0, v >= 90 ? "rgba(214,80,56,.13)" : "rgba(226,140,70,.1)"); g.addColorStop(1, "rgba(0,0,0,0)");
-    c.globalCompositeOperation = "lighter"; c.fillStyle = g; c.fillRect(x - r * 4.5, y - r * 4.5, r * 9, r * 9); c.globalCompositeOperation = "source-over";
+    g.addColorStop(0, v >= 90 ? "rgba(201,64,42,.14)" : "rgba(226,129,58,.11)"); g.addColorStop(1, v >= 90 ? "rgba(201,64,42,0)" : "rgba(226,129,58,0)");
+    c.fillStyle = g; c.fillRect(x - r * 4.5, y - r * 4.5, r * 9, r * 9);
   }
-  c.globalAlpha = v >= 60 ? 1 : .55; c.fillStyle = fillColor(v);
+  c.globalAlpha = v >= 60 ? 1 : .7; c.fillStyle = v >= 60 ? fillColor(v) : "#86a892";
   c.beginPath(); c.arc(x, y, v >= 80 ? r : r * .78, 0, 6.2832); c.fill(); c.globalAlpha = 1;
 }
 function doneDot(c, i) {
   const x = CV.x[i], y = CV.y[i], r = CV.r;
   const g = c.createRadialGradient(x, y, r * .6, x, y, r * 2.4);
-  g.addColorStop(0, "rgba(22,30,36,.92)"); g.addColorStop(1, "rgba(22,30,36,0)");
+  g.addColorStop(0, "rgba(251,247,238,.95)"); g.addColorStop(1, "rgba(251,247,238,0)");
   c.fillStyle = g; c.beginPath(); c.arc(x, y, r * 2.4, 0, 6.2832); c.fill();
-  c.fillStyle = "#57d6a6"; c.beginPath(); c.arc(x, y, r * .82, 0, 6.2832); c.fill();
+  c.fillStyle = "#0f7a5a"; c.beginPath(); c.arc(x, y, r * .82, 0, 6.2832); c.fill();
 }
 function redrawDots() {
   const c = dotsCtx(); c.clearRect(0, 0, CV.W, CV.H);
@@ -207,7 +207,7 @@ function drawHero() {                                       // lay the cover out
   Object.assign(CV, { W, H, dpr, P, r: clamp(P.s / 3200, 1.25, 2.6) });
   for (const cv of [base, $("#heroDots"), fx]) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
   const c = base.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const N = { land: css("--night-land"), edge: css("--night-edge"), road: css("--night-road"), park: css("--night-park"), ink: css("--night-ink") };
+  const N = { land: css("--cv-land"), edge: css("--cv-edge"), road: css("--cv-road"), park: css("--cv-park"), ink: css("--cv-ink") };
   const path = (pts, close) => { c.beginPath(); pts.forEach(([la, lo], k) => k ? c.lineTo(P.x(lo), P.y(la)) : c.moveTo(P.x(lo), P.y(la))); if (close) c.closePath(); };
   c.lineWidth = 1; c.strokeStyle = N.edge; c.fillStyle = N.land;
   for (const w of D.base.wards) for (const ring of w.rings) { path(decode(ring), true); c.fill(); c.stroke(); }
@@ -267,7 +267,7 @@ function coverStep(dt) {
   coverCap(CV.resetAt ? -1 : cap);
   // 3. light: truck trails, flashes
   const f = $("#heroCanvas").getContext("2d"); f.setTransform(CV.dpr, 0, 0, CV.dpr, 0, 0); f.clearRect(0, 0, CV.W, CV.H);
-  f.globalCompositeOperation = "lighter"; f.lineCap = "round"; f.lineJoin = "round";
+  f.lineCap = "round"; f.lineJoin = "round";
   if (SIM.end && tt > 0) SIM.trucks.forEach((tk, k) => {
     const tr = CV.trails[k] || (CV.trails[k] = []);
     const p = tt < DAY_MS ? truckPos(tk, simT) : null, moving = p && p.tr;
@@ -279,23 +279,23 @@ function coverStep(dt) {
       for (let q = 0; q < parts; q++) {
         const from = Math.floor(q * (m - 1) / parts), to = Math.floor((q + 1) * (m - 1) / parts), u = (q + 1) / parts;
         f.beginPath(); f.moveTo(tr[from][0], tr[from][1]); for (let j = from + 1; j <= to; j++) f.lineTo(tr[j][0], tr[j][1]);
-        f.strokeStyle = `rgba(110,225,180,${(u * u * .75).toFixed(3)})`; f.lineWidth = .8 + u * 1.4; f.stroke();
+        f.strokeStyle = `rgba(15,106,79,${(u * u * .85).toFixed(3)})`; f.lineWidth = .9 + u * 1.7; f.stroke();
       }
     }
     if (moving) {
       const h = [hx, hy], gr = CV.r * 4.6, g = f.createRadialGradient(h[0], h[1], 0, h[0], h[1], gr);
-      g.addColorStop(0, "rgba(160,245,210,.55)"); g.addColorStop(1, "rgba(160,245,210,0)");
+      g.addColorStop(0, "rgba(15,106,79,.26)"); g.addColorStop(1, "rgba(15,106,79,0)");
       f.fillStyle = g; f.fillRect(h[0] - gr, h[1] - gr, gr * 2, gr * 2);
-      f.fillStyle = "rgba(255,255,255,.95)"; f.beginPath(); f.arc(h[0], h[1], CV.r * .85, 0, 6.2832); f.fill();
+      f.fillStyle = "#fffdf8"; f.beginPath(); f.arc(h[0], h[1], CV.r * 1.55, 0, 6.2832); f.fill();
+      f.fillStyle = "#0f6a4f"; f.beginPath(); f.arc(h[0], h[1], CV.r * 1.05, 0, 6.2832); f.fill();
     }
   });
   for (let k = CV.fx.length - 1; k >= 0; k--) {
     const e = CV.fx[k], life = e[3] ? 720 : 430, u = (CV.t - e[2]) / life;
     if (u >= 1) { CV.fx.splice(k, 1); continue; }
-    if (e[3]) { f.beginPath(); f.arc(e[0], e[1], 2 + u * 11, 0, 6.2832); f.strokeStyle = `rgba(110,225,180,${((1 - u) * .7).toFixed(3)})`; f.lineWidth = 1.2; f.stroke(); }
-    else { f.beginPath(); f.arc(e[0], e[1], CV.r * (1 + u * 2.6), 0, 6.2832); f.fillStyle = `rgba(255,196,150,${((1 - u) * .7).toFixed(3)})`; f.fill(); }
+    if (e[3]) { f.beginPath(); f.arc(e[0], e[1], 2 + u * 11, 0, 6.2832); f.strokeStyle = `rgba(15,122,90,${((1 - u) * .65).toFixed(3)})`; f.lineWidth = 1.3; f.stroke(); }
+    else { f.beginPath(); f.arc(e[0], e[1], CV.r * (1 + u * 3), 0, 6.2832); f.strokeStyle = `rgba(201,64,42,${((1 - u) * .55).toFixed(3)})`; f.lineWidth = 1.1; f.stroke(); }
   }
-  f.globalCompositeOperation = "source-over";
   // 4. after the shift, hold, fade and play again
   if (SIM.end && tt > DAY_MS + HOLD_MS) {
     const dots = $("#heroDots");
@@ -460,21 +460,21 @@ async function initStreetMap() {
 function platinumStyle(s) {
   const lay = id => s.layers.find(l => l.id === id);
   const P = (ids, k, v) => [].concat(ids).forEach(id => { const l = lay(id); if (l) (l.paint ||= {})[k] = v; });
-  const land = "#141b21", bld = "#1e2830", ink = "#dfe6e3", txt = "#9aa6a2", halo = "#10161b";
+  const land = "#f5efe4", bld = "#e6dcc9", ink = "#23302a", txt = "#5d665f", halo = "#f8f3ea";
   P("background", "background-color", land);
-  P("landuse_residential", "fill-color", "#161e25");
-  P("park", "fill-color", "#16281f"); P("landcover_wood", "fill-color", "#14241c");
-  P("water", "fill-color", "#0a1015"); P("waterway", "line-color", "#0e161c");
-  P("building", "fill-color", bld); P("building", "fill-outline-color", "#28333c");
-  P(["highway_minor", "highway_major_inner", "highway_motorway_inner", "highway_motorway_bridge_inner", "tunnel_motorway_inner", "road_pier"], "line-color", "#33404c");
-  P("highway_path", "line-color", "#232d36");
-  P(["highway_major_casing", "highway_motorway_casing", "highway_motorway_bridge_casing", "tunnel_motorway_casing"], "line-color", "#12191e");
-  P(["railway", "railway_transit", "railway_service"], "line-color", "#2a343d");
+  P("landuse_residential", "fill-color", "#f0e9dc");
+  P("park", "fill-color", "#d7e4cb"); P("landcover_wood", "fill-color", "#cfdfc5");
+  P("water", "fill-color", "#c5d8dd"); P("waterway", "line-color", "#b9cfd6");
+  P("building", "fill-color", bld); P("building", "fill-outline-color", "#d8ccb6");
+  P(["highway_minor", "highway_major_inner", "highway_motorway_inner", "highway_motorway_bridge_inner", "tunnel_motorway_inner", "road_pier"], "line-color", "#ffffff");
+  P("highway_path", "line-color", "#fffdf8");
+  P(["highway_major_casing", "highway_motorway_casing", "highway_motorway_bridge_casing", "tunnel_motorway_casing"], "line-color", "#dccfb9");
+  P(["railway", "railway_transit", "railway_service"], "line-color", "#cfc4b0");
   P(["highway-name-path", "highway-name-minor", "highway-name-major"], "text-color", txt);
   P(["highway-name-path", "highway-name-minor", "highway-name-major"], "text-halo-color", halo);
   P(["highway-name-path", "highway-name-minor", "highway-name-major"], "text-halo-width", 1.4);
   s.layers.filter(l => /^label_/.test(l.id)).forEach(l => { l.paint = { ...l.paint, "text-color": ink, "text-halo-color": land, "text-halo-width": 1.4, "text-halo-blur": 0 }; });
-  P(["water_name_point_label", "water_name_line_label", "waterway_line_label"], "text-color", "#5f7f97");
+  P(["water_name_point_label", "water_name_line_label", "waterway_line_label"], "text-color", "#5d7f93");
   // the building layer starts a little earlier, and street names one zoom earlier, than stock positron
   if (lay("building")) lay("building").minzoom = 13;
   if (lay("highway-name-minor")) lay("highway-name-minor").minzoom = 14.5;
@@ -483,22 +483,22 @@ function platinumStyle(s) {
   const extra = [
     { id: "bs-housenumber", type: "symbol", source: "openmaptiles", "source-layer": "housenumber", minzoom: 17,
       layout: { "text-field": ["get", "housenumber"], "text-font": ["Noto Sans Regular"], "text-size": 10 },
-      paint: { "text-color": "#6f7a82", "text-halo-color": bld, "text-halo-width": 1 } },
+      paint: { "text-color": "#9a958a", "text-halo-color": bld, "text-halo-width": 1 } },
     { id: "bs-poi", type: "symbol", source: "openmaptiles", "source-layer": "poi", minzoom: 16.5,
       filter: ["!", ["match", ["get", "class"], ["railway", "bus", "park"], true, false]],
       layout: { "text-field": name, "text-font": ["Noto Sans Regular"], "text-size": 10.5, "text-max-width": 8 },
-      paint: { "text-color": "#8a959d", "text-halo-color": halo, "text-halo-width": 1.2 } },
+      paint: { "text-color": "#7d8279", "text-halo-color": halo, "text-halo-width": 1.2 } },
     { id: "bs-park", type: "symbol", source: "openmaptiles", "source-layer": "poi", minzoom: 14,
       filter: ["==", ["get", "class"], "park"],
       layout: { "text-field": name, "text-font": ["Noto Sans Italic"], "text-size": 11, "text-max-width": 8 },
-      paint: { "text-color": "#6fa487", "text-halo-color": halo, "text-halo-width": 1.2 } },
+      paint: { "text-color": "#55785f", "text-halo-color": halo, "text-halo-width": 1.2 } },
     { id: "bs-station", type: "symbol", source: "openmaptiles", "source-layer": "poi", minzoom: 13.5,
       filter: ["==", ["get", "class"], "railway"],
       layout: { "text-field": name, "text-font": ["Noto Sans Bold"], "text-size": 10.5, "text-max-width": 9, "text-anchor": "top", "text-offset": [0, .5] },
-      paint: { "text-color": "#9db7cc", "text-halo-color": halo, "text-halo-width": 1.4 } },
+      paint: { "text-color": "#3e5568", "text-halo-color": halo, "text-halo-width": 1.4 } },
     { id: "bs-station-dot", type: "circle", source: "openmaptiles", "source-layer": "poi", minzoom: 13.5,
       filter: ["==", ["get", "class"], "railway"],
-      paint: { "circle-radius": 3, "circle-color": "#10161b", "circle-stroke-color": "#9db7cc", "circle-stroke-width": 1.4 } },
+      paint: { "circle-radius": 3, "circle-color": "#ffffff", "circle-stroke-color": "#3e5568", "circle-stroke-width": 1.4 } },
   ];
   const at = s.layers.findIndex(l => l.id === "highway-name-path");
   s.layers.splice(at < 0 ? s.layers.length : at, 0, ...extra);
@@ -1156,13 +1156,31 @@ function initNav() {
   addEventListener("scroll", onScroll, { passive: true }); onScroll();
 }
 
+/* ── pages: a chapter scrolls to its last line, stays there, and the next one rises over it ── */
+(function initPages() {
+  const pages = $$("main > .page"); if (!pages.length) return;
+  const stick = () => pages.forEach(p => { p.style.top = Math.min(0, innerHeight - p.offsetHeight) + "px"; });
+  if ("ResizeObserver" in window) { const ro = new ResizeObserver(stick); pages.forEach(p => ro.observe(p)); }
+  addEventListener("resize", stick); stick();
+  let raf = 0;
+  const upd = () => {
+    raf = 0; const vh = innerHeight;
+    pages.forEach((p, k) => {
+      const nx = pages[k + 1], c = nx ? clamp((vh - nx.getBoundingClientRect().top) / vh, 0, 1) : 0;
+      if (p._c === c) return; p._c = c;
+      p.style.setProperty("--c", c.toFixed(3)); p.classList.toggle("under", c > 0);
+    });
+  };
+  addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(upd); }, { passive: true }); upd();
+})();
+
 /* ── one continuous scroll: each block of a chapter rises into place as it is reached ── */
 (function initReveal() {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
   let done = false;
   const start = () => {
     if (done) return; done = true;
-    const sheet = $(".sheet"); if (!sheet) return;
+    const sheet = $("main"); if (!sheet) return;
     const els = [];
     $$("section.chapter", sheet).forEach(sec => {
       for (const ch of sec.children) {
@@ -1233,24 +1251,206 @@ function initNav() {
   cards.forEach(c => io.observe(c));
 })();
 
-/* ── the sensor (Step 1, up close): copied from the BinSight business demo ── */
-(function initSensor() {
-  /* ---------- the sensor: a 3D model of the HC-SR04 module, to scale in millimetres ---------- */
+/* ── 3D: the sensor, a communal bin cut open, an overflowing bin, the city's bins ──
+   Built with three.js (r128), loaded only when a scene is about to come on screen. */
+(function init3D() {
   const THREE_JS = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
-  const stage = $("#stage");
-  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
-  if (stage) {
-  let sensorStarted = false;
-  new IntersectionObserver((es, ob) => {
-    if (!es[0].isIntersecting || sensorStarted) return;
-    sensorStarted = true; ob.disconnect();
-    const go = () => { try { buildSensor(); } catch (e) { $("#stageFallback").hidden = false; } };
-    if (window.THREE) go();
-    else { const s = document.createElement("script"); s.src = THREE_JS; s.onload = go; s.onerror = () => { $("#stageFallback").hidden = false; }; document.head.appendChild(s); }
-  }, { rootMargin: "300px" }).observe(stage);
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)"), still = reduce.matches;
+  let loading = null;
+  const three = () => window.THREE ? Promise.resolve() : (loading ||= new Promise((ok, no) => { const s = document.createElement("script"); s.src = THREE_JS; s.onload = ok; s.onerror = no; document.head.appendChild(s); }));
+  const lazy = (host, build, fail) => {
+    if (!host) return;
+    new IntersectionObserver((es, ob) => {
+      if (!es[0].isIntersecting) return; ob.disconnect();
+      three().then(() => { try { build(window.THREE, host); host.classList.add("has3d"); } catch (e) { console.warn("3D scene skipped:", e); fail && fail(); } }, () => fail && fail());
+    }, { rootMargin: "400px" }).observe(host);
+  };
+  let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+  /* a small studio: renderer, soft room light for reflections, a loop that only runs on screen */
+  function studio(T3, cvs, host, o = {}) {
+    const renderer = new T3.WebGLRenderer({ canvas: cvs, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    renderer.outputEncoding = T3.sRGBEncoding; renderer.toneMapping = T3.ACESFilmicToneMapping; renderer.toneMappingExposure = o.exposure || 1.08;
+    renderer.physicallyCorrectLights = true;
+    if (o.shadows) { renderer.shadowMap.enabled = true; renderer.shadowMap.type = T3.PCFSoftShadowMap; }
+    const scene = new T3.Scene();
+    const pm = new T3.PMREMGenerator(renderer), room = new T3.Scene();
+    room.add(new T3.Mesh(new T3.BoxGeometry(100, 100, 100), new T3.MeshBasicMaterial({ color: 0x8a8578, side: T3.BackSide })));
+    const panel = (w, h, x, y, z, ry, rx, k) => { const m = new T3.Mesh(new T3.PlaneGeometry(w, h), new T3.MeshBasicMaterial({ color: new T3.Color(k, k * .97, k * .9), side: T3.DoubleSide })); m.position.set(x, y, z); m.rotation.set(rx, ry, 0); room.add(m); };
+    panel(70, 26, 0, 46, 0, 0, Math.PI / 2, 5); panel(30, 44, -48, 6, 10, Math.PI / 2, 0, 3); panel(30, 44, 48, 0, 20, -Math.PI / 2, 0, 1.6); panel(60, 30, 0, 0, 49, Math.PI, 0, 1.3);
+    scene.environment = pm.fromScene(room, .04).texture;
+    const camera = o.ortho ? new T3.OrthographicCamera(-1, 1, 1, -1, .1, 400) : new T3.PerspectiveCamera(o.fov || 28, 1, .5, 600);
+    const key = new T3.DirectionalLight(0xfff3df, o.key || 2.4); key.position.set(-16, 30, 20); scene.add(key);
+    scene.add(new T3.HemisphereLight(0xffffff, 0xcfc3ab, o.fill || .85));
+    if (o.shadows) {
+      key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.radius = 5; key.shadow.bias = -.0006;
+      const sc = key.shadow.camera, R = o.shadowSize || 20; sc.left = -R; sc.right = R; sc.top = R; sc.bottom = -R; sc.near = 1; sc.far = 120;
+      const ground = new T3.Mesh(new T3.PlaneGeometry(300, 300), new T3.ShadowMaterial({ opacity: o.shadowOpacity || .2 })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+    }
+    let W = 0, H = 0, onScreen = false, running = false, tick = null, fit = null;
+    const size = () => { const r = host.getBoundingClientRect(); if (!r.width || !r.height) return; W = r.width; H = r.height; renderer.setSize(W, H, false); if (camera.isPerspectiveCamera) camera.aspect = W / H; fit && fit(W, H); camera.updateProjectionMatrix(); kick(); };
+    const kick = () => {
+      if (running || !onScreen) return; running = true; let last = performance.now();
+      const step = now => {
+        if (!onScreen || document.hidden) { running = false; return; }
+        const dt = Math.min(.05, (now - last) / 1000); last = now;
+        tick && tick(still ? 0 : dt, now / 1000); renderer.render(scene, camera);
+        if (still) { running = false; return; }                // reduced motion: draw once, again only when touched
+        requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+    new ResizeObserver(size).observe(host);
+    new IntersectionObserver(es => { onScreen = es[0].isIntersecting; kick(); }).observe(host);
+    document.addEventListener("visibilitychange", kick);
+    return { T3, renderer, scene, camera, key, kick, frame: f => { tick = f; }, fit: f => { fit = f; size(); } };
+  }
+  /* drag to turn; let go and it eases back into a slow sway */
+  function orbit(cvs, host, st, o) {
+    const s = { yaw: o.yaw, pitch: o.pitch, vy: 0, idle: 9, drag: null };
+    cvs.addEventListener("pointerdown", e => { s.drag = [e.clientX, e.clientY]; cvs.setPointerCapture(e.pointerId); host.classList.add("grabbing"); const h = host.querySelector(".stage-hint"); if (h) h.style.opacity = 0; });
+    cvs.addEventListener("pointermove", e => { if (!s.drag) return; const dx = e.clientX - s.drag[0], dy = e.clientY - s.drag[1]; s.drag = [e.clientX, e.clientY]; s.vy = dx * .011; s.yaw += s.vy; s.pitch = clamp(s.pitch + dy * .006, o.pMin, o.pMax); s.idle = 0; st.kick(); });
+    const up = () => { s.drag = null; host.classList.remove("grabbing"); };
+    cvs.addEventListener("pointerup", up); cvs.addEventListener("pointercancel", up);
+    s.step = (dt, t) => {
+      s.idle += dt;
+      if (!s.drag) { s.yaw += s.vy; s.vy *= .93; if (s.idle > 2.2) { s.yaw += (o.yaw + Math.sin(t / (o.period || 3.4)) * (o.sway || .3) - s.yaw) * .014; s.pitch += (o.pitch - s.pitch) * .02; } }
+    };
+    return s;
+  }
+
+  /* a four-wheeled communal bin, about 1.4 m wide (1 unit = 10 cm) */
+  function makeBin(T3, o = {}) {
+    const g = new T3.Group(), W = 13.7, D = 10.2, Hb = 10.6, y0 = 1.9, k = .84, tx = W / 2, tz = D / 2, bx = tx * k, bz = tz * k, yt = y0 + Hb;
+    const body = new T3.MeshStandardMaterial({ color: 0x2f6b4f, roughness: .5, metalness: .08, side: T3.DoubleSide });
+    const dark = new T3.MeshStandardMaterial({ color: 0x1d2a25, roughness: .42, metalness: .2 });
+    const glass = new T3.MeshStandardMaterial({ color: 0xdff3e8, roughness: .06, transparent: true, opacity: .17, depthWrite: false, side: T3.DoubleSide });
+    const add = (m, shadow = true) => { m.castShadow = shadow; g.add(m); return m; };
+    const quad = (a, b, c, d, mat, shadow) => { const geo = new T3.BufferGeometry(); geo.setAttribute("position", new T3.Float32BufferAttribute([...a, ...b, ...c, ...a, ...c, ...d], 3)); geo.computeVertexNormals(); return add(new T3.Mesh(geo, mat), shadow); };
+    const B = [[-bx, y0, bz], [bx, y0, bz], [bx, y0, -bz], [-bx, y0, -bz]], T = [[-tx, yt, tz], [tx, yt, tz], [tx, yt, -tz], [-tx, yt, -tz]];
+    quad(B[0], B[1], T[1], T[0], o.cutaway ? glass : body, !o.cutaway);                                   // front (a window when cut away)
+    quad(B[1], B[2], T[2], T[1], body); quad(B[2], B[3], T[3], T[2], body); quad(B[3], B[0], T[0], T[3], body); quad(B[3], B[2], B[1], B[0], body);
+    for (const [w, d, x, z] of [[W + .9, .75, 0, tz], [W + .9, .75, 0, -tz], [.75, D + .1, tx, 0], [.75, D + .1, -tx, 0]]) { const m = add(new T3.Mesh(new T3.BoxGeometry(w, .75, d), body)); m.position.set(x, yt, z); }
+    for (const s of [-1, 1]) {                                                                             // window frame posts, lifting pins
+      const len = Math.hypot(Hb, tx - bx, tz - bz), post = add(new T3.Mesh(new T3.BoxGeometry(.5, len, .5), body));
+      post.position.set(s * (tx + bx) / 2, y0 + Hb / 2, (tz + bz) / 2); post.rotation.set(Math.atan2(tz - bz, Hb), 0, -s * Math.atan2(tx - bx, Hb));
+      const pin = add(new T3.Mesh(new T3.CylinderGeometry(.3, .3, 1.5, 14), dark)); pin.rotation.z = Math.PI / 2; pin.position.set(s * (tx + .75), yt - 2.3, 0);
+    }
+    const sill = add(new T3.Mesh(new T3.BoxGeometry(bx * 2 + .5, .5, .5), body)); sill.position.set(0, y0, bz);
+    for (const [x, z] of [[-bx + .7, bz - .9], [bx - .7, bz - .9], [-bx + .7, -bz + .9], [bx - .7, -bz + .9]]) {
+      const w = add(new T3.Mesh(new T3.CylinderGeometry(.95, .95, .6, 26), dark)); w.rotation.z = Math.PI / 2; w.position.set(x, .95, z);
+      const f = add(new T3.Mesh(new T3.BoxGeometry(.95, .8, 1.3), dark)); f.position.set(x, 1.6, z);
+    }
+    // the curved lid, hinged along the back edge
+    const c = D + 1.3, h = 2.1, R = (c * c / 4 + h * h) / (2 * h), a0 = Math.atan2(R - h, c / 2);
+    const sh = new T3.Shape(); sh.moveTo(c / 2, 0); sh.absarc(0, -(R - h), R, a0, Math.PI - a0, false); sh.lineTo(c / 2, 0);
+    const lg = new T3.ExtrudeGeometry(sh, { depth: W + 1.1, bevelEnabled: true, bevelSize: .14, bevelThickness: .14, bevelSegments: 2, curveSegments: 30 });
+    lg.translate(0, 0, -(W + 1.1) / 2); lg.rotateY(Math.PI / 2);
+    const lidMat = o.cutaway ? new T3.MeshStandardMaterial({ color: 0x1d2a25, roughness: .25, metalness: .1, transparent: true, opacity: .34, depthWrite: false }) : dark;
+    const lid = new T3.Mesh(lg, lidMat); lid.castShadow = !o.cutaway; lid.position.set(0, 0, c / 2);
+    const hinge = new T3.Group(); hinge.position.set(0, yt + .4, -c / 2); hinge.add(lid); g.add(hinge);
+    return { group: g, hinge, d: { W, D, Hb, y0, yt, k, tx, tz } };
+  }
+  /* rubbish bags: crumpled, a little squashed */
+  function bagKit(T3) {
+    const geos = [0, 1, 2].map(s => { const geo = new T3.IcosahedronGeometry(1, 2), p = geo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i), n = 1 + .17 * Math.sin(x * 3.1 + s * 2) * Math.cos(y * 2.7 + s) + .1 * Math.sin(z * 4.3 + s * 5); p.setXYZ(i, x * n, y * n * .78, z * n); } geo.computeVertexNormals(); return geo; });
+    const mats = [[0x22262a, .3], [0x22262a, .3], [0x3b4046, .38], [0xe9e5db, .5], [0x2d5fa8, .42]].map(([c, r]) => new T3.MeshStandardMaterial({ color: c, roughness: r, metalness: 0 }));
+    return () => { const m = new T3.Mesh(geos[(rnd() * 3) | 0], mats[(rnd() * mats.length) | 0]); m.rotation.set(rnd() * 6, rnd() * 6, rnd() * 6); m.castShadow = true; return m; };
+  }
+
+  /* How it works: a bin cut open. The sensor under the lid pings the rubbish; the slider fills the bin. */
+  let binFill = .65, setBinFill = null;
+  function buildBinScene(T3, host) {
+    const cvs = $("#bin3d"), st = studio(T3, cvs, host, { fov: 26, shadows: true });
+    const bin = makeBin(T3, { cutaway: true }), d = bin.d, pivot = new T3.Group(); pivot.add(bin.group); st.scene.add(pivot);
+    const bag = bagKit(T3), bags = [], layers = 7, innerH = d.Hb - .7, lh = innerH / layers;
+    for (let L = 0; L < layers; L++) {
+      const y = d.y0 + .35 + (L + .5) * lh, s = d.k + (1 - d.k) * (y - d.y0) / d.Hb, sx = (d.W - 2.3) * s / 4, sz = (d.D - 2.1) * s / 3;
+      for (let ix = 0; ix < 4; ix++) for (let iz = 0; iz < 3; iz++) {
+        const m = bag(); m.position.set((ix - 1.5) * sx + (rnd() - .5) * .7, y + (rnd() - .5) * .35, (iz - 1) * sz + (rnd() - .5) * .6);
+        m.userData = { s: 1.42 + rnd() * .4, need: (L + .4) / layers, cur: 0 }; m.scale.setScalar(.001); bin.group.add(m); bags.push(m);
+      }
+    }
+    // the sensor (drawn six times its real size so it can be seen) and its sound
+    const ys = d.yt - .55, sensor = new T3.Group(); sensor.position.set(0, ys, 0);
+    const pcb = new T3.Mesh(new T3.BoxGeometry(2.9, .14, 1.3), new T3.MeshStandardMaterial({ color: 0x1d4fa6, roughness: .5 })); pcb.position.y = .35; sensor.add(pcb);
+    const metal = new T3.MeshStandardMaterial({ color: 0xdfe3e7, metalness: 1, roughness: .28 });
+    for (const x of [-.82, .82]) { const can = new T3.Mesh(new T3.CylinderGeometry(.5, .5, .62, 28), metal); can.position.set(x, 0, 0); sensor.add(can); }
+    const led = new T3.Mesh(new T3.SphereGeometry(.11, 12, 12), new T3.MeshBasicMaterial({ color: 0x3fe0a0 })); led.position.set(1.25, .26, .45); sensor.add(led);
+    bin.group.add(sensor);
+    const beam = new T3.Mesh(new T3.ConeGeometry(1, 1, 44, 1, true), new T3.MeshBasicMaterial({ color: 0x16a070, transparent: true, opacity: .1, side: T3.DoubleSide, depthWrite: false })); bin.group.add(beam);
+    const rings = [0, 1, 2, 3].map(() => { const r = new T3.Mesh(new T3.TorusGeometry(1, .045, 8, 60), new T3.MeshBasicMaterial({ color: 0x16a070, transparent: true, opacity: 0, depthWrite: false })); r.rotation.x = Math.PI / 2; bin.group.add(r); return r; });
+    const hit = new T3.Mesh(new T3.RingGeometry(.82, 1, 56), new T3.MeshBasicMaterial({ color: 0xe0a02a, transparent: true, opacity: 0, side: T3.DoubleSide, depthWrite: false })); hit.rotation.x = -Math.PI / 2; bin.group.add(hit);
+    const out = new T3.Color(0x16a070), back = new T3.Color(0xe0a02a);
+    const orb = orbit(cvs, host, st, { yaw: -.5, pitch: 0, pMin: -.25, pMax: .35, sway: .32 });
+    st.fit((W, H) => { const a = W / H, z = a < 1.15 ? 46 * 1.15 / a : 46; st.camera.position.set(0, 17 + (z - 46) * .2, z); st.camera.lookAt(0, 7.4, 0); });
+    let fill = 0, ph = 0;
+    st.frame((dt, t) => {
+      orb.step(dt, t); pivot.rotation.y = orb.yaw; pivot.rotation.x = orb.pitch * .5;
+      fill += (binFill - fill) * (still ? 1 : Math.min(1, dt * 4));
+      for (const m of bags) { const u = m.userData, to = fill >= u.need ? 1 : 0; u.cur += (to - u.cur) * (still ? 1 : Math.min(1, dt * 7)); m.scale.setScalar(Math.max(.001, u.cur * u.s)); m.visible = u.cur > .01; }
+      const top = d.y0 + .35 + Math.min(fill, .985) * innerH + .5, dist = Math.max(.5, ys - .4 - top), r = Math.min(4.2, .5 + dist * .3);
+      beam.position.y = ys - .35 - dist / 2; beam.scale.set(r, dist, r);
+      ph = (ph + dt / (.9 + dist * .13)) % 1;                                        // an emptier bin: a longer wait for the echo
+      rings.forEach((m, k) => {
+        const p = (ph + k / 4) % 1, down = p < .5, u = down ? p * 2 : (1 - p) * 2, rr = .4 + u * (r - .4);
+        m.position.y = ys - .35 - u * dist; m.scale.set(rr, rr, 1); m.material.color.copy(down ? out : back); m.material.opacity = still ? (k % 2 ? 0 : .5) : Math.sin(Math.PI * (p * 2 % 1)) * .85;
+      });
+      const q = (ph % .25) / .25; hit.position.y = top + .08; hit.scale.setScalar(r * (.72 + q * .5)); hit.material.opacity = still ? .4 : (1 - q) * .6;
+    });
+    setBinFill = () => st.kick();
+  }
+
+  /* Problem: a bin that nobody came for */
+  function buildOverflow(T3, host) {
+    const cvs = host.querySelector("canvas"), st = studio(T3, cvs, host, { fov: 24, shadows: true, shadowOpacity: .16 });
+    const bin = makeBin(T3), d = bin.d, pivot = new T3.Group(); pivot.add(bin.group); st.scene.add(pivot);
+    const bag = bagKit(T3), heap = [];
+    for (let k = 0; k < 13; k++) {
+      const a = k / 13 * 6.28 + rnd(), rr = k < 5 ? 1.2 : 3.6 + rnd(), m = bag();
+      m.position.set(Math.cos(a) * rr * 1.15, d.yt - .2 + (k < 5 ? 2.3 + rnd() * .9 : rnd() * 1.3), Math.sin(a) * rr * .8); m.scale.setScalar(1.55 + rnd() * .45); m.userData.y = m.position.y; m.userData.p = rnd() * 6; bin.group.add(m); heap.push(m);
+    }
+    for (const [x, z, s] of [[d.tx + 2.6, 2.4, 1.7], [d.tx + 4.6, -.6, 1.5], [-d.tx - 2.4, 3.2, 1.6], [d.tx + 3.1, 4.6, 1.3]]) { const m = bag(); m.position.set(x, s * .72, z); m.scale.setScalar(s); pivot.add(m); }
+    bin.hinge.rotation.x = -.72;
+    const orbS = { yaw: -.55 };
+    st.fit((W, H) => { st.camera.position.set(0, 19, 62); st.camera.lookAt(0, 8.6, 0); st.camera.setViewOffset(W, H, W * .27, 0, W, H); });
+    st.frame((dt, t) => {
+      pivot.rotation.y = orbS.yaw + (still ? 0 : Math.sin(t / 3.1) * .22);
+      bin.hinge.rotation.x = -.72 + (still ? 0 : Math.sin(t * 1.9) * .035);
+      if (!still) for (const m of heap) m.position.y = m.userData.y + Math.sin(t * 1.6 + m.userData.p) * .07;
+    });
+  }
+
+  /* Problem: 96 bins, one for about every 110 on Edinburgh's streets */
+  function buildField(T3, host) {
+    const cvs = host.querySelector("canvas"), st = studio(T3, cvs, host, { ortho: true, shadows: true, shadowSize: 22, shadowOpacity: .18 });
+    const cols = 16, rows = 6, n = cols * rows, dx = 1.62, dz = 1.5;
+    const bodyG = new T3.BoxGeometry(1, 1.05, .8); bodyG.translate(0, .62, 0);
+    const lidG = new T3.BoxGeometry(1.12, .2, .92); lidG.translate(0, 1.25, 0);
+    const bodies = new T3.InstancedMesh(bodyG, new T3.MeshStandardMaterial({ color: 0xffffff, roughness: .5, metalness: .05 }), n);
+    const lids = new T3.InstancedMesh(lidG, new T3.MeshStandardMaterial({ color: 0x1d2a25, roughness: .4, metalness: .2 }), n);
+    bodies.castShadow = lids.castShadow = true; st.scene.add(bodies, lids);
+    const green = new T3.Color(0x2f6b4f), hot = new T3.Color(0xd9472b), col = new T3.Color(), M = new T3.Matrix4(), P = new T3.Vector3(), Q = new T3.Quaternion(), S = new T3.Vector3();
+    const info = [];
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) info.push({ x: (c - (cols - 1) / 2) * dx, z: (r - (rows - 1) / 2) * dz, delay: .15 + c * .045 + r * .09, hot: rnd() < .15, ph: rnd() * 6.28 });
+    const place = (k, s) => { const i = info[k]; P.set(i.x, 0, i.z); S.setScalar(Math.max(.001, s)); M.compose(P, Q, S); bodies.setMatrixAt(k, M); lids.setMatrixAt(k, M); };
+    info.forEach((i, k) => { place(k, still ? 1 : 0); bodies.setColorAt(k, i.hot && still ? hot : green); });
+    const yaw = -.52, pitch = .62, dir = new T3.Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
+    st.fit((W, H) => { const a = W / H, hh = Math.max(14.4 / a, 6.9), cam = st.camera; cam.left = -hh * a; cam.right = hh * a; cam.top = hh; cam.bottom = -hh; cam.position.copy(dir).multiplyScalar(60); cam.lookAt(0, .4, 0); });
+    const back = x => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+    let t0 = -1;
+    st.frame((dt, t) => {
+      if (still) return;
+      if (t0 < 0) t0 = t; const e = t - t0;
+      if (e < 3.2) { info.forEach((i, k) => place(k, back(clamp((e - i.delay) / .55, 0, 1)))); bodies.instanceMatrix.needsUpdate = lids.instanceMatrix.needsUpdate = true; }
+      info.forEach((i, k) => { if (!i.hot) return; const u = clamp((Math.sin(e * 1.1 + i.ph) - .2) * 2.2, 0, 1); col.copy(green).lerp(hot, e > 2.4 ? u : 0); bodies.setColorAt(k, col); });
+      bodies.instanceColor.needsUpdate = true;
+    });
+  }
 
   function buildSensor() {
-    const T3 = window.THREE, cvs = $("#sensor3d");
+    const T3 = window.THREE, cvs = $("#sensor3d"), stage = $("#stage");
     const renderer = new T3.WebGLRenderer({ canvas: cvs, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
     renderer.outputEncoding = T3.sRGBEncoding;
@@ -1333,6 +1533,13 @@ function initNav() {
       board.add(g);
     };
     can(-13); can(13);
+    // sound leaving the left can and coming back to the right one
+    const rings = [];
+    for (let k = 0; k < 3; k++) for (const [x, colr, dirn] of [[-13, 0x12906a, 1], [13, 0xd9982b, -1]]) {
+      const r = new T3.Mesh(new T3.RingGeometry(.93, 1, 64), new T3.MeshBasicMaterial({ color: colr, transparent: true, opacity: 0, depthWrite: false, side: T3.DoubleSide }));
+      r.position.set(x, 1, 14); board.add(r); rings.push([r, k, dirn]);
+    }
+    const pulse = now => rings.forEach(([m, k, dirn]) => { let u = (now / 2400 + k / 3) % 1; if (dirn < 0) u = 1 - u; m.position.z = 14 + u * 24; const sc = 7 + u * 8; m.scale.set(sc, sc, 1); m.material.opacity = still ? 0 : Math.sin(Math.PI * u) * .6; });
     // the crystal oscillator (HC-49/S): a rounded metal can lying between the transducers
     const xs = new T3.Shape(), L = 5.5, Rr = 2.3;
     xs.moveTo(-L + Rr, -Rr); xs.lineTo(L - Rr, -Rr); xs.absarc(L - Rr, 0, Rr, -Math.PI / 2, Math.PI / 2, false); xs.lineTo(-L + Rr, Rr); xs.absarc(-L + Rr, 0, Rr, Math.PI / 2, Math.PI * 1.5, false);
@@ -1390,10 +1597,10 @@ function initNav() {
         if (!drag) {
           yaw += vy; pitch = Math.max(-.9, Math.min(1.1, pitch + vp)); vy *= .94; vp *= .9;
           if (!still && idle > 2.5) { yaw += (-.55 + Math.sin(now / 2600) * .45 - yaw) * .012; pitch += (.32 - pitch) * .015; }
-          if (Math.abs(vy) > 1e-4 || Math.abs(vp) > 1e-4 || (!still && idle > 2.5)) dirty = true;
+          if (!still || Math.abs(vy) > 1e-4 || Math.abs(vp) > 1e-4) dirty = true;
         }
         if (dirty) {
-          pivot.rotation.set(pitch, yaw, 0); pivot.position.y = still ? 0 : Math.sin(now / 1800) * .6;
+          pulse(now); pivot.rotation.set(pitch, yaw, 0); pivot.position.y = still ? 0 : Math.sin(now / 1800) * .6;
           renderer.render(scene, camera);
           pivot.updateMatrixWorld();
           nrm.set(0, 0, 1).transformDirection(board.matrixWorld);
@@ -1419,36 +1626,26 @@ function initNav() {
     loop();
   }
 
-  }
 
-  /* ---------- how the sensor measures: time the echo, get the distance, get the fill ---------- */
-  {
-    const DEPTH = 1.2, LID = 66, FLOOR = 262, SOUND = 343;     // an example bin 1.2 m deep, drawn from y=66 (sensor) to y=262 (floor)
-    const fillIn = $("#eFill");
-    if (fillIn) {
+  lazy($("#stage"), buildSensor, () => { const f = $("#stageFallback"); if (f) f.hidden = false; });
+  lazy($("#binStage"), buildBinScene, () => { const f = $("#binFallback"); if (f) f.hidden = false; });
+  lazy($("#vOver3d"), buildOverflow);
+  lazy($("#vField3d"), buildField);
+
+  /* how the sensor measures: time the echo, get the distance, get the fill (an example bin 1.2 m deep) */
+  const fillIn = $("#eFill");
+  if (fillIn) {
+    const DEPTH = 1.2, SOUND = 343;
     const upd = () => {
-      const f = +fillIn.value / 100;
-      const dist = Math.max(.02, DEPTH * (1 - f));
-      const top = LID + (FLOOR - LID) * (dist / DEPTH);
+      const f = +fillIn.value / 100, dist = Math.max(.02, DEPTH * (1 - f));
       $("#oFill").textContent = Math.round(f * 100) + " %";
       $("#eTime").textContent = (2 * dist / SOUND * 1000).toFixed(1) + " ms";
       $("#eDist").textContent = dist.toFixed(2) + " m";
       $("#ePct").textContent = Math.round((1 - dist / DEPTH) * 100) + " %";
-      const w = $("#echoWaste"); w.setAttribute("y", top); w.setAttribute("height", FLOOR + 10 - top);
-      $("#echoTop").setAttribute("d", `M40 ${top + 2} q 20 -7 40 -2 t 40 -1 t 40 -3 t 40 2 V ${top + 6} H 40 z`);
-      $("#echoLine").setAttribute("y2", top - 2);
-      $("#echoArrA").setAttribute("d", `M206 72 l4 -6 l4 6 z`);
-      $("#echoArrB").setAttribute("d", `M206 ${top - 8} l4 6 l4 -6 z`);
-      const span = top - LID - 4, n = Math.max(1, Math.min(4, Math.floor(span / 26)));
-      $("#echoWaves").innerHTML = Array.from({ length: n }, (_, k) => {
-        const y = LID + 10 + (span - 12) * (k + .5) / n, half = 10 + (y - LID) * .27;
-        return `<path d="M${120 - half} ${y} Q 120 ${y + 9} ${120 + half} ${y}" style="animation-delay:${(k * .35).toFixed(2)}s"/>`;
-      }).join("");
+      binFill = f; setBinFill && setBinFill();
     };
     fillIn.addEventListener("input", upd); upd();
-    }
   }
-
 })();
 
 boot().catch(err => {
