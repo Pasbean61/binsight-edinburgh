@@ -1046,53 +1046,133 @@ function initResults() {
 }
 
 /* ── business ────────────────────────────────────── */
-const MODELS = {
-  A: ["Sensors and platform subscription", "Councils · core model", ["A one-off fee per sensor, covering hardware and installation on the council’s existing bins.", "An annual platform subscription per connected sensor: software, data, maintenance and battery replacement.", "Hardware as a service: no upfront fee, the sensor cost spread over a higher subscription, for councils with tight capital budgets.", "Route in: a funded pilot through CivTech, Zero Waste Scotland or Innovate UK, then a multi-year procurement contract."]],
-  B: ["Pay from savings (gain-share)", "Councils · lowest risk", ["We fit sensors and run the platform at no upfront cost.", "The council pays a fixed share, for example 25 %, of verified collection savings.", "Removes the risk for a cautious, budget-constrained buyer: they pay only if it works.", "Worked example: 100,000 properties → about £362,000 a year for us; the council keeps about £1.09m."]],
-  C: ["Licence for private contractors", "Waste companies", ["Contractors buy sensors for the bins they service.", "A monthly licence to run our forecasting and routing engine on their own fleets."]],
-  D: ["Sensor subscription for small businesses", "Shops, restaurants, landlords", ["A small monthly fee for a sensor on the business’s own trade-waste bin.", "The platform alerts their existing contractor only when the bin is nearly full: fewer, fuller collections."]],
-  E: ["Data and insight reports", "Councils, policymakers, packaging producers", ["Anonymised data on waste volumes, recycling and contamination.", "Sold as reports for service planning and policy."]],
-  F: ["Joint offer with the student marketplace", "Universities", ["During move-out, sensors show where and when waste peaks.", "Reusable items are diverted to the student marketplace (Idea 1) instead of the bin: one move-out solution for reuse and monitoring."]],
-  G: ["Community reporting rewards", "Residents and local businesses, with the council", ["Residents report full, overflowing or misused bins with a photo and location.", "Verified reports (by sensor data or the crew) earn points for vouchers at local cafés, restaurants and shops.", "The council funds part of the reward pool from savings on complaints; businesses pay a platform fee to sponsor vouchers.", "Misuse controls: only verified reports, a daily limit per user, and only the first report on a bin is rewarded."]],
-};
+const MODELS = [
+  ["A", "Sensors + subscription", "Councils", "Pay per sensor, then a yearly fee."],
+  ["B", "Pay from savings", "Councils · lowest risk", "No upfront cost. We take a share of the savings."],
+  ["C", "Contractor licence", "Waste companies", "Run our routing on their own trucks."],
+  ["D", "Alerts for shops", "Small businesses", "Empty their trade bin only when it’s full."],
+  ["E", "Data reports", "Councils, policymakers", "Anonymised waste and recycling data."],
+  ["F", "Student move-out", "Universities", "Spot the peaks; send reusables to the student marketplace."],
+  ["G", "Community rewards", "Residents, local shops", "Report a full bin, earn a café voucher."],
+];
 function initBusiness() {
-  // partners diagram
-  $("#partners").innerHTML = `<h3 style="font-size:20px">Who gets what, who pays</h3>
-  <svg viewBox="0 0 520 380" role="img" aria-label="BinSight at the centre with the council, the community and recycling facilities around it">
-    <g stroke="${PAL.line2}" stroke-width="1.5" fill="none"><path d="M260 190 L110 80"/><path d="M260 190 L410 80"/><path d="M260 190 L260 320"/></g>
-    <circle cx="260" cy="190" r="54" fill="${PAL.ink}"/><text x="260" y="186" text-anchor="middle" style="fill:${PAL.paper};font:700 17px var(--display)">BinSight</text><text x="260" y="205" text-anchor="middle" style="fill:${PAL.paper};font-size:11px;opacity:.8">sensors + platform</text>
-    ${[[110, 70, "City of Edinburgh Council", "Model A", "Gets: fewer overflows and complaints,", "lower costs, recycling progress", "Pays: per sensor + annual subscription"],
-       [410, 70, "Community", "Model G", "Gets: cleaner streets, vouchers;", "businesses get footfall", "Pays: businesses sponsor vouchers"],
-       [260, 320, "Recycling facilities", "e.g. Millerhill", "Gets: arrival forecasts, early", "contamination warnings", "Pays: annual data subscription"]].map(([x, y, a, b, c, d, e]) => `
-      <rect x="${x - 112}" y="${y - 42}" width="224" height="${y > 300 ? 92 : 100}" rx="12" fill="${PAL.surface}" stroke="${PAL.line}"/>
-      <text x="${x}" y="${y - 20}" text-anchor="middle" style="font-weight:650">${a}</text><text class="t2" x="${x}" y="${y - 4}" text-anchor="middle" style="fill:${PAL.accent}">${b}</text>
-      <text class="t2" x="${x}" y="${y + 14}" text-anchor="middle">${c}</text><text class="t2" x="${x}" y="${y + 29}" text-anchor="middle">${d}</text><text class="t2" x="${x}" y="${y + 46}" text-anchor="middle" style="fill:${PAL.ink}">${e}</text>`).join("")}
-  </svg>`;
-  const tabs = $("#modelTabs"), body = $("#modelBody");
-  tabs.innerHTML = Object.keys(MODELS).map(k => `<button type="button" data-m="${k}" aria-label="Model ${k}">${k}</button>`).join("");
-  const show = k => { const [t, who, pts] = MODELS[k]; body.innerHTML = `<h3>Model ${k}: ${t}</h3><div class="who">${who}</div><ul>${pts.map(p => `<li>${p}</li>`).join("")}</ul>`; $$("button", tabs).forEach(b => b.classList.toggle("on", b.dataset.m === k)); };
-  $$("button", tabs).forEach(b => b.onclick = () => show(b.dataset.m)); show("A");
-  BS.showModel = show;
-  // calculator
+  const NS = "http://www.w3.org/2000/svg";
+  // 1. who gets what, who pays: value flows out of BinSight, money flows back in
+  const NODES = [
+    ["City of Edinburgh Council", ["Gets lower costs,", "fewer overflows"], "Pays per sensor + a yearly fee"],
+    ["Community", ["Gets cleaner streets", "and café vouchers"], "Shops sponsor the vouchers"],
+    ["Recycling plant", ["Gets arrival forecasts", "and early warnings"], "Pays a data subscription"],
+  ];
+  const LAYOUTS = {
+    wide: { w: 680, h: 440, hub: [340, 222, 60], boxes: [[30, 24, 236, 104], [414, 24, 236, 104], [222, 326, 236, 104]], ends: [[266, 104], [414, 104], [340, 326]] },
+    narrow: { w: 340, h: 520, hub: [170, 218, 54], boxes: [[30, 14, 280, 98], [6, 380, 160, 128], [174, 380, 160, 128]], ends: [[170, 112], [86, 380], [254, 380]] },
+  };
+  const svgFor = (name, L) => {
+    const [hx, hy, hr] = L.hub, still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let out = `<svg class="p-${name}" viewBox="0 0 ${L.w} ${L.h}" role="img" aria-label="BinSight in the middle. The council, the community and the recycling plant each get something from it and pay for it.">`;
+    L.ends.forEach(([ex, ey], k) => {
+      const dx = ex - hx, dy = ey - hy, d = Math.hypot(dx, dy), sx = hx + dx / d * hr, sy = hy + dy / d * hr;
+      out += `<path id="pf-${name}-${k}" class="bz-link" d="M${sx.toFixed(1)} ${sy.toFixed(1)} L${ex} ${ey}"/><path id="pb-${name}-${k}" d="M${ex} ${ey} L${sx.toFixed(1)} ${sy.toFixed(1)}" fill="none" stroke="none"/>`;
+      if (!still) for (let j = 0; j < 3; j++) {
+        out += `<circle class="bz-val" r="4.2"><animateMotion dur="2.7s" begin="${(j * .9 + k * .3).toFixed(2)}s" repeatCount="indefinite"><mpath href="#pf-${name}-${k}"/></animateMotion></circle>`;
+        out += `<circle class="bz-pay" r="4.2"><animateMotion dur="2.7s" begin="${(j * .9 + k * .3 + .45).toFixed(2)}s" repeatCount="indefinite"><mpath href="#pb-${name}-${k}"/></animateMotion></circle>`;
+      }
+    });
+    out += `<circle class="bz-halo" cx="${hx}" cy="${hy}" r="${hr}"/><circle class="bz-hub" cx="${hx}" cy="${hy}" r="${hr}"/>
+      <text class="bz-hub-t" x="${hx}" y="${hy - 2}" text-anchor="middle">BinSight</text><text class="bz-hub-s" x="${hx}" y="${hy + 16}" text-anchor="middle">sensors + platform</text>`;
+    L.boxes.forEach(([x, y, w, h], k) => {
+      const [t, gets, pays] = NODES[k], cx = x + w / 2, narrowBox = w < 200;
+      const tl = narrowBox && t.length > 18 ? [t] : [t];
+      out += `<g class="bz-node" style="--d:${300 + k * 220}ms"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="14"/>
+        <text class="bz-n-t" x="${cx}" y="${y + 26}" text-anchor="middle">${tl[0]}</text>
+        ${gets.map((g, i) => `<text class="bz-n-g" x="${cx}" y="${y + 48 + i * 17}" text-anchor="middle">${g}</text>`).join("")}
+        ${(narrowBox ? pays.replace(/^(\S+ \S+) /, "$1\n") : pays).split("\n").map((pl, i, arr) => `<text class="bz-n-p" x="${cx}" y="${y + h - 14 - (arr.length - 1 - i) * 16}" text-anchor="middle">${pl}</text>`).join("")}</g>`;
+    });
+    return out + "</svg>";
+  };
+  $("#partnersSvg").innerHTML = svgFor("wide", LAYOUTS.wide) + svgFor("narrow", LAYOUTS.narrow);
+
+  // 2. seven revenue models as tiles
+  $("#modelTiles").innerHTML = MODELS.map(([k, t, who, line], i) => `<div class="bz-tile${k === "B" ? " star" : ""}" style="--d:${i * 90}ms"><span class="bz-l">${k}</span><div><b>${t}</b><span class="bz-who">${who}</span><p>${line}</p></div></div>`).join("");
+
+  // 3. Model B: a cost bar, the saved slice, and how that slice is split
+  const pct = v => (v * 100).toFixed(2) + "%";
   const calc = () => {
     const P = +$("#cProps").value || 0, C = +$("#cCost").value || 0, s = (+$("#cSave").value || 0) / 100, sh = (+$("#cShare").value || 0) / 100;
-    const saving = P * C * s;
-    $("#calcRes").innerHTML = `<div><b>£${fmt(saving * sh)}</b><span>BinSight revenue a year (£${fmt(C * s * sh, 2)} per property)</span></div><div><b>£${fmt(saving * (1 - sh))}</b><span>the council keeps (of £${fmt(saving)} saved)</span></div>`;
+    const cost = P * C, saving = cost * s;
+    $("#oProps").textContent = fmt(P); $("#oCost").textContent = "£" + fmt(C, 2); $("#oSave").textContent = fmt(s * 100) + " %"; $("#oShare").textContent = fmt(sh * 100) + " %";
+    const split = $("#split");
+    split.style.setProperty("--save", pct(s)); split.style.setProperty("--share", pct(sh));
+    $("#vCost").textContent = money(cost); $("#vSaved").textContent = money(saving);
+    $("#calcRes").innerHTML = `<div class="ours"><b>${money(saving * sh)}</b><span>a year to BinSight<br>£${fmt(C * s * sh, 2)} per property</span></div><div class="keep"><b>${money(saving * (1 - sh))}</b><span>a year the council keeps</span></div>`;
   };
+  const money = v => v >= 1e6 ? "£" + (v >= 1e7 ? (Math.round(v / 1e5) / 10).toFixed(1) : (Math.round(v / 1e4 + 1e-6) / 100).toFixed(2)) + "m" : "£" + fmt(Math.round(v / 1000)) + "k";
   ["cProps", "cCost", "cSave", "cShare"].forEach(id => $("#" + id).addEventListener("input", calc)); calc();
   BS.gainShare = (P = 100000, C = 72.35, s = 20, sh = 25) => { const saving = P * C * s / 100; return { saving, binsight: saving * sh / 100, council: saving * (1 - sh / 100), perProperty: C * s / 100 * sh / 100 }; };
-  // risks
-  const risks = [["Slow public-sector procurement", "Earn early revenue from universities, businesses and contractors; start with a grant-funded campus pilot."],
-    ["Bins come in many shapes and sizes", "A universal mounting kit, so the sensor fits existing bins."],
-    ["Sensors damaged or vandalised", "Robust, low-cost sensors inside the lid, fitted first where fill varies most."],
-    ["Council already uses route-planning software", "Connect through an API rather than compete."],
-    ["Data protection (UK GDPR)", "Sensors collect bin-level data only; the resident app collects minimal personal data, with consent."],
-    ["Savings not proven locally", "Gain-share: the council pays only when savings are achieved."],
-    ["Fake or duplicate reports", "Only verified reports earn points, with daily limits per user."],
-    ["Too few businesses sponsor vouchers", "Start with a few partners near the pilot area; the council co-funds rewards at first."],
-    ["Recycling facilities unwilling to pay at first", "Free data during the pilot to prove its value."],
-    ["Shift time (from our own model)", "Add a working-time constraint to the solver and size the fleet with the model."]];
-  $("#risks").innerHTML = risks.map(([a, b]) => `<div class="risk"><b>${a}</b><span>${b}</span></div>`).join("");
+
+  // 4. who buys it
+  const IC = {
+    council: '<path d="M4 20h16M6 20v-8M10 20v-8M14 20v-8M18 20v-8M3 11h18L12 4 3 11z"/>',
+    truck: '<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>',
+    uni: '<path d="M2 9l10-5 10 5-10 5-10-5z"/><path d="M6 11v5c3 2 9 2 12 0v-5M22 9v6"/>',
+    shop: '<path d="M4 10v10h16V10M3 6h18l-1 4H4L3 6zM9 20v-5h6v5"/>',
+    tent: '<path d="M12 4L3 20h18L12 4zM12 4v16M9 20l3-6 3 6"/>',
+  };
+  const BUY = [["council", "Local councils", "Main customer", "Overflowing bins, rising costs, the 2028 landfill ban"],
+    ["truck", "Private contractors", "", "Fuel and hours lost on fixed rounds"],
+    ["uni", "Universities", "", "Waste peaks at move-in and move-out"],
+    ["shop", "Businesses, landlords", "", "Paying to empty half-empty bins"],
+    ["tent", "Event organisers", "", "Short, sharp peaks, like the August festivals"]];
+  $("#buyerTiles").innerHTML = BUY.map(([ic, t, tag, line], i) => `<div class="bz-buyer${tag ? " main" : ""}" style="--d:${i * 110}ms"><svg viewBox="0 0 24 24" aria-hidden="true">${IC[ic]}</svg><b>${t}</b>${tag ? `<span class="bz-tag">${tag}</span>` : ""}<p>${line}</p></div>`).join("");
+
+  // 5. go-to-market: a line draws itself through three stages
+  const STAGES = [["0–6 months", "Campus pilot", "50–100 bins at one university", 1], ["6–18 months", "Council pilot", "One Edinburgh area, grant-funded", 1], ["18 months +", "Scale", "32 Scottish councils, then the UK", 32]];
+  $("#road").innerHTML = `<div class="bz-line"><i></i></div>` + STAGES.map(([when, t, line, n], i) => `<div class="bz-stage" style="--d:${400 + i * 650}ms"><span class="bz-dot"></span><span class="bz-when">${when}</span><b>${t}</b><p>${line}</p><div class="bz-pips" aria-hidden="true">${Array.from({ length: n }, (_, j) => `<i style="--e:${j * 28}ms"></i>`).join("")}</div></div>`).join("");
+
+  // 6. evidence: each number gets a small moving picture
+  const EV = [
+    ["44", " %", "lower collection cost when routes follow real fill levels", "Hannan et al. (2020), Sustainable Cities and Society 62", "bars", 44],
+    ["53", " %", "fewer bin visits in Derby’s 200-bin sensor trial", 'Derby City Council via <a href="https://www.government-transformation.com/connected-places/derby-city-council-rolls-out-litter-bin-sensors" target="_blank" rel="noopener">Government Transformation</a> (2023)', "ticks", 53],
+    ["11000", "", "sensors already in Edinburgh’s bins (a £6.4m programme). The data exists; routes don’t use it yet.", '<a href="https://www.edinburgh.gov.uk/bins-recycling/smart-bin-sensors/1" target="_blank" rel="noopener">City of Edinburgh Council</a>', "grid", 0],
+    ["2700", "", "of about 3,400 communal glass bins had sensors by late 2024", '<a href="https://theedinburghreporter.co.uk/2024/12/glass-recycling-bins-to-be-fitted-with-sensors/" target="_blank" rel="noopener">Edinburgh Reporter</a> (2024)', "ring", 2700 / 3400],
+  ];
+  const viz = (kind, v) => {
+    if (kind === "bars") return `<svg viewBox="0 0 200 64" aria-hidden="true"><text x="0" y="15" class="bz-vl">fixed rounds</text><rect class="bz-b0" x="0" y="20" width="200" height="12" rx="6"/><text x="0" y="49" class="bz-vl">fill-level routing</text><rect class="bz-b1 bz-grow" x="0" y="54" width="${200 * (1 - v / 100)}" height="10" rx="5"/></svg>`;
+    if (kind === "ticks") return `<svg viewBox="0 0 200 64" aria-hidden="true">${Array.from({ length: 15 }, (_, j) => `<rect class="bz-tk${[1, 3, 4, 6, 8, 10, 12, 13].includes(j) ? " gone" : ""}" style="--e:${j * 60}ms" x="${j * 13.4}" y="14" width="9" height="36" rx="3"/>`).join("")}</svg>`;
+    if (kind === "grid") return `<svg viewBox="0 0 200 64" aria-hidden="true">${Array.from({ length: 110 }, (_, j) => `<circle class="bz-gd" style="--e:${(j * 37 % 110) * 9}ms" cx="${5 + (j % 22) * 9.1}" cy="${8 + ((j / 22) | 0) * 12}" r="2.6"/>`).join("")}</svg>`;
+    const C = 2 * Math.PI * 26;
+    return `<svg viewBox="0 0 200 64" aria-hidden="true"><circle cx="34" cy="32" r="26" class="bz-r0"/><circle cx="34" cy="32" r="26" class="bz-r1" style="--c:${C.toFixed(1)};--o:${(C * (1 - v)).toFixed(1)}" transform="rotate(-90 34 32)"/><text x="34" y="37" text-anchor="middle" class="bz-rt">${Math.round(v * 100)}%</text><text x="74" y="29" class="bz-vl">glass bins</text><text x="74" y="45" class="bz-vl">with a sensor</text></svg>`;
+  };
+  $("#evTiles").innerHTML = EV.map(([n, suf, line, src, kind, v]) => `<div class="bz-evt"><div class="bz-viz">${viz(kind, v)}</div><b data-count="${n}" data-suf="${suf}">${(+n).toLocaleString("en-GB")}${suf}</b><p>${line}</p><span class="src">${src}</span></div>`).join("");
+
+  // 7. risks turn from red to green
+  const RISKS = [["Councils buy slowly", "Start with universities, businesses and a grant-funded campus pilot"],
+    ["Bins come in many shapes", "One universal mounting kit"],
+    ["Sensors get damaged", "Cheap, tough sensors inside the lid"],
+    ["The council already has routing software", "Plug in through an API, don’t compete"],
+    ["Data protection (UK GDPR)", "Bin data only; the app asks for minimal personal data, with consent"],
+    ["Savings not yet proven here", "Gain-share: the council pays only when it saves"],
+    ["Fake or duplicate reports", "Only verified reports earn points, with a daily limit"],
+    ["Too few voucher sponsors", "Start with a few shops near the pilot; the council co-funds at first"],
+    ["Recycling plants won’t pay yet", "Free data during the pilot"],
+    ["Drivers’ shift time (from our model)", "Add a working-time limit to the solver"]];
+  $("#risks").innerHTML = RISKS.map(([r, f], i) => `<div class="bz-risk" style="--d:${i * 120}ms"><span class="bz-st" aria-hidden="true"></span><span class="bz-r">${r}</span><span class="bz-ar" aria-hidden="true">→</span><span class="bz-f">${f}</span></div>`).join("");
+
+  // play each card once it comes on screen
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const count = b => {
+    const end = +b.dataset.count, suf = b.dataset.suf || "", show = v => b.textContent = Math.round(v).toLocaleString("en-GB") + suf;
+    if (still) return show(end);
+    const t0 = performance.now(), step = now => { const u = Math.min(1, (now - t0) / 1600); show(end * (1 - Math.pow(1 - u, 3))); if (u < 1) requestAnimationFrame(step); };
+    show(0); requestAnimationFrame(step);
+  };
+  const cards = $$("#business .bz");
+  document.documentElement.classList.add("bz-ready");
+  const play = c => { c.classList.add("play"); $$("b[data-count]", c).forEach(count); };
+  if (still || !("IntersectionObserver" in window)) return cards.forEach(play);
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); play(e.target); } }), { threshold: .25 });
+  cards.forEach(c => io.observe(c));
+  BS.playBusiness = () => cards.forEach(play);
 }
 
 /* ── sources ─────────────────────────────────────── */

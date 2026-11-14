@@ -400,58 +400,54 @@
   <div class="chapter-head">
     <div><span class="eyebrow">Who pays for it</span><h2>Three partners, one service</h2></div>
   </div>
-  <div class="card partners" id="partners"></div>
-  <div class="biz-grid" style="margin-top:14px">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="font-size:20px">Revenue models</h3><div class="model-tabs" id="modelTabs"></div></div>
-      <div class="model-body" id="modelBody"></div>
+
+  <div class="card bz bz-flow" id="partners">
+    <div class="bz-top"><h3>Who gets what, who pays</h3><p class="bz-key"><span class="k-val"></span>what they get <span class="k-pay"></span>what they pay</p></div>
+    <div class="bz-svg" id="partnersSvg"></div>
+  </div>
+
+  <div class="bz-two">
+    <div class="card bz bz-models" id="models">
+      <h3>Seven ways to earn</h3>
+      <div class="bz-tiles" id="modelTiles"></div>
     </div>
-    <div class="card calc">
-      <h3 style="font-size:20px">Model B: pay from savings</h3>
-      <p class="muted small" style="margin-top:6px">We fit sensors at no upfront cost. The council pays a share of verified savings. Defaults are from our plan.</p>
-      <div style="margin-top:16px">
-        <div class="row"><label for="cProps">Properties covered</label><input id="cProps" type="number" min="0" step="1000" value="100000"></div>
-        <div class="row"><label for="cCost">Collection cost per property per year (£)</label><input id="cCost" type="number" min="0" step="0.01" value="72.35"></div>
-        <div class="row"><label for="cSave">Saving achieved (%)</label><input id="cSave" type="number" min="0" max="100" step="1" value="20"></div>
-        <div class="row"><label for="cShare">BinSight share of savings (%)</label><input id="cShare" type="number" min="0" max="100" step="1" value="25"></div>
+    <div class="card bz bz-split" id="split">
+      <h3>Model B: pay from savings</h3>
+      <p class="bz-lead">We fit the sensors for free. The council pays us a share of what it saves.</p>
+      <div class="bz-bars">
+        <div class="bz-bar"><span class="bz-cap">Collection cost a year</span><div class="bz-track"><i class="bz-cost"></i><i class="bz-saved"></i></div><b id="vCost">–</b></div>
+        <div class="bz-bar"><span class="bz-cap">Saved, split two ways</span><div class="bz-track bz-track2"><i class="bz-keep"></i><i class="bz-ours"></i></div><b id="vSaved">–</b></div>
       </div>
-      <div class="res" id="calcRes"></div>
-      <p class="note">£72.35 is Scotland’s average household collection cost per property in 2020/21 (Local Government Benchmarking Framework). 20 % is conservative: Hannan et al. (2020) model 44 %.</p>
+      <div class="bz-res" id="calcRes"></div>
+      <div class="bz-sliders">
+        <label><span>Properties</span><input id="cProps" type="range" min="10000" max="250000" step="5000" value="100000"><output id="oProps"></output></label>
+        <label><span>Cost per property</span><input id="cCost" type="range" min="40" max="110" step="0.05" value="72.35"><output id="oCost"></output></label>
+        <label><span>Saving</span><input id="cSave" type="range" min="5" max="50" step="1" value="20"><output id="oSave"></output></label>
+        <label><span>Our share</span><input id="cShare" type="range" min="5" max="50" step="1" value="25"><output id="oShare"></output></label>
+      </div>
+      <p class="note">£72.35: Scotland’s average collection cost per property, 2020/21 (LGBF). 20 % is cautious: Hannan et al. (2020) model 44 %.</p>
     </div>
   </div>
-  <div class="card" style="margin-top:14px">
-      <h3 style="font-size:20px">Who buys it</h3>
-      <div class="tablewrap" style="margin-top:14px"><table>
-        <thead><tr><th>Customer</th><th>Their problem</th><th>What they buy</th></tr></thead>
-        <tbody style="cursor:default">
-          <tr><td><b>Local councils</b><br><span class="muted small">primary customer</span></td><td style="white-space:normal">Rising costs, overflowing communal bins, complaints, recycling targets, the 2028 landfill ban</td><td style="white-space:normal">Sensors for communal bins and a platform subscription, or gain-share (Model B)</td></tr>
-          <tr><td><b>Private contractors</b></td><td style="white-space:normal">Fuel and labour wasted on fixed rounds</td><td style="white-space:normal">Sensors for the bins they service and a platform licence</td></tr>
-          <tr><td><b>Universities, student housing</b></td><td style="white-space:normal">Waste peaks at move-in and move-out; campus cleanliness</td><td style="white-space:normal">Sensors and platform access, annually or seasonally</td></tr>
-          <tr><td><b>Businesses, landlords</b></td><td style="white-space:normal">Paying for collections of half-empty trade bins</td><td style="white-space:normal">A sensor subscription that alerts their contractor only when the bin is nearly full</td></tr>
-          <tr><td><b>Event organisers</b></td><td style="white-space:normal">Short, intense peaks, such as the August festivals</td><td style="white-space:normal">Short-term sensor rental and platform access</td></tr>
-        </tbody></table></div>
+
+  <div class="card bz" id="buyers">
+    <h3>Who buys it</h3>
+    <div class="bz-buyers" id="buyerTiles"></div>
   </div>
-  <div class="card" style="margin-top:14px">
-    <h3 style="font-size:20px;margin-bottom:22px">Go-to-market</h3>
-    <div class="roadmap">
-      <div class="phase"><span class="when">0–6 months</span><h4>Campus pilot</h4><p>Sensors on 50–100 existing bins at a university or student residence. Prove the savings and build a data set.</p></div>
-      <div class="phase"><span class="when">6–18 months</span><h4>Council pilot</h4><p>Communal bins in one Edinburgh area, funded through CivTech, Zero Waste Scotland or Innovate UK. Launch the resident app there.</p></div>
-      <div class="phase"><span class="when">18 months +</span><h4>Scale</h4><p>Other Scottish councils (32 in total) and private contractors, then the rest of the UK.</p></div>
-    </div>
+
+  <div class="card bz" id="gtm">
+    <h3>Go-to-market</h3>
+    <div class="bz-road" id="road"></div>
   </div>
-  <div class="card" style="margin-top:14px">
-    <h3 style="font-size:20px">Evidence that smarter collection works</h3>
-    <div class="evidence" style="margin-top:16px">
-      <div class="stat"><b>44 %</b><p>lower collection cost, 18 % lower emissions and 26 % higher efficiency with real-time-fill routing at a 70 % threshold.</p><span class="src">Hannan et al. (2020), Sustainable Cities and Society 62</span></div>
-      <div class="stat"><b>53 %</b><p>fewer bin visits in Derby’s 200-bin sensor trial, with fewer overflow complaints.</p><span class="src">Derby City Council via <a href="https://www.government-transformation.com/connected-places/derby-city-council-rolls-out-litter-bin-sensors" target="_blank" rel="noopener">Government Transformation</a> (2023)</span></div>
-      <div class="stat"><b>11,000</b><p>sensors already installed in Edinburgh’s communal and litter bins (£6.4m programme). The data exists; turning it into routes is the gap.</p><span class="src"><a href="https://www.edinburgh.gov.uk/bins-recycling/smart-bin-sensors/1" target="_blank" rel="noopener">City of Edinburgh Council</a></span></div>
-      <div class="stat"><b>2,700</b><p>of about 3,400 communal glass bins carried sensors by late 2024, ahead of a move to fully dynamic collection.</p><span class="src"><a href="https://theedinburghreporter.co.uk/2024/12/glass-recycling-bins-to-be-fitted-with-sensors/" target="_blank" rel="noopener">Edinburgh Reporter</a> (2024)</span></div>
-    </div>
-    <p class="note">Manchester’s 2017 sensor trial worked technically but was not financially viable without route optimisation (European Cleaning Journal). That is the step BinSight provides.</p>
+
+  <div class="card bz" id="evidence">
+    <h3>Evidence that smarter collection works</h3>
+    <div class="bz-ev" id="evTiles"></div>
+    <p class="note">Manchester’s 2017 sensor trial worked, but did not pay without route optimisation (European Cleaning Journal). That step is BinSight.</p>
   </div>
-  <div class="card" style="margin-top:14px">
-    <h3 style="font-size:20px">Risks and how we handle them</h3>
-    <div class="risks" style="margin-top:8px" id="risks"></div>
+
+  <div class="card bz" id="riskCard">
+    <h3>Risks, and the fix for each</h3>
+    <div class="bz-risks" id="risks"></div>
   </div>
 </section>
 </div>
