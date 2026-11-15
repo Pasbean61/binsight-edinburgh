@@ -327,7 +327,8 @@
         <p class="m-idea">Each truck leaves Seafield, empties its bins and drives back to tip when it is full, all within one shift. We choose the routes with the lowest total cost.</p>
         <div class="eq hl m-model">
           <div class="eq-tag">Objective · lowest total cost</div>
-          \[ \min \;\; \underbrace{\textstyle\sum_{k,r}\sum_{i,j} c_{ij}\, x_{ijkr}}_{\text{driving cost}} \;+\; \underbrace{\textstyle\sum_i \pi_i \bigl(1 - \sum_{k,r} z_{ikr}\bigr)}_{\text{bins left out}} \]
+          <div class="obj-one">\[ \min \;\; \underbrace{\textstyle\sum_{k,r}\sum_{i,j} c_{ij}\, x_{ijkr}}_{\text{driving cost}} \;+\; \underbrace{\textstyle\sum_i \pi_i \bigl(1 - \sum_{k,r} z_{ikr}\bigr)}_{\text{bins left out}} \]</div>
+          <div class="obj-two">\[ \begin{aligned} \min \;\; & \underbrace{\textstyle\sum_{k,r}\sum_{i,j} c_{ij}\, x_{ijkr}}_{\text{driving cost}} \\ +\;\; & \underbrace{\textstyle\sum_i \pi_i \bigl(1 - \sum_{k,r} z_{ikr}\bigr)}_{\text{bins left out}} \end{aligned} \]</div>
         </div>
         <div class="eq m-model m-cons">
           <div class="eq-tag">Constraints</div>
