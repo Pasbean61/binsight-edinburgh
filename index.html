@@ -504,8 +504,17 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 .eq.hl .katex { font-size: 1.25em; }
 .eq.hl { padding: 14px 12px; }
 .eq.hl .katex-display { margin: 10px 0; }
-/* maths steps 1, 2, 3, 5: no secondary captions (the route tab keeps its own) */
-.m-pane:not([data-m="3"]) .note, .m-pane:not([data-m="3"]) .muted.small, .m-pane:not([data-m="3"]) .slider small, .m-pane:not([data-m="3"]) #decCounts > div[style] { display: none; }
+/* maths steps: no secondary captions, the same in all five tabs */
+.m-pane .note, .m-pane .muted.small, .m-pane .slider small, .m-pane #decCounts > div[style] { display: none; }
+/* step 4: objective and constraints, labelled separately */
+.m-model .eq-tag { font: 600 12px/1 var(--body); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); text-align: left; margin: 4px 4px 0; }
+.m-model .eq-tag + .katex-display, .m-model .eq-tag + .eq-rows { margin-top: 8px; }
+.m-model .eq-rows { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; align-items: baseline; text-align: left; margin: 8px 4px 2px; }
+.m-model .eq-rows > span:nth-child(odd) { white-space: nowrap; }
+.m-model .eq-rows > span:nth-child(even) { font: 400 14px/1.35 var(--body); color: var(--ink-2); }
+.m-model .eq-rows .katex { font-size: 1.02em; }
+.m-model .katex-display { overflow-x: auto; overflow-y: hidden; }
+@media (max-width: 560px) { .m-model .katex-display > .katex { font-size: .92em; } .m-model .eq-rows { grid-template-columns: 1fr; gap: 2px; } .m-model .eq-rows > span:nth-child(even) { margin-bottom: 8px; } }
 div.card.step { cursor: default; }
 .how-more { margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap; }
 /* results: three headline numbers, then the three methods side by side */
@@ -1267,7 +1276,7 @@ header.top.over { background: transparent; }
     <button type="button" role="tab" data-m="0" class="on"><span class="k">1</span>Simulate<small>how bins fill</small></button>
     <button type="button" role="tab" data-m="1"><span class="k">2</span>Predict<small>tomorrow’s fill</small></button>
     <button type="button" role="tab" data-m="2"><span class="k">3</span>Decide<small>which stops</small></button>
-    <button type="button" role="tab" data-m="3"><span class="k">4</span>Optimise<small>the cheapest routes</small></button>
+    <button type="button" role="tab" data-m="3"><span class="k">4</span>Optimise<small>the lowest-cost plan</small></button>
     <button type="button" role="tab" data-m="4"><span class="k">5</span>Check<small>against the timetable</small></button>
   </div>
 
@@ -1347,16 +1356,26 @@ header.top.over { background: transparent; }
   <div class="card m-pane" data-m="3" hidden>
     <div class="m-grid">
       <div class="m-text">
-        <h3>What is the cheapest way to empty them?</h3>
-        <p class="m-idea">Each truck leaves Seafield, empties its stops and drives back to tip when it is full, all within one shift. Simulated annealing searches for the plan that costs least, one small change at a time.</p>
-        <div class="eq hl">\[ \min \;\; \underbrace{\textstyle\sum c_{ij}\, x_{ijkr}}_{\text{driving cost}} \;+\; \underbrace{\textstyle\sum_i \pi_i \bigl(1 - \sum_{kr} z_{ikr}\bigr)}_{\text{stops left out}} \]
-        \[ \underbrace{\textstyle\sum_i q_i\, z_{ikr} \le Q}_{\text{one load per trip}} \qquad \underbrace{\text{drive} + \text{lift} + \text{tip} \le @shift@\ \text{min}}_{\text{one shift per truck}} \]</div>
+        <h3>What is the lowest-cost way to empty them?</h3>
+        <p class="m-idea">Each truck leaves Seafield, empties its bins and drives back to tip when it is full, all within one shift. We choose the routes with the lowest total cost.</p>
+        <div class="eq hl m-model">
+          <div class="eq-tag">Objective · lowest total cost</div>
+          \[ \min \;\; \underbrace{\textstyle\sum_{k,r}\sum_{i,j} c_{ij}\, x_{ijkr}}_{\text{driving cost}} \;+\; \underbrace{\textstyle\sum_i \pi_i \bigl(1 - \sum_{k,r} z_{ikr}\bigr)}_{\text{bins left out}} \]
+          <div class="eq-tag">Constraints</div>
+          <div class="eq-rows">
+            <span>\(\sum_{k,r} z_{ikr} \le 1\)</span><span>each bin is emptied at most once</span>
+            <span>\(\sum_j x_{ijkr} = \sum_j x_{jikr} = z_{ikr}\)</span><span>a truck that reaches a bin also leaves it</span>
+            <span>\(\sum_j x_{0jkr} = u_{kr}\)</span><span>every trip starts at Seafield</span>
+            <span>\(\sum_i q_i\, z_{ikr} \le Q\, u_{kr}\)</span><span>at most one truckload (@loadM3@ m³) per trip</span>
+            <span>\(\sum_r \bigl(\text{drive} + \text{lift} + \text{tip}\bigr) \le @shift@\ \text{min}\)</span><span>each truck works one shift</span>
+            <span>\(x, z, u \in \{0, 1\}\)</span><span>yes-or-no choices, no loops cut off from Seafield</span>
+          </div>
+        </div>
         <ul class="m-list">
-          <li><b>Cost of driving.</b> £@costKm@ per km plus £@costHour@ per truck-hour. Rain slows every drive.</li>
-          <li><b>Cost of skipping.</b> Leaving a bin out costs its share of a £@costOverflow@ overflow, \(\pi_i = @costOverflow@ \times \hat y_i / 100\), so the emptiest bins wait first.</li>
-          <li><b>Simulated annealing.</b> Try small changes: move a stop, swap two, reverse a stretch. Keep every improvement, and early on sometimes a worse plan, so the search does not get stuck.</li>
+          <li><b>Decisions.</b> \(x_{ijkr} = 1\): truck \(k\) drives from bin \(i\) to bin \(j\) on trip \(r\). \(z_{ikr} = 1\): it empties bin \(i\). \(u_{kr} = 1\): it makes trip \(r\).</li>
+          <li><b>Costs.</b> Driving \(c_{ij}\) = £@costKm@ per km + £@costHour@ per truck-hour, slower in rain. Leaving a bin out costs \(\pi_i = @costOverflow@ \times \hat y_i / 100\), its share of a £@costOverflow@ overflow, so the emptiest bins wait first.</li>
+          <li><b>Solved by simulated annealing.</b> There are far too many routes to try them all, so we improve one plan by small changes, as the demo on the right shows.</li>
         </ul>
-        <p class="note">The full model, every constraint and the algorithm’s settings are in <span class="mono">model/README.md</span>.</p>
         <p class="note" id="routeNote"></p>
       </div>
       <div class="m-widget">
