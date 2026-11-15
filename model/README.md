@@ -90,7 +90,9 @@ Serving stop i costs the drive to reach it; skipping it costs πᵢ. A stop is t
    where c̄ is the mean arc cost of the starting plan, and t_max = 30 s for tomorrow's plan, 15 s a day in the experiment.
 4. **Return** the best plan seen.
 
-**Tomorrow, before and after annealing.** The start plan needs 81 trips, 15 of them less than half full (trucks 82 % full on average): 1,677 km and £7,862. Annealing empties the same 2,127 stops in 70 trips, 94 % full on average: 1,289 km and £6,103 (−22 %). Of the 388 km saved, 282 km are drives to and from Seafield: fuller trips mean fewer of them. `scripts/export_first_plan.py` rebuilds the start plan and writes it to `data/first_plan.json` for the before-and-after route maps on the website (maths, step 4).
+**Tomorrow, before and after annealing.** The start plan needs 81 trips, 15 of them less than half full (trucks 82 % full on average): 1,677 km and £7,862. Annealing empties the same 2,127 stops in 70 trips, 94 % full on average: 1,289 km and £6,103 (−22 %). Of the 388 km saved, 282 km are drives to and from Seafield: fuller trips mean fewer of them. `scripts/export_first_plan.py` rebuilds the start plan and writes it to `data/first_plan.json`.
+
+**Worked example on the website (maths, step 4).** The same two steps, run from scratch with two trucks on tomorrow's 65 bins in one window of Sighthill/Gorgie, 12 km from Seafield: the start plan needs 3 trips and 91 km (£419), the third trip only 3 % full; annealing needs 2 trips and 61 km (£280, −33 %). `scripts/export_first_plan.py` writes it to `data/route_example.json`.
 
 **Fleet.** Each timetable round g is routed with the trucks its start needs, then with one fewer at a time until a stop is left out; K(g) is the last count that still empties every stop. The fleet for all three policies is K = max K(g) over the rounds, i.e. what the busiest round needs.
 
