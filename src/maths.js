@@ -131,69 +131,145 @@ function mathsDecide(M) {
   $("#decNote").textContent = `Tomorrow: ${fmt(dm.risky)} stops are projected at ${fmt(dm.floor)} % or more. Fullest first, ${fmt(dm.chosen)} fit the time of ${fmt(fleet0)} trucks; after routing, ${fmt(dm.served)} are emptied.`;
 }
 
-/* 4 · one area, before and after optimising: tomorrow's bins in one window of the city, planned by the quick rule and by simulated annealing */
+/* 4 · one area, before and after optimising: tomorrow's bins in one window of the city on Edinburgh's street map, planned by the quick rule and by simulated annealing */
 function mathsRoute(M) {
-  const R = D.R, dep = [R.depot.latitude, R.depot.longitude], kx = Math.cos(dep[0] * Math.PI / 180);
-  const svg = $("#mRoute"), slider = $("#mEx"), still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const COLS = ["#4f9fe0", "#e6a23c", "#9b7be0"];
+  const host = $("#mRoute"), slider = $("#mEx"), still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const COLS = ["#1a73e8", "#f29900", "#9334e6"], RED = "#d93025", step = 1100;   // a colour per trip, red when less than half full
+  const dep = [D.site.depot.latitude, D.site.depot.longitude];
+  if (!window.L) { host.textContent = "The map library did not load. Check your connection."; return; }
   Promise.all([getJSON("data/route_example.json"), getJSON("data/first_plan.json")]).then(([E, F]) => {
-    const plans = E.plans.map(p => ({ ...p, trips: p.trips.map((t, j) => ({ ...t, pts: decode(t.line), col: t.load < .5 ? PAL.bad : COLS[j % 3] })) }));
-    // the frame: every bin of the example with a margin; the drive to Seafield leaves it
-    const bins = plans[0].trips.flatMap(t => t.bins);
-    const la0 = Math.min(...bins.map(b => b[0])) - .0035, la1 = Math.max(...bins.map(b => b[0])) + .0035;
-    const lo0 = Math.min(...bins.map(b => b[1])) - .006, lo1 = Math.max(...bins.map(b => b[1])) + .006;
-    const W = 520, H = Math.round(clamp(W * (la1 - la0) / ((lo1 - lo0) * kx), 300, 460));
-    const sc = Math.min(W / ((lo1 - lo0) * kx), H / (la1 - la0)), ox = (W - (lo1 - lo0) * kx * sc) / 2, oy = (H - (la1 - la0) * sc) / 2;
-    const X = lo => ox + (lo - lo0) * kx * sc, Y = la => oy + (la1 - la) * sc;
-    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-    const inside = (x, y, m = 0) => x >= -m && x <= W + m && y >= -m && y <= H + m;
-    // the part of a line inside the frame (with a margin), split where it leaves and comes back
-    const clipped = pts => { let d = "", on = false; for (const [la, lo] of pts) { const x = X(lo), y = Y(la); if (inside(x, y, 40)) { d += `${on ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`; on = true; } else on = false; } return d; };
-    const roads = [...((D.base.roads || {}).minor || []), ...((D.base.roads || {}).major || [])].map(decode).map(clipped).join("");
-    // where the drive from Seafield enters the frame, for the label
-    const entry = (() => { for (const [la, lo] of plans[0].trips[0].pts) { const x = X(lo), y = Y(la); if (inside(x, y)) return [x, y]; } return [W - 10, 20]; })();
-    const right = entry[0] > W / 2, ly = clamp(entry[1] + (entry[1] < H / 2 ? 22 : -14), 18, H - 8);
-    svg.innerHTML = `<path d="${roads}" fill="none" stroke="${PAL.road}" stroke-width=".8" opacity=".6"/>` +
-      plans.map((p, k) => `<g class="ex-plan" data-k="${k}" style="display:none">` +
-        p.trips.map((t, j) => `<path class="ex-line" data-j="${j}" d="${clipped(t.pts)}" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="1" fill="none" stroke="${t.col}" stroke-width="${t.load < .5 ? 4 : 3}" stroke-linejoin="round" stroke-linecap="round"/>`).join("") +
-        p.trips.map((t, j) => t.bins.map(([la, lo]) => `<circle class="ex-bin" data-j="${j}" cx="${X(lo).toFixed(1)}" cy="${Y(la).toFixed(1)}" r="4.2" fill="${t.col}" stroke="${PAL.surface}" stroke-width="1.2" opacity="0"/>`).join("")).join("") +
-        `<text x="${(right ? entry[0] - 6 : entry[0] + 6).toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${right ? "end" : "start"}" class="ex-seaf">To Seafield, ${fmt(E.depot_km)} km: ${p.trips.length} trips drive it</text></g>`).join("");
-    const groups = [...svg.querySelectorAll(".ex-plan")];
-    // show one plan: its trips are drawn one after another, each from where it enters the frame
-    let k = -1, timers = [];
+    const plans = E.plans.map(p => ({ ...p, trips: p.trips.map((t, j) => ({ ...t, pts: decode(t.line), col: t.load < .5 ? RED : COLS[j % 3] })) }));
+    const area = L.latLngBounds(plans[0].trips.flatMap(t => t.bins));
+    let map, inset, seaf, k = -1, timers = [], moved = false;
+    const layers = [], base = [];
+    // the view: every bin of the example, below the Seafield label and clear of the small map (left of it on wide screens, above it on narrow ones)
+    const fit = () => {
+      const w = inset.offsetWidth + 22, h = inset.offsetHeight + 22, narrow = host.clientWidth < 480;
+      map.fitBounds(area, { paddingTopLeft: [narrow ? 20 : w, seaf.offsetHeight + 22], paddingBottomRight: [34, narrow ? h : 24], animate: false });
+    };
+    // which way Seafield is from the area, for the arrow on its label
+    const mid = area.getCenter(), deg = Math.atan2(dep[0] - mid.lat, (dep[1] - mid.lng) * Math.cos(dep[0] * Math.PI / 180)) * 180 / Math.PI;
+    const seafText = p => `<svg viewBox="0 0 16 16" style="transform:rotate(${(-deg).toFixed(0)}deg)" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>To Seafield, ${fmt(E.depot_km)} km: <b>${p.trips.length} trips</b> drive it</span>`;
+    const build = () => {
+      map = L.map(host, { zoomControl: true, attributionControl: true, scrollWheelZoom: false, dragging: !L.Browser.mobile, tap: false, minZoom: 10, maxZoom: 18, zoomSnap: .25 });
+      map.fitBounds(area, { animate: false });
+      map.attributionControl.setPrefix(false);
+      const OSM = '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
+      map.attributionControl.addAttribution(OSM);
+      // the wheel scrolls the page until someone clicks the map, as on the live map
+      map.on("click focus", () => map.scrollWheelZoom.enable());
+      map.on("mouseout blur", () => map.scrollWheelZoom.disable());
+      ["pointerdown", "wheel", "touchstart"].forEach(ev => host.addEventListener(ev, () => { moved = true; }, { passive: true }));
+      // a light vector map from our own road data, until the street tiles are drawn
+      const cv = L.canvas({ padding: .3 }), B = D.base;
+      const parks = B.parks.filter(p => p.k === "park").map(p => decode(p.ring)), lakes = B.parks.filter(p => p.k === "water").map(p => decode(p.ring));
+      if (parks.length) base.push(L.polygon(parks, { renderer: cv, stroke: false, fillColor: "#c9eac6", fillOpacity: 1, interactive: false }));
+      if (lakes.length) base.push(L.polygon(lakes, { renderer: cv, stroke: false, fillColor: "#aadaff", fillOpacity: 1, interactive: false }));
+      for (const [cls, w] of [["local", 1], ["minor", 1.6], ["major", 2.6]]) if ((B.roads[cls] || []).length) base.push(L.polyline(B.roads[cls].map(l => decode(l)), { renderer: cv, color: "#d3d6da", weight: w, interactive: false }));
+      base.forEach(l => l.addTo(map));
+      // Seafield, for anyone who zooms out
+      L.circleMarker(dep, { radius: 7, color: "#fff", weight: 2, fillColor: "#202124", fillOpacity: 1 }).bindTooltip("Seafield depot", { permanent: true, direction: "right", offset: [8, 0], className: "ex-dep" }).addTo(map);
+      // one pane per plan; each trip a white-cased line in its colour and its bins as dots
+      plans.forEach((p, i) => {
+        const pane = "ex" + i; map.createPane(pane).style.zIndex = 450; map.getPane(pane).style.display = "none";
+        const r = L.svg({ pane, padding: .5 });
+        layers[i] = p.trips.map((t, j) => ({
+          lines: [L.polyline(t.pts, { pane, renderer: r, color: "#fff", weight: t.load < .5 ? 10 : 8.5, opacity: .95, lineJoin: "round", lineCap: "round", interactive: false }),
+                  L.polyline(t.pts, { pane, renderer: r, color: t.col, weight: t.load < .5 ? 6 : 4.5, opacity: 1, lineJoin: "round", lineCap: "round", interactive: false })]
+            .map(l => { l.addTo(map); l._path.setAttribute("pathLength", 1); l._path.style.strokeDasharray = "1 1"; return l; }),
+          dots: t.bins.map(b => L.circleMarker(b, { pane, renderer: r, radius: 5.5, color: "#fff", weight: 1.6, fillColor: t.col, fillOpacity: 1 })
+            .bindTooltip(`Trip ${j + 1}: ${fmt(100 * t.load)} % full`, { direction: "top", offset: [0, -6] }).addTo(map)),
+        }));
+      });
+      // the small map: where this area and Seafield are in Edinburgh
+      const ctl = L.control({ position: "bottomleft" });
+      ctl.onAdd = () => {
+        const div = L.DomUtil.create("div", "ex-inset"), rings = B.wards.flatMap(w => w.rings.map(r => decode(r))), all = rings.flat();
+        const la0 = Math.min(...all.map(p => p[0])), la1 = Math.max(...all.map(p => p[0])), lo0 = Math.min(...all.map(p => p[1])), lo1 = Math.max(...all.map(p => p[1]));
+        const kx = Math.cos(dep[0] * Math.PI / 180), W = 150, s = W / ((lo1 - lo0) * kx), H = Math.round((la1 - la0) * s);
+        const X = lo => (lo - lo0) * kx * s, Y = la => (la1 - la) * s, P = ([la, lo]) => `${X(lo).toFixed(1)},${Y(la).toFixed(1)}`;
+        const sw = area.getSouthWest(), ne = area.getNorthEast(), rx = X(sw.lng), ry = Y(ne.lat), rw = Math.max(8, X(ne.lng) - rx), rh = Math.max(8, Y(sw.lat) - ry);
+        const c = [rx + rw / 2, ry + rh / 2], d = [X(dep[1]), Y(dep[0])];
+        div.innerHTML = `<svg viewBox="-6 -6 ${W + 12} ${H + 12}" role="img" aria-label="Where this area and the Seafield depot are in Edinburgh">` +
+          `<path d="${rings.map(r => "M" + r.map(P).join("L") + "Z").join("")}" fill="#eceff1" stroke="#c4c9cf" stroke-width=".6"/>` +
+          `<line x1="${c[0].toFixed(1)}" y1="${c[1].toFixed(1)}" x2="${d[0].toFixed(1)}" y2="${d[1].toFixed(1)}" stroke="#5f6368" stroke-width="1.4" stroke-dasharray="3 3"/>` +
+          `<rect x="${(rx - (rw < 8 ? 4 : 0)).toFixed(1)}" y="${(ry - (rh < 8 ? 4 : 0)).toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}" fill="rgba(217,48,37,.15)" stroke="${RED}" stroke-width="2" rx="2"/>` +
+          `<circle cx="${d[0].toFixed(1)}" cy="${d[1].toFixed(1)}" r="4.5" fill="#202124" stroke="#fff" stroke-width="1.5"/>` +
+          `<text x="${(d[0] - 2).toFixed(1)}" y="${(d[1] - 8).toFixed(1)}" text-anchor="middle">Seafield</text>` +
+          `<text x="${c[0].toFixed(1)}" y="${(ry + rh + 13).toFixed(1)}" text-anchor="middle">this map</text></svg>`;
+        L.DomEvent.disableClickPropagation(div);
+        return div;
+      };
+      ctl.addTo(map); inset = ctl.getContainer();
+      // the drive to Seafield leaves the view: a label says where it goes and how many trips drive it
+      const sc = L.control({ position: "topright" });
+      sc.onAdd = () => L.DomUtil.create("div", "ex-seaf");
+      sc.addTo(map); seaf = sc.getContainer(); seaf.innerHTML = seafText(plans[0]);
+      fit();
+      streetTiles(OSM);
+    };
+    // the same OpenStreetMap street map as the live map (OpenFreeMap, drawn by MapLibre); if it can't load, the vector map stays
+    const streetTiles = async OSM => {
+      try {
+        const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 8000);
+        const style = await fetch(OFM_STYLE, { signal: ctl.signal }).then(r => { if (!r.ok) throw new Error("style"); return r.json(); });
+        clearTimeout(tm);
+        if (!document.querySelector(`link[href="${ML_CSS}"]`)) { const css = document.createElement("link"); css.rel = "stylesheet"; css.href = ML_CSS; document.head.appendChild(css); }
+        if (!window.maplibregl) await loadScript(ML_JS);
+        if (!L.maplibreGL) await loadScript(MLL_JS);
+        if (!window.maplibregl || !L.maplibreGL) return;
+        platinumStyle(style);
+        const gl = L.maplibreGL({ style, interactive: false, attributionControl: false,
+          attribution: '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' }).addTo(map);
+        const glm = gl.getMaplibreMap(); let on = false;
+        const swap = () => { if (on) return; on = true; base.forEach(l => map.removeLayer(l)); map.attributionControl.removeAttribution(OSM).addAttribution(gl.options.attribution); host.classList.add("street"); };
+        glm.once("idle", swap);
+        setTimeout(() => { if (!on && glm.loaded()) swap(); }, 9000);
+      } catch (e) { /* keep the vector map */ }
+    };
+    const ready = () => { if (!map && host.clientWidth) { build(); show(k < 0 ? 0 : k, false); } return !!map; };
+    // the pane is hidden until its tab opens: build the map the first time it has a size, then keep it filled
+    new ResizeObserver(() => { if (!ready()) return; map.invalidateSize(); if (!moved) fit(); }).observe(host);
+    // show one plan: its trips are drawn one after another, each with its bins
     const show = (to, animate) => {
       timers.forEach(clearTimeout); timers = [];
       k = to;
-      groups.forEach((g, i) => { g.style.display = i === k ? "" : "none"; });
-      const p = plans[k], g = groups[k], step = 1100;
+      const p = plans[k];
       $("#exStage").textContent = k ? "After simulated annealing" : "Quick plan";
       $("#exSum").innerHTML = `<b>${p.trips.length} trips</b> from Seafield · <b>${fmt(p.km)} km</b> · <b>£${fmt(p.cost)}</b>`;
-      $("#exKey").innerHTML = p.trips.map((t, j) => `<span><i style="background:${t.col}"></i>Trip ${j + 1}: ${t.bins.length} bins, ${fmt(100 * t.load)} % full</span>`).join("");
+      $("#exKey").innerHTML = p.trips.map((t, j) => `<span><i style="background:${t.col}"></i>Trip ${j + 1}: ${t.bins.length} bins, ${fmt(100 * t.load)} % full</span>`).join("");
       slider.value = k;
-      p.trips.forEach((t, j) => {
-        const line = g.querySelector(`.ex-line[data-j="${j}"]`), dots = [...g.querySelectorAll(`.ex-bin[data-j="${j}"]`)];
-        const draw = () => { line.style.transition = animate && !still ? `stroke-dashoffset ${step}ms ease-in-out` : "none"; line.setAttribute("stroke-dashoffset", 0); dots.forEach(c => { c.style.transition = animate && !still ? `opacity ${step / 2}ms` : "none"; c.setAttribute("opacity", 1); }); };
-        line.style.transition = "none"; line.setAttribute("stroke-dashoffset", 1); dots.forEach(c => { c.style.transition = "none"; c.setAttribute("opacity", 0); });
-        if (animate && !still) { line.getBoundingClientRect(); timers.push(setTimeout(draw, 60 + j * step)); } else draw();
+      if (!map) return 0;
+      seaf.innerHTML = seafText(p);
+      plans.forEach((_, i) => { map.getPane("ex" + i).style.display = i === k ? "" : "none"; });
+      const go = animate && !still;
+      layers[k].forEach((T, j) => {
+        const lines = T.lines.map(l => l._path), dots = T.dots.map(d => d._path);
+        const set = (on, ms) => {
+          lines.forEach(e => { e.style.transition = ms ? `stroke-dashoffset ${ms}ms ease-in-out` : "none"; e.style.strokeDashoffset = on ? 0 : 1; });
+          dots.forEach(e => { e.style.transition = ms ? `opacity ${ms / 2}ms` : "none"; e.style.opacity = on ? 1 : 0; });
+        };
+        set(false, 0);
+        if (go) { lines[0].getBoundingClientRect(); timers.push(setTimeout(() => set(true, step), 60 + j * step)); } else set(true, 0);
       });
-      return (p.trips.length) * step + 60;
+      return p.trips.length * step + 60;
     };
     slider.oninput = () => { const to = +slider.value < .5 ? 0 : 1; if (to !== k) show(to, false); };
     slider.onchange = () => show(+slider.value < .5 ? 0 : 1, true);
     slider.onkeydown = e => { const to = { ArrowLeft: 0, ArrowDown: 0, Home: 0, ArrowRight: 1, ArrowUp: 1, End: 1 }[e.key]; if (to != null) { e.preventDefault(); show(to, true); } };
-    const [A, B] = plans, CA = F.compare.first, CZ = F.compare.final;
-    $("#exWhy").textContent = `${B.trips.length} trips instead of ${A.trips.length}: ${fmt(A.km - B.km)} km less, ${fmt(100 * (1 - B.cost / A.cost))} % cheaper. Across the whole city the same effect gives ${fmt(CA.trips - CZ.trips)} fewer trips and £${fmt(CA.total - CZ.total)} a day less (−${fmt(100 * (1 - CZ.total / CA.total))} %).`;
+    const [A, Z] = plans, CA = F.compare.first, CZ = F.compare.final;
+    $("#exWhy").textContent = `${Z.trips.length} trips instead of ${A.trips.length}: ${fmt(A.km - Z.km)} km less, ${fmt(100 * (1 - Z.cost / A.cost))} % cheaper. Across the whole city the same effect gives ${fmt(CA.trips - CZ.trips)} fewer trips and £${fmt(CA.total - CZ.total)} a day less (−${fmt(100 * (1 - CZ.total / CA.total))} %).`;
     $("#exArea").textContent = E.area; $("#exBins").textContent = fmt(E.bins); $("#exKm").textContent = fmt(E.depot_km);
-    show(0, false);
+    show(0, false); ready();
     // the first time it comes into view: draw the quick plan, wait, then the plan after annealing
     if ("IntersectionObserver" in window && !still)
       new IntersectionObserver((es, ob) => {
-        if (!es.some(e => e.isIntersecting)) return;
+        if (!es.some(e => e.isIntersecting) || !ready()) return;
         ob.disconnect();
         const t1 = show(0, true);
         timers.push(setTimeout(() => show(1, true), t1 + 1600));
-      }, { threshold: .5 }).observe(svg);
-  }).catch(() => { svg.innerHTML = `<text x="260" y="60" text-anchor="middle">The example could not be loaded.</text>`; });
+      }, { threshold: .5 }).observe(host);
+  }).catch(() => { host.textContent = "The example could not be loaded."; });
 }
 
 /* 5 · before and after: the three policies */
