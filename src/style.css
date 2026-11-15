@@ -497,8 +497,16 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 .ex-how { margin: 2px 0 6px; color: var(--ink-2); font-size: 14px; }
 .ex-sum { margin: 2px 0 6px; font-size: 15px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .ex-sum b { color: var(--ink); font: 700 19px var(--display); }
-.ex-map { background: var(--paper); border-radius: 10px; }
-.ex-map .ex-seaf { fill: var(--ink); font: 600 13px var(--body); paint-order: stroke; stroke: var(--paper); stroke-width: 4px; }
+.ex-map { position: relative; z-index: 0; isolation: isolate; height: 440px; border-radius: 12px; overflow: hidden; background: #f5f5f3; border: 1px solid #c9cdd2;
+  --surface: #ffffff; --paper: #f8f9fa; --ink: #202124; --ink-2: #3c4043; --ink-3: #5f6368; --line: #e3e5e8; color-scheme: light; color: var(--ink); }
+@media (max-width: 600px) { .ex-map { height: 380px; } }
+.ex-map .ex-seaf { display: flex; align-items: center; gap: 6px; font: 500 13px var(--body); color: #202124; background: rgba(255, 255, 255, .95); padding: 5px 10px; border-radius: 10px; box-shadow: 0 1px 3px rgba(60, 64, 67, .3), 0 2px 6px rgba(60, 64, 67, .15); white-space: nowrap; }
+.ex-map .ex-seaf svg { width: 16px; height: 16px; flex-shrink: 0; color: #202124; }
+.ex-map .leaflet-tooltip.ex-dep { background: #202124; color: #fff; font-weight: 600; }
+.ex-inset { background: rgba(255, 255, 255, .94); border-radius: 10px; box-shadow: 0 1px 3px rgba(60, 64, 67, .3), 0 2px 6px rgba(60, 64, 67, .15); padding: 4px; line-height: 0; }
+.ex-inset svg { display: block; width: 136px; height: auto; }
+.ex-inset text { font: 600 11px var(--body); fill: #3c4043; paint-order: stroke; stroke: #fff; stroke-width: 3px; }
+@media (max-width: 600px) { .ex-inset svg { width: 100px; } }
 .ex-key { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 0 2px; font-size: 13px; color: var(--ink-2); }
 .ex-key i { display: inline-block; width: 16px; height: 4px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
 .opt-slide { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; font-size: 13px; color: var(--ink-2); white-space: nowrap; }
