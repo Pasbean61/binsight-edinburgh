@@ -147,22 +147,34 @@ function mathsRoute(M) {
     let map, inset, seaf, k = -1, timers = [], moved = false;
     const layers = [], base = [];
     // the view: every bin of the example, below the Seafield label and clear of the small map (left of it on wide screens, above it on narrow ones)
-    const fit = () => {
+    const fit = (animate = false) => {
       const w = inset.offsetWidth + 22, h = inset.offsetHeight + 22, narrow = host.clientWidth < 480;
-      map.fitBounds(area, { paddingTopLeft: [narrow ? 20 : w, seaf.offsetHeight + 22], paddingBottomRight: [34, narrow ? h : 24], animate: false });
+      map.fitBounds(area, { paddingTopLeft: [narrow ? 20 : w, seaf.offsetHeight + 22], paddingBottomRight: [34, narrow ? h : 24], animate });
     };
     // which way Seafield is from the area, for the arrow on its label
     const mid = area.getCenter(), deg = Math.atan2(dep[0] - mid.lat, (dep[1] - mid.lng) * Math.cos(dep[0] * Math.PI / 180)) * 180 / Math.PI;
     const seafText = p => `<svg viewBox="0 0 16 16" style="transform:rotate(${(-deg).toFixed(0)}deg)" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>To Seafield, ${fmt(E.depot_km)} km: <b>${p.trips.length} trips</b> drive it</span>`;
     const build = () => {
-      map = L.map(host, { zoomControl: true, attributionControl: true, scrollWheelZoom: false, dragging: !L.Browser.mobile, tap: false, minZoom: 10, maxZoom: 18, zoomSnap: .25 });
+      map = L.map(host, { zoomControl: true, attributionControl: true, scrollWheelZoom: true, wheelPxPerZoomLevel: 80, dragging: true, tap: false, minZoom: 10, maxZoom: 19, zoomSnap: .25, zoomDelta: .5 });
       map.fitBounds(area, { animate: false });
       map.attributionControl.setPrefix(false);
       const OSM = '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
       map.attributionControl.addAttribution(OSM);
-      // the wheel scrolls the page until someone clicks the map, as on the live map
-      map.on("click focus", () => map.scrollWheelZoom.enable());
-      map.on("mouseout blur", () => map.scrollWheelZoom.disable());
+      // zoom freely: wheel, trackpad pinch, double-click, the buttons, two fingers on a phone; drag to move.
+      // A page scroll that runs onto the map keeps scrolling the page: the wheel zooms only once it has paused for half a second.
+      let pageWheel = 0;
+      addEventListener("wheel", e => { if (!host.contains(e.target)) pageWheel = performance.now(); }, { capture: true, passive: true });
+      host.addEventListener("wheel", e => { if (performance.now() - pageWheel < 500) { pageWheel = performance.now(); e.stopPropagation(); } }, { capture: true });
+      // a button under the zoom buttons goes back to the whole example
+      const rc = L.control({ position: "topleft" });
+      rc.onAdd = () => {
+        const bar = L.DomUtil.create("div", "leaflet-bar ex-reset");
+        bar.innerHTML = '<a href="#" role="button" title="Back to the whole example" aria-label="Back to the whole example"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>';
+        L.DomEvent.disableClickPropagation(bar);
+        L.DomEvent.on(bar.firstChild, "click", e => { L.DomEvent.preventDefault(e); fit(true); setTimeout(() => { moved = false; }, 0); });
+        return bar;
+      };
+      rc.addTo(map);
       ["pointerdown", "wheel", "touchstart"].forEach(ev => host.addEventListener(ev, () => { moved = true; }, { passive: true }));
       // a light vector map from our own road data, until the street tiles are drawn
       const cv = L.canvas({ padding: .3 }), B = D.base;
