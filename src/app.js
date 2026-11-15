@@ -4,7 +4,7 @@
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const fmt = (n, d = 0) => n == null || isNaN(n) ? "–" : Number(n).toLocaleString("en-GB", { minimumFractionDigits: d, maximumFractionDigits: d });
-const pct = (n, d = 0) => fmt(n, d) + " %";
+const pct = (n, d = 0) => fmt(n, d) + "%";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -138,9 +138,9 @@ function fillKeys() {
   const vals = {
     stops: fmt(t.stops), assets: fmt(t.assets), gwRecords: fmt(t.general_waste_records), flagged: fmt(p.flagged),
     planKm: fmt(p.road_km) + " km", trucksUsed: fmt(p.trucks_used), wardsN: String(s.wards.length),
-    overflowCut: fixed && bs ? "−" + fmt(100 * (1 - bs.overflow_events_day / fixed.overflow_events_day)) + " %" : "–",
-    overflowCutWord: fixed && bs ? fmt(100 * (1 - bs.overflow_events_day / fixed.overflow_events_day)) + "\u00a0%" : "–",
-    costCutWord: fixed && bs ? fmt(100 * (1 - bs.cost_day / fixed.cost_day)) + "\u00a0%" : "–",
+    overflowCut: fixed && bs ? "−" + fmt(100 * (1 - bs.overflow_events_day / fixed.overflow_events_day)) + "%" : "–",
+    overflowCutWord: fixed && bs ? fmt(100 * (1 - bs.overflow_events_day / fixed.overflow_events_day)) + "%" : "–",
+    costCutWord: fixed && bs ? fmt(100 * (1 - bs.cost_day / fixed.cost_day)) + "%" : "–",
     forecastShort: fmtDate(s.plan_day + "T06:00", { day: "numeric", month: "short" }),
     generated: "Data built " + fmtDate(s.generated, { day: "numeric", month: "long", year: "numeric" }),
   };
@@ -330,7 +330,7 @@ function initHeroHover() {
     const h = pick(e, 8);
     if (!h) { tip.style.opacity = 0; cv.style.cursor = ""; return; }
     const hr = host.getBoundingClientRect(), i = h.i;
-    tip.textContent = `${D.S.site[i]} · ${D.wards[D.S.ward[i]].name} · ${fmt(D.S.pred[i])} % tomorrow`;
+    tip.textContent = `${D.S.site[i]} · ${D.wards[D.S.ward[i]].name} · ${fmt(D.S.pred[i])}% tomorrow`;
     tip.style.left = (h.cx - hr.left) + "px"; tip.style.top = (h.cy - hr.top) + "px"; tip.style.opacity = 1; cv.style.cursor = "pointer";
   });
   cv.addEventListener("mouseleave", () => tip.style.opacity = 0);
@@ -399,7 +399,7 @@ function initMap() {
   for (let i = 0; i < D.n; i++) {
     const m = L.circleMarker([S.lat[i], S.lon[i]], { renderer: canvas, radius: 4, weight: 1, color: PAL.surface, fillOpacity: .95 });
     m.on("click", () => BS.focusStop(i));
-    m.bindTooltip(() => `<b>${esc(S.site[i])}</b><br>${esc(D.wards[S.ward[i]].name)} · ${fmt(S.pred[i])} % tomorrow`, { direction: "top", offset: [0, -4] });
+    m.bindTooltip(() => `<b>${esc(S.site[i])}</b><br>${esc(D.wards[S.ward[i]].name)} · ${fmt(S.pred[i])}% tomorrow`, { direction: "top", offset: [0, -4] });
     markers[i] = m;
   }
   restyleStops();
@@ -563,7 +563,7 @@ function drawLegend() {
     return;
   }
   const t = { pred: "Projected fill, 14:00 tomorrow", fill: "Fill now" }[UI.layer];
-  const rows = [["90 % and over", 4], ["80–90 %", 3], ["60–80 %", 2], ["35–60 %", 1], ["< 35 %", 0]];
+  const rows = [["90% and over", 4], ["80–90%", 3], ["60–80%", 2], ["35–60%", 1], ["< 35%", 0]];
   L_.innerHTML = `<div class="title">${t} <span class="tag sim" style="margin-left:4px">Sim</span></div>` + rows.map(([l, k]) => `<div class="row"><i style="background:${PAL.f[k]}"></i>${l}</div>`).join("") +
     `<div class="row" style="margin-top:6px"><i style="background:${PAL.f0};box-shadow:0 0 0 1.6px ${PAL.accent} inset"></i>Emptied by a truck</div>` +
     `<div class="row"><i style="background:${truckColor(0)};box-shadow:0 0 0 2px #fff inset"></i>Truck and its trail (${D.trucks.length})</div>`;
@@ -586,7 +586,7 @@ async function showNetwork(on) {
 
 /* detail panel */
 function panel(html) { const p = $("#panel"); p.innerHTML = `<button class="x" type="button" aria-label="Close panel">×</button>` + html; p.hidden = false; $(".x", p).onclick = () => { p.hidden = true; UI.selStop = -1; UI.selTruck = -1; UI.follow = -1; $$("#fleet button").forEach(b => b.classList.remove("on")); highlight.clearLayers(); restyleStops(); }; p.scrollTop = 0; }
-const fillPill = v => v >= 100 ? `<span class="pill hi">Projected to overflow</span>` : v >= D.site.maths.params.FLOOR ? `<span class="pill md">Above the ${fmt(D.site.maths.params.FLOOR)} % floor</span>` : `<span class="pill lo">Can wait</span>`;
+const fillPill = v => v >= 100 ? `<span class="pill hi">Projected to overflow</span>` : v >= D.site.maths.params.FLOOR ? `<span class="pill md">Above the ${fmt(D.site.maths.params.FLOOR)}% floor</span>` : `<span class="pill lo">Can wait</span>`;
 BS.focusStop = async (i, opts = {}) => {
   if (!map) return;
   UI.selStop = i; UI.selTruck = D.S.truck[i] >= 0 && opts.keepTruck ? D.S.truck[i] : UI.selTruck;
@@ -596,11 +596,11 @@ BS.focusStop = async (i, opts = {}) => {
   highlight.clearLayers();
   L.circleMarker([S.lat[i], S.lon[i]], { radius: 14, color: PAL.ink, weight: 2, fill: false, interactive: false }).addTo(highlight);
   restyleStops();
-  const fl = fmt(P.FLOOR), proj = `${fmt(S.pred[i])} %`;
-  const why = ti >= 0 ? `Projected ${proj} by 14:00 tomorrow: above the ${fl} % floor and among the fullest the fleet has time for, so it goes.`
+  const fl = fmt(P.FLOOR), proj = `${fmt(S.pred[i])}%`;
+  const why = ti >= 0 ? `Projected ${proj} by 14:00 tomorrow: above the ${fl}% floor and among the fullest the fleet has time for, so it goes.`
     : S.flag[i] ? `Projected ${proj}: chosen, but the routes did not fit the fleet, and routing leaves out the least full stops first.`
-    : S.risky[i] ? `Projected ${proj}: above the ${fl} % floor, but the fleet’s time went to fuller stops. It waits for the next day.`
-    : `Projected ${proj}, below the ${fl} % floor: it can safely wait.`;
+    : S.risky[i] ? `Projected ${proj}: above the ${fl}% floor, but the fleet’s time went to fuller stops. It waits for the next day.`
+    : `Projected ${proj}, below the ${fl}% floor: it can safely wait.`;
   panel(`<div class="dp">
     <span class="eyebrow">${esc(w.name)} ward · ${esc(area)}</span>
     <h3 style="margin-top:8px">${esc(S.site[i])}</h3>
@@ -613,10 +613,10 @@ BS.focusStop = async (i, opts = {}) => {
       <dt>Bins at this stop</dt><dd>${S.nb[i]} · ${fmt(S.cap[i])} L total <span class="tag real">Real</span></dd>
       <dt>Council asset records</dt><dd>${S.rec[i]}</dd>
       <dt>Forecast fill speed, ĝ</dt><dd>${fmt(S.gain[i], 1)} points a day</dd>
-      <dt>Projected fill, ŷ</dt><dd>${fmt(S.pred[i], 1)} %</dd>
+      <dt>Projected fill, ŷ</dt><dd>${fmt(S.pred[i], 1)}%</dd>
       <dt>Truck time it uses, t</dt><dd>${S.risky[i] ? fmt(S.tmin[i], 1) + " min" : "– (below the floor)"}</dd>
       <dt>Last emptied</dt><dd>${S.since[i] == null ? "–" : S.since[i] + " h ago"}</dd>
-      <dt>Sensor battery · signal</dt><dd>${fmt(S.bat[i])} % · ${S.sig[i]} <span class="tag sim">Sim</span></dd>
+      <dt>Sensor battery · signal</dt><dd>${fmt(S.bat[i])}% · ${S.sig[i]} <span class="tag sim">Sim</span></dd>
       <dt>Coordinates</dt><dd class="mono">${S.lat[i].toFixed(5)}, ${S.lon[i].toFixed(5)}</dd>
     </dl>
     <h4>Tomorrow’s collection</h4>
@@ -634,7 +634,7 @@ async function drawSpark(i) {
   const last = h.length - 1, mu = D.S.pred[i];
   svg.innerHTML = `
     <line class="grid" x1="4" x2="${W - 4}" y1="${y(100)}" y2="${y(100)}" stroke="${PAL.f[4]}" stroke-dasharray="3 3"/>
-    <text x="6" y="${y(100) - 4}" style="fill:${PAL.f[4]};font-size:10px">100 %: overflow</text>
+    <text x="6" y="${y(100) - 4}" style="fill:${PAL.f[4]};font-size:10px">100%: overflow</text>
     <path d="${line} L${x(last)},${y(0)} L${x(0)},${y(0)} Z" fill="${PAL.accent}" opacity=".10"/>
     <path d="${line}" fill="none" stroke="${PAL.ink}" stroke-width="1.6"/>
     <line x1="${x(last)}" y1="${y(h[last])}" x2="${x(n - 1)}" y2="${y(mu)}" stroke="${PAL.accent}" stroke-width="1.8" stroke-dasharray="4 3"/>
@@ -678,7 +678,7 @@ BS.focusWard = wi => {
   panel(`<div class="dp"><span class="eyebrow">Ward ${wi + 1} of 17 · ${w.code}</span><h3 style="margin-top:8px">${esc(w.name)}</h3>
     <div class="sub">Electoral ward, City of Edinburgh <span class="tag real">Real boundary</span></div>
     <div class="gauge"><div><b>${fmt(w.stops)}</b><span>communal bin stops</span></div><div><b>${fmt(w.bins)}</b><span>bins · ${fmt(w.cap_l / 1000)} m³</span></div><div><b>${fmt(w.flagged)}</b><span>flagged tomorrow</span></div><div><b>${fmt(w.pred)}%</b><span>mean forecast</span></div></div>
-    <dl class="kv"><dt>Mean fill now</dt><dd>${fmt(w.fill)} %</dd><dt>Projected ≥ ${fmt(D.site.maths.params.FLOOR)} %</dt><dd>${fmt(w.risk)} stops</dd><dt>Over 90 % now</dt><dd>${fmt(w.over90)} stops</dd><dt>Trucks serving it</dt><dd>${w.trucks.length}</dd></dl>
+    <dl class="kv"><dt>Mean fill now</dt><dd>${fmt(w.fill)}%</dd><dt>Projected ≥ ${fmt(D.site.maths.params.FLOOR)}%</dt><dd>${fmt(w.risk)} stops</dd><dt>Over 90% now</dt><dd>${fmt(w.over90)} stops</dd><dt>Trucks serving it</dt><dd>${w.trucks.length}</dd></dl>
     <h4>Area mix</h4><p class="small" style="margin-top:6px">${Object.entries(w.areas).filter(a => a[1]).map(([a, c]) => `${a}: ${c}`).join(" · ")}</p>
   </div>`);
 };
@@ -920,7 +920,7 @@ function renderBins() {
   const th = (k, l, n) => `<th class="sortable ${n ? "n" : ""}" data-k="${k}">${l}${binSort.k === k ? (binSort.dir < 0 ? " ↓" : " ↑") : ""}</th>`;
   const bar = (v, c) => `<span class="bar-cell">${fmt(v)}%<span class="bar"><span style="width:${v}%;background:${c}"></span></span></span>`;
   host.innerHTML = `<div class="tablewrap"><table><thead><tr>${th("site", "Street")}<th>Location</th>${th("ward", "Ward")}${th("cap", "Capacity", 1)}${th("fill", "Now", 1)}${th("pred", "Tomorrow", 1)}${th("gain", "Fills a day", 1)}<th>Truck</th></tr></thead><tbody>
-    ${rows.map(i => `<tr data-i="${i}"><td><b>${esc(S.site[i])}</b></td><td class="muted" style="max-width:240px;overflow:hidden;text-overflow:ellipsis">${esc(S.loc[i])}</td><td>${esc(D.wards[S.ward[i]].name)}</td><td class="n">${fmt(S.cap[i])} L</td><td class="n">${bar(S.fill[i], fillColor(S.fill[i]))}</td><td class="n">${bar(S.pred[i], fillColor(S.pred[i]))}</td><td class="n">${fmt(S.gain[i])} %</td><td class="mono">${S.truck[i] >= 0 ? D.trucks[S.truck[i]].truck.replace("EDI-", "") : "–"}</td></tr>`).join("")}
+    ${rows.map(i => `<tr data-i="${i}"><td><b>${esc(S.site[i])}</b></td><td class="muted" style="max-width:240px;overflow:hidden;text-overflow:ellipsis">${esc(S.loc[i])}</td><td>${esc(D.wards[S.ward[i]].name)}</td><td class="n">${fmt(S.cap[i])} L</td><td class="n">${bar(S.fill[i], fillColor(S.fill[i]))}</td><td class="n">${bar(S.pred[i], fillColor(S.pred[i]))}</td><td class="n">${fmt(S.gain[i])}%</td><td class="mono">${S.truck[i] >= 0 ? D.trucks[S.truck[i]].truck.replace("EDI-", "") : "–"}</td></tr>`).join("")}
   </tbody></table></div><div class="pager"><span>${fmt(ids.length)} stops${binQuery ? ` on ${esc(binQuery)} <button class="linkbtn" id="clearQ">show all</button>` : ""}${UI.ward >= 0 ? " in " + esc(D.wards[UI.ward].name) : ""} · simulated fill</span><span><button id="pgPrev" ${binPage ? "" : "disabled"}>Previous</button> ${binPage + 1} / ${pages} <button id="pgNext" ${binPage < pages - 1 ? "" : "disabled"}>Next</button></span></div>`;
   $$("th.sortable", host).forEach(t => t.onclick = () => { binSort = { k: t.dataset.k, dir: binSort.k === t.dataset.k ? -binSort.dir : -1 }; renderBins(); });
   $$("tbody tr", host).forEach(tr => tr.onclick = () => { BS.focusStop(+tr.dataset.i); BS.jump(".map-shell", "center"); });
@@ -952,7 +952,7 @@ function renderWards() {
   const rows = D.wards.map((w, i) => ({ ...w, i })).sort((a, b) => ((a[wardSort.k] > b[wardSort.k]) - (a[wardSort.k] < b[wardSort.k])) * wardSort.dir);
   const max = Math.max(...D.wards.map(w => w.stops));
   const th = (k, l, n) => `<th class="sortable ${n ? "n" : ""}" data-k="${k}">${l}${wardSort.k === k ? (wardSort.dir < 0 ? " ↓" : " ↑") : ""}</th>`;
-  host.innerHTML = `<div class="tablewrap"><table><thead><tr>${th("name", "Ward")}${th("stops", "Stops", 1)}${th("bins", "Bins", 1)}${th("cap_l", "Capacity", 1)}${th("fill", "Mean now", 1)}${th("pred", "Mean tomorrow", 1)}${th("flagged", "Flagged", 1)}${th("risk", "Projected ≥ " + fmt(D.site.maths.params.FLOOR) + " %", 1)}<th class="n">Trucks</th></tr></thead><tbody>
+  host.innerHTML = `<div class="tablewrap"><table><thead><tr>${th("name", "Ward")}${th("stops", "Stops", 1)}${th("bins", "Bins", 1)}${th("cap_l", "Capacity", 1)}${th("fill", "Mean now", 1)}${th("pred", "Mean tomorrow", 1)}${th("flagged", "Flagged", 1)}${th("risk", "Projected ≥ " + fmt(D.site.maths.params.FLOOR) + "%", 1)}<th class="n">Trucks</th></tr></thead><tbody>
     ${rows.map(w => `<tr data-i="${w.i}"><td><b>${esc(w.name)}</b> <span class="muted mono small">${w.code}</span></td><td class="n"><span class="bar-cell">${w.stops}<span class="bar"><span style="width:${w.stops / max * 100}%;background:var(--accent)"></span></span></span></td><td class="n">${fmt(w.bins)}</td><td class="n">${fmt(w.cap_l / 1000)} m³</td><td class="n">${fmt(w.fill)}%</td><td class="n">${fmt(w.pred)}%</td><td class="n">${fmt(w.flagged)}</td><td class="n">${fmt(w.risk)}</td><td class="n">${w.trucks.length}</td></tr>`).join("")}</tbody></table></div>
     <p class="note">Ward boundaries: Edinburgh’s 17 multi-member wards (Office for National Statistics, no date). Stop counts and capacities are real; fill levels are simulated.</p>`;
   $$("th.sortable", host).forEach(t => t.onclick = () => { wardSort = { k: t.dataset.k, dir: wardSort.k === t.dataset.k ? -wardSort.dir : -1 }; renderWards(); });
@@ -968,9 +968,9 @@ function renderAlerts() {
   const bins = new Array(6).fill(0); S.bat.forEach(b => bins[clamp(Math.floor((b - 70) / 5), 0, 5)]++);
   const mx = Math.max(...bins);
   host.innerHTML = `<div class="mini-grid">
-    <div class="card"><h4 style="font-size:16px">At 80 % or more right now</h4><p class="muted small">${fmt(over.length)} stops already past the collection line. Crews should check these first.</p>${list(over, i => fmt(S.fill[i]) + "%")}</div>
+    <div class="card"><h4 style="font-size:16px">At 80% or more right now</h4><p class="muted small">${fmt(over.length)} stops already past the collection line. Crews should check these first.</p>${list(over, i => fmt(S.fill[i]) + "%")}</div>
     <div class="card"><h4 style="font-size:16px">Flagged but not routed</h4><p class="muted small">${fmt(unserved.length)} stops the fleet could not fit tomorrow.</p>${unserved.length ? list(unserved, i => fmt(S.pred[i]) + "%") : `<p style="margin-top:14px">None. Every flagged stop is on a route.</p>`}</div>
-    <div class="card"><h4 style="font-size:16px">Sensor batteries <span class="tag sim">Sim</span></h4><p class="muted small">${fmt(lowbat.length)} sensors below 80 % for the maintenance team.</p>
+    <div class="card"><h4 style="font-size:16px">Sensor batteries <span class="tag sim">Sim</span></h4><p class="muted small">${fmt(lowbat.length)} sensors below 80% for the maintenance team.</p>
       <svg class="chart" viewBox="0 0 300 130" style="margin-top:12px">${bins.map((c, k) => `<rect x="${10 + k * 48}" y="${105 - c / mx * 90}" width="38" height="${c / mx * 90}" rx="3" fill="${k < 2 ? PAL.f[3] : PAL.accent}" opacity=".85"/><text x="${29 + k * 48}" y="122" text-anchor="middle">${70 + k * 5}–${75 + k * 5}</text><text class="val" x="${29 + k * 48}" y="${100 - c / mx * 90}" text-anchor="middle">${c}</text>`).join("")}</svg>
       ${list(lowbat.slice(0, 20), i => fmt(S.bat[i]) + "%")}</div></div>`;
   $$("li[data-i]", host).forEach(li => li.onclick = () => { BS.focusStop(+li.dataset.i); BS.jump(".map-shell", "center"); });
@@ -1024,7 +1024,7 @@ const POLICIES = ["timetable", "reactive", "binsight"];
 const STRAT_LABEL = { timetable: "Timetable", reactive: "Reactive", binsight: "BinSight" };
 function initResults() {
   const ex = D.site.experiments, P = D.site.maths.params, F = strat("timetable"), R = strat("reactive"), B = strat("binsight");
-  const ch = (a, b) => `${b <= a ? "−" : "+"}${fmt(Math.abs(100 * (b / a - 1)))} %`;
+  const ch = (a, b) => `${b <= a ? "−" : "+"}${fmt(Math.abs(100 * (b / a - 1)))}%`;
   // 1 · three headline numbers, each with a before/after pair of bars
   const pair = (a, b, f) => { const m = Math.max(a, b); return [["Timetable", a, 0], ["BinSight", b, 1]].map(([n, v, on]) =>
     `<div class="pb${on ? " on" : ""}"><span>${n}</span><i><u style="width:${Math.max(1.5, 100 * v / m)}%"></u></i><b>${f(v)}</b></div>`).join(""); };
@@ -1035,8 +1035,8 @@ function initResults() {
   ].map(([b, t, bars]) => `<div class="card takeaway"><b>${b}</b><h4>${t}</h4>${bars}</div>`).join("");
   // 2 · the three methods side by side
   const M = [
-    [F, "Today", "Every bin, every 2 days, full or not.", `${fmt(100 * F.share_under_40)} % of its visits find a bin less than 40 % full.`],
-    [R, "Sensors only", `Empty a bin once it reads ${fmt(P.REACTIVE_AT)} %.`, `Too late: the bin often overflows before the truck arrives. It drives the least, but ${fmt(100 * R.overflow_events_day * P.COST_OVERFLOW / R.cost_day)} % of its cost is the £${fmt(P.COST_OVERFLOW)} overflow penalty.`],
+    [F, "Today", "Every bin, every 2 days, full or not.", `${fmt(100 * F.share_under_40)}% of its visits find a bin less than 40% full.`],
+    [R, "Sensors only", `Empty a bin once it reads ${fmt(P.REACTIVE_AT)}%.`, `Too late: the bin often overflows before the truck arrives. It drives the least, but ${fmt(100 * R.overflow_events_day * P.COST_OVERFLOW / R.cost_day)}% of its cost is the £${fmt(P.COST_OVERFLOW)} overflow penalty.`],
     [B, "Sensors + forecast", "Empty the bins that will be full tomorrow.", "Sees the overflow coming and gets there first."],
   ];
   $("#methods").innerHTML = M.map(([r, tag, how, verdict]) => `<div class="card method${r.policy === "binsight" ? " on" : ""}">
@@ -1106,7 +1106,7 @@ function initBusiness() {
   const calc = () => {
     const P = +$("#cProps").value || 0, C = +$("#cCost").value || 0, s = (+$("#cSave").value || 0) / 100, sh = (+$("#cShare").value || 0) / 100;
     const cost = P * C, saving = cost * s;
-    $("#oProps").textContent = fmt(P); $("#oCost").textContent = "£" + fmt(C, 2); $("#oSave").textContent = fmt(s * 100) + " %"; $("#oShare").textContent = fmt(sh * 100) + " %";
+    $("#oProps").textContent = fmt(P); $("#oCost").textContent = "£" + fmt(C, 2); $("#oSave").textContent = fmt(s * 100) + "%"; $("#oShare").textContent = fmt(sh * 100) + "%";
     const split = $("#split");
     split.style.setProperty("--save", pct(s)); split.style.setProperty("--share", pct(sh));
     $("#vCost").textContent = money(cost); $("#vSaved").textContent = money(saving);
@@ -1137,8 +1137,8 @@ function initBusiness() {
 
   // 6. evidence: each number gets a small moving picture
   const EV = [
-    ["44", " %", "lower collection cost when routes follow real fill levels", "(Hannan <i>et al.</i>, 2020)", "bars", 44],
-    ["53", " %", "fewer bin visits in Derby’s 200-bin sensor trial", '(<a href="https://www.government-transformation.com/connected-places/derby-city-council-rolls-out-litter-bin-sensors" target="_blank" rel="noopener">Government Transformation, 2023</a>)', "ticks", 53],
+    ["44", "%", "lower collection cost when routes follow real fill levels", "(Hannan <i>et al.</i>, 2020)", "bars", 44],
+    ["53", "%", "fewer bin visits in Derby’s 200-bin sensor trial", '(<a href="https://www.government-transformation.com/connected-places/derby-city-council-rolls-out-litter-bin-sensors" target="_blank" rel="noopener">Government Transformation, 2023</a>)', "ticks", 53],
     ["11000", "", "sensors already in Edinburgh’s bins (a £6.4m programme). The data exists; routes don’t use it yet.", '(<a href="https://www.edinburgh.gov.uk/bins-recycling/smart-bin-sensors/1" target="_blank" rel="noopener">City of Edinburgh Council, no date a</a>)', "grid", 0],
     ["2700", "", "of about 3,400 communal glass bins had sensors by late 2024", '(<a href="https://theedinburghreporter.co.uk/2024/12/glass-recycling-bins-to-be-fitted-with-sensors/" target="_blank" rel="noopener">Edinburgh Reporter, 2024</a>)', "ring", 2700 / 3400],
   ];
@@ -1756,10 +1756,10 @@ addEventListener("load", () => { const el = location.hash.length > 1 && document
     const DEPTH = 1.2, SOUND = 343;
     const upd = () => {
       const f = +fillIn.value / 100, dist = Math.max(.02, DEPTH * (1 - f));
-      $("#oFill").textContent = Math.round(f * 100) + " %";
+      $("#oFill").textContent = Math.round(f * 100) + "%";
       $("#eTime").textContent = (2 * dist / SOUND * 1000).toFixed(1) + " ms";
       $("#eDist").textContent = dist.toFixed(2) + " m";
-      $("#ePct").textContent = Math.round((1 - dist / DEPTH) * 100) + " %";
+      $("#ePct").textContent = Math.round((1 - dist / DEPTH) * 100) + "%";
       binFill = f; setBinFill && setBinFill();
     };
     fillIn.addEventListener("input", upd); upd();
