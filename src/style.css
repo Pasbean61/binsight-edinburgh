@@ -492,37 +492,13 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 /* step 4: objective and constraints, labelled separately */
 .m-cons { padding: 12px 12px 10px; }
 .m-text .m-lead { color: var(--ink); margin: 16px 0 -2px; }
-/* step 4: before and after optimising — the line splits the map, the table splits the objective */
-.cmp-how { margin: 2px 0 8px; color: var(--ink-2); font-size: 14px; }
-.cmp-how b { color: var(--ink); }
-.cmp-map { position: relative; touch-action: pan-y; cursor: ew-resize; user-select: none; -webkit-user-select: none; border-radius: 10px; overflow: hidden; background: var(--paper); }
-.cmp-line { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px; background: var(--ink); pointer-events: none; }
-.cmp-knob { position: absolute; top: 50%; left: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; background: var(--ink); border: 3px solid var(--surface); box-shadow: 0 1px 6px rgb(0 0 0 / .35); }
-.cmp-knob::before, .cmp-knob::after { content: ""; position: absolute; top: 50%; margin-top: -5px; border: 5px solid transparent; }
-.cmp-knob::before { left: 1px; border-right: 6px solid var(--surface); border-left-width: 0; }
-.cmp-knob::after { right: 1px; border-left: 6px solid var(--surface); border-right-width: 0; }
-.cmp-knob:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-.cmp-tag { position: absolute; top: 8px; padding: 4px 9px; border-radius: 6px; font-size: 13px; color: var(--ink-2); background: color-mix(in srgb, var(--surface) 88%, transparent); pointer-events: none; transition: opacity .2s; }
-.cmp-tag b { color: var(--ink); margin-left: 4px; font-variant-numeric: tabular-nums; }
-.cmp-tag.l { left: 8px; } .cmp-tag.r { right: 8px; }
-.cmp-tab { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; font-variant-numeric: tabular-nums; }
-.cmp-tab th, .cmp-tab td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: right; }
-.cmp-tab thead th { font-weight: 600; color: var(--ink-2); }
-.cmp-tab th[scope=row] { text-align: left; font-weight: 500; color: var(--ink); }
-.cmp-tab th[scope=row] span { display: block; font-size: 12px; font-weight: 400; color: var(--ink-3); }
-.cmp-tab td { color: var(--ink-2); white-space: nowrap; }
-.cmp-tab tr.tot th, .cmp-tab tr.tot td { border-bottom: 0; font-weight: 700; color: var(--ink); font-size: 15px; }
-.cmp-tab tr.tot em { font-style: normal; color: var(--accent); margin-left: 4px; }
-.cmp-tab th, .cmp-tab td { text-transform: none; letter-spacing: normal; background: none; }
-.cmp-red { display: inline-block; width: 14px; height: 3px; border-radius: 2px; background: var(--bad); margin: 0 6px 0 2px; vertical-align: middle; }
-.cmp-why { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
-.cmp-why b { color: var(--ink); }
-@media (max-width: 560px) {
-  .cmp-tag { top: 6px; padding: 3px 6px; font-size: 11px; } .cmp-tag.l { left: 6px; } .cmp-tag.r { right: 6px; }
-  .cmp-tab { font-size: 13px; } .cmp-tab th, .cmp-tab td { padding: 6px 3px; } .cmp-tab thead th { white-space: normal; }
-  .cmp-tab th[scope=row] span { font-size: 11px; } .cmp-tab tr.tot th, .cmp-tab tr.tot td { font-size: 14px; }
-  .cmp-tab tr.tot em { display: block; margin: 0; }
-}
+/* step 4: what optimising changes — every trip a truck, filled to its load */
+.m-head .opt-stage { font: 600 14px var(--body); color: var(--accent); }
+.opt-how { margin: 2px 0 6px; color: var(--ink-2); font-size: 14px; }
+.opt-red { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: var(--bad); margin: 0 5px 0 2px; vertical-align: -1px; }
+.opt-slide { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+.opt-slide input { flex: 1; min-width: 0; accent-color: var(--accent); }
+.opt-why { margin: 10px 0 0; color: var(--ink); font-size: 15px; font-weight: 600; }
 .m-model .eq-rows { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; align-items: baseline; text-align: left; margin: 8px 4px 2px; }
 .m-model .eq-rows > span:nth-child(odd) { white-space: nowrap; }
 .m-model .eq-rows > span:nth-child(even) { font: 400 14px/1.35 var(--body); color: var(--ink-2); }
