@@ -15,11 +15,12 @@ data/first_plan.json, the whole city:
   compare  both plans side by side: trips, trips less than half full, mean load (%), km (and km to and
            from the depot), driving hours, driving cost, bins left out and their prize, total cost
 
-data/route_example.json, the worked example on the website (maths, step 4): tomorrow's 65 bins in one
-window of west Edinburgh, planned from scratch by the same two steps with two trucks: route.initial (the
-quick plan) and route.solve (simulated annealing, 4 s, seed 0). For each plan: the trips with their bins,
-load and street line, the km and the driving cost. Annealing has a time budget, so another machine may
-find a slightly different plan.
+data/route_example.json, the worked example on the website (maths, step 4): tomorrow's 65 stops
+(139 bins) in one window of west Edinburgh around Sighthill, planned from scratch by the same two steps
+with two trucks: route.initial (the quick plan) and route.solve (simulated annealing, 4 s, seed 0).
+"area" is the ward with most of the stops, "bins" the number of stops. For each plan: the trips with
+their stops' positions ("bins"), load and street line, the km and the driving cost. Annealing has a time
+budget, so another machine may find a slightly different plan.
 
 Run it after python3 -m model.run.
 """
@@ -145,7 +146,7 @@ def main():
     X.dump("first_plan.json", {"routes": routes, "compare": M})
     print(f"first plan: {M['first']}\nafter annealing: {M['final']}")
     E = example(st, S, site, q, svc, T, D, nodes, DC.slowdown(plan_t), road)
-    print(f"example, {E['area']}, {E['bins']} bins: " + " → ".join(
+    print(f"example, mostly {E['area']}, {E['bins']} stops: " + " → ".join(
         f"{len(p['trips'])} trips {[t['load'] for t in p['trips']]}, {p['km']} km, £{p['cost']:.0f}" for p in E["plans"]))
 
 
