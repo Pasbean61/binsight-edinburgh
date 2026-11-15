@@ -1088,13 +1088,13 @@ header.top.over { background: transparent; }
   <span class="cover-bar t" aria-hidden="true"></span><span class="cover-bar b" aria-hidden="true"></span>
   <div class="cover-ui wrap">
     <p class="cover-caps" aria-hidden="true">
-      <span data-c="0">Each dot is a shared street bin.</span>
+      <span data-c="0">Each dot is a stop of street bins.</span>
       <span data-c="1">Red means it will be full tomorrow.</span>
       <span data-c="2">So the trucks visit only the red ones.</span>
       <span data-c="3">A £2 sensor in each bin tells us which.</span>
       <span data-c="4">The result: <b data-k="overflowCutWord">82&nbsp;%</b> fewer overflowing bins. <small>simulated week</small></span>
     </p>
-    <p class="sr">Each dot is a shared street bin. Red means it will be full tomorrow, so the trucks visit only the red ones. A £2 sensor in each bin tells us which. The result in a simulated week: <span data-k="overflowCutWord">82&nbsp;%</span> fewer overflowing bins.</p>
+    <p class="sr">Each dot is a stop of street bins. Red means it will be full tomorrow, so the trucks visit only the red ones. A £2 sensor in each bin tells us which. The result in a simulated week: <span data-k="overflowCutWord">82&nbsp;%</span> fewer overflowing bins.</p>
     <div class="cover-row">
       <div class="cover-copy">
         <h1 id="coverTitle"><span class="ln"><span>Empty the full bins.</span></span> <em class="ln"><span>Skip the rest.</span></em></h1>
@@ -1194,7 +1194,7 @@ header.top.over { background: transparent; }
   <div class="card tl-card anim" aria-label="Policy timeline">
     <div class="tl">
       <div class="tl-track"><span class="tl-fill"></span></div>
-      <div class="tl-node" style="--x:13%;--t:.45s"><span class="tl-dot"></span><b>2025</b><h4>Packaging EPR</h4><p>Up to 20 % of £17.3m withheld from inefficient services</p></div>
+      <div class="tl-node" style="--x:13%;--t:.45s"><span class="tl-dot"></span><b>2025</b><h4>Packaging EPR</h4><p>Producers now pay for packaging collection; up to 20 % of £17.3m is withheld from inefficient services</p></div>
       <div class="tl-now" style="--x:40%;--t:.9s"><span class="tl-dot"></span><b>Now</b></div>
       <div class="tl-node" style="--x:56.5%;--t:1.2s"><span class="tl-dot"></span><b>2028</b><h4>Landfill ban</h4><p>Biodegradable waste can no longer go to landfill</p></div>
       <div class="tl-node" style="--x:85.5%;--t:1.8s"><span class="tl-dot"></span><b>2030</b><h4>Circular Economy Act</h4><p>Council recycling targets and contamination penalties</p></div>
@@ -1295,6 +1295,7 @@ header.top.over { background: transparent; }
 <section class="chapter wrap" id="maths">
   <div class="chapter-head">
     <div><span class="eyebrow">How the plan is made</span><h2>Five steps behind the plan</h2></div>
+    <p class="say">The council’s question: <b>which bins need a truck tomorrow, and what is the cheapest way to empty them?</b> Steps 1–2 forecast the fill, steps 3–4 choose the stops and the routes, and step 5 checks the result against today’s timetable.</p>
   </div>
   <div class="m-tabs" role="tablist" id="mTabs">
     <button type="button" role="tab" data-m="0" class="on"><span class="k">1</span>Simulate<small>how bins fill</small></button>
@@ -1320,7 +1321,7 @@ header.top.over { background: transparent; }
         <p class="note">Every parameter and its source is in <span class="mono">model/README.md</span>.</p>
       </div>
       <div class="m-widget">
-        <div class="slider"><div class="top"><label for="mRho">Daily fill share <var>ρ</var></label><output id="oRho">0.21</output></div><input type="range" id="mRho" min="0.08" max="0.6" step="0.01" value="0.21"><small>Share of the stop’s capacity filled on an average day. 0.21 is the typical stop.</small></div>
+        <div class="slider"><div class="top"><label for="mRho">How busy the stop is, <var>ρ</var></label><output id="oRho">0.21</output></div><input type="range" id="mRho" min="0.08" max="0.6" step="0.01" value="0.21"><small>Share of the stop’s capacity filled on an average day. 0.21 is the typical stop.</small></div>
         <svg class="chart" id="mPaths" viewBox="0 0 520 260" role="img" aria-label="Simulated fill paths over one week with a truck every two days"></svg>
         <div class="m-row"><button class="btn ghost sm" type="button" id="mRedraw">Draw three new weeks</button><span class="muted small" id="mPathNote"></span></div>
       </div>
@@ -1399,6 +1400,7 @@ header.top.over { background: transparent; }
         <ul class="m-list">
           <li><b>Decisions</b> (each 0 or 1): \(x_{ijkr}\) truck \(k\) drives \(i \to j\) on trip \(r\); \(z_{ikr}\) it empties bin \(i\); \(u_{kr}\) it makes trip \(r\).</li>
           <li><b>Costs.</b> \(c_{ij}\) = £@costKm@ per km + £@costHour@ per truck-hour. Leaving bin \(i\) out costs \(\pi_i = @costOverflow@ \times \hat y_i / 100\), so the emptiest wait first.</li>
+          <li><b>Solved by simulated annealing.</b> Start from a quick plan (each truck takes the nearest bins), then try small changes: move a stop to another trip, swap two stops, reverse part of a route. Keep a change if it lowers the cost; early on, sometimes keep a worse one too, so the search does not get stuck. Tomorrow’s plan: <span data-mk="saIters">6.2 million</span> changes tried in <span data-mk="saSecs">30</span> seconds.</li>
         </ul>
       </div>
       <div class="m-widget">
@@ -2391,7 +2393,7 @@ BS.highlightStops = ids => {
 function initConsole() {
   const s = D.site, p = s.plan, t = s.totals;
   $("#consoleKpis").innerHTML = [
-    [fmt(t.stops), "stops monitored"], [fmt(p.flagged), "flagged for tomorrow"], [`${p.trucks_used} / ${p.trips}`, "trucks / trips"],
+    [fmt(t.stops), "stops monitored"], [fmt(p.flagged), "flagged for tomorrow"], [fmt(p.trips), `trips by ${p.trucks_used} trucks`],
     [fmt(p.solver_km) + " km", "planned distance"], [fmt(p.load_l / 1000) + " m³", "waste to collect"], [fmt(p.co2_kg) + " kg", "CO₂ from driving"],
   ].map(([b, s]) => `<div class="ck"><b>${b}</b><span>${s}</span></div>`).join("");
   const ws = $("#wardSel");
@@ -2456,7 +2458,7 @@ function renderBins() {
   const th = (k, l, n) => `<th class="sortable ${n ? "n" : ""}" data-k="${k}">${l}${binSort.k === k ? (binSort.dir < 0 ? " ↓" : " ↑") : ""}</th>`;
   const bar = (v, c) => `<span class="bar-cell">${fmt(v)}%<span class="bar"><span style="width:${v}%;background:${c}"></span></span></span>`;
   host.innerHTML = `<div class="tablewrap"><table><thead><tr>${th("site", "Street")}<th>Location</th>${th("ward", "Ward")}${th("cap", "Capacity", 1)}${th("fill", "Now", 1)}${th("pred", "Tomorrow", 1)}${th("gain", "Fills a day", 1)}<th>Truck</th></tr></thead><tbody>
-    ${rows.map(i => `<tr data-i="${i}"><td><b>${esc(S.site[i])}</b></td><td class="muted" style="max-width:240px;overflow:hidden;text-overflow:ellipsis">${esc(S.loc[i])}</td><td>${esc(D.wards[S.ward[i]].name)}</td><td class="n">${fmt(S.cap[i])} L</td><td class="n">${bar(S.fill[i], fillColor(S.fill[i]))}</td><td class="n">${bar(S.pred[i], fillColor(S.pred[i]))}</td><td class="n">${fmt(S.gain[i])} pts</td><td class="mono">${S.truck[i] >= 0 ? D.trucks[S.truck[i]].truck.replace("EDI-", "") : "–"}</td></tr>`).join("")}
+    ${rows.map(i => `<tr data-i="${i}"><td><b>${esc(S.site[i])}</b></td><td class="muted" style="max-width:240px;overflow:hidden;text-overflow:ellipsis">${esc(S.loc[i])}</td><td>${esc(D.wards[S.ward[i]].name)}</td><td class="n">${fmt(S.cap[i])} L</td><td class="n">${bar(S.fill[i], fillColor(S.fill[i]))}</td><td class="n">${bar(S.pred[i], fillColor(S.pred[i]))}</td><td class="n">${fmt(S.gain[i])} %</td><td class="mono">${S.truck[i] >= 0 ? D.trucks[S.truck[i]].truck.replace("EDI-", "") : "–"}</td></tr>`).join("")}
   </tbody></table></div><div class="pager"><span>${fmt(ids.length)} stops${binQuery ? ` on ${esc(binQuery)} <button class="linkbtn" id="clearQ">show all</button>` : ""}${UI.ward >= 0 ? " in " + esc(D.wards[UI.ward].name) : ""} · simulated fill</span><span><button id="pgPrev" ${binPage ? "" : "disabled"}>Previous</button> ${binPage + 1} / ${pages} <button id="pgNext" ${binPage < pages - 1 ? "" : "disabled"}>Next</button></span></div>`;
   $$("th.sortable", host).forEach(t => t.onclick = () => { binSort = { k: t.dataset.k, dir: binSort.k === t.dataset.k ? -binSort.dir : -1 }; renderBins(); });
   $$("tbody tr", host).forEach(tr => tr.onclick = () => { BS.focusStop(+tr.dataset.i); BS.jump(".map-shell", "center"); });
@@ -2576,6 +2578,7 @@ function initMaths() {
     K: fmt(P.COLLECT_EVERY_DAYS), sigma: P.DAILY_FILL_SPREAD.toFixed(2), bag: fmt(P.BAG_L), U: P.FILL_AT_COLLECTION.toFixed(3), noise: fmt(P.SENSOR_NOISE),
     trees: fmt(F.trees), nTrain: fmt(F.n_train), floor: fmt(P.FLOOR), loadM3: fmt(P.TRUCK_LOAD_L / 1000),
     roadKm: fmt(D.site.totals.road_km), nStops: fmt(M.route.stops), fleet: fmt(D.site.fleet.trucks),
+    saIters: (M.route.iterations / 1e6).toFixed(1) + " million", saSecs: fmt(M.route.seconds),
     snap: dayTime(new Date(D.site.snapshot)), tgt: dayTime(fcTarget()), planDay: new Date(D.site.plan_day + "T12:00").toLocaleString("en-GB", { weekday: "long" }),
   };
   $$("[data-mk]").forEach(el => { const v = vals[el.dataset.mk]; if (v != null) el.textContent = v; });
@@ -2601,7 +2604,7 @@ function mathsSimulate(M) {
   const hw = M.fill.hour_w, hm = hw.reduce((s, v) => s + v, 0) / hw.length, a = hw.map(v => v / hm);
   let seed = 11;
   const draw = () => {
-    const rho = +$("#mRho").value; $("#oRho").textContent = rho.toFixed(2);
+    const rho = +$("#mRho").value; $("#oRho").textContent = `${Math.round(100 * rho)} % full a day`;
     const W = 520, H = 260, l = 34, r = 10, t = 14, b = 28, x = h => l + h / 168 * (W - l - r), y = v => t + (1 - v / 100) * (H - t - b);
     const bagsDay = cap * rho / P.BAG_L;
     const paths = [], over = [], atColl = [];
@@ -2871,7 +2874,7 @@ function initResults() {
   // 2 · the three methods side by side
   const M = [
     [F, "Today", "Every bin, every 2 days, full or not.", `${fmt(100 * F.share_under_40)} % of its visits find a bin less than 40 % full.`],
-    [R, "Sensors only", `Empty a bin once it reads ${fmt(P.REACTIVE_AT)} %.`, "Too late: the bin often overflows before the truck arrives."],
+    [R, "Sensors only", `Empty a bin once it reads ${fmt(P.REACTIVE_AT)} %.`, `Too late: the bin often overflows before the truck arrives. It drives the least, but ${fmt(100 * R.overflow_events_day * P.COST_OVERFLOW / R.cost_day)} % of its cost is the £${fmt(P.COST_OVERFLOW)} overflow penalty.`],
     [B, "Sensors + forecast", "Empty the bins that will be full tomorrow.", "Sees the overflow coming and gets there first."],
   ];
   $("#methods").innerHTML = M.map(([r, tag, how, verdict]) => `<div class="card method${r.policy === "binsight" ? " on" : ""}">
