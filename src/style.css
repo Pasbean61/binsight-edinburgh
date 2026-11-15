@@ -492,31 +492,37 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 /* step 4: objective and constraints, labelled separately */
 .m-cons { padding: 12px 12px 10px; }
 .m-text .m-lead { color: var(--ink); margin: 16px 0 -2px; }
-.opt-cost { margin: 0 0 6px; color: var(--ink-2); font-size: 15px; font-variant-numeric: tabular-nums; }
-.opt-cost b { color: var(--ink); font: 700 20px var(--display); }
-.opt-cost em { font-style: normal; font-weight: 700; color: var(--accent); margin-left: 4px; }
-.rt-hud { display: flex; align-items: baseline; gap: 4px 12px; flex-wrap: wrap; min-height: 22px; font-size: 14px; }
-#rtState { color: var(--ink); font-weight: 600; }
-.rt-key { margin-left: auto; display: flex; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); }
-.rt-key i { display: inline-block; width: 16px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
-.rt-key button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
-.rt-key button:hover, .rt-key button.on { color: var(--ink); }
-.rt-key button:hover { text-decoration: underline; text-underline-offset: 3px; }
-.rt-key button.on { font-weight: 600; }
-/* step 4: the time slider's track shows the truck's day, trip by trip; the thumb is the truck */
-.rt-time { position: relative; height: 24px; }
-.rt-seg { position: absolute; left: 9px; right: 9px; top: 8px; height: 8px; border-radius: 4px; overflow: hidden; }
-#rtSegBase { background: var(--line); }
-#rtSegBase i { opacity: .3; }
-.rt-seg i { position: absolute; top: 0; bottom: 0; }
-.rt-time input { position: absolute; inset: 0; width: 100%; height: 24px; margin: 0; -webkit-appearance: none; appearance: none; background: none; cursor: pointer; }
-.rt-time input::-webkit-slider-runnable-track { height: 24px; background: none; }
-.rt-time input::-moz-range-track { height: 24px; background: none; }
-.rt-time input::-webkit-slider-thumb { -webkit-appearance: none; box-sizing: border-box; width: 18px; height: 18px; margin-top: 3px; border-radius: 50%; background: var(--ink); border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--ink-3); }
-.rt-time input::-moz-range-thumb { box-sizing: border-box; width: 18px; height: 18px; border-radius: 50%; background: var(--ink); border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--ink-3); }
-.rt-time input:focus-visible { outline: none; }
-.rt-time input:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--accent); }
-.rt-time input:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--accent); }
+/* step 4: before and after optimising — the line splits the map, the table splits the objective */
+.cmp-how { margin: 2px 0 8px; color: var(--ink-2); font-size: 14px; }
+.cmp-how b { color: var(--ink); }
+.cmp-map { position: relative; touch-action: pan-y; cursor: ew-resize; user-select: none; -webkit-user-select: none; border-radius: 10px; overflow: hidden; background: var(--paper); }
+.cmp-line { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px; background: var(--ink); pointer-events: none; }
+.cmp-knob { position: absolute; top: 50%; left: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; background: var(--ink); border: 3px solid var(--surface); box-shadow: 0 1px 6px rgb(0 0 0 / .35); }
+.cmp-knob::before, .cmp-knob::after { content: ""; position: absolute; top: 50%; margin-top: -5px; border: 5px solid transparent; }
+.cmp-knob::before { left: 1px; border-right: 6px solid var(--surface); border-left-width: 0; }
+.cmp-knob::after { right: 1px; border-left: 6px solid var(--surface); border-right-width: 0; }
+.cmp-knob:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.cmp-tag { position: absolute; top: 8px; padding: 4px 9px; border-radius: 6px; font-size: 13px; color: var(--ink-2); background: color-mix(in srgb, var(--surface) 88%, transparent); pointer-events: none; transition: opacity .2s; }
+.cmp-tag b { color: var(--ink); margin-left: 4px; font-variant-numeric: tabular-nums; }
+.cmp-tag.l { left: 8px; } .cmp-tag.r { right: 8px; }
+.cmp-tab { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.cmp-tab th, .cmp-tab td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: right; }
+.cmp-tab thead th { font-weight: 600; color: var(--ink-2); }
+.cmp-tab th[scope=row] { text-align: left; font-weight: 500; color: var(--ink); }
+.cmp-tab th[scope=row] span { display: block; font-size: 12px; font-weight: 400; color: var(--ink-3); }
+.cmp-tab td { color: var(--ink-2); white-space: nowrap; }
+.cmp-tab tr.tot th, .cmp-tab tr.tot td { border-bottom: 0; font-weight: 700; color: var(--ink); font-size: 15px; }
+.cmp-tab tr.tot em { font-style: normal; color: var(--accent); margin-left: 4px; }
+.cmp-tab th, .cmp-tab td { text-transform: none; letter-spacing: normal; background: none; }
+.cmp-red { display: inline-block; width: 14px; height: 3px; border-radius: 2px; background: var(--bad); margin: 0 6px 0 2px; vertical-align: middle; }
+.cmp-why { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
+.cmp-why b { color: var(--ink); }
+@media (max-width: 560px) {
+  .cmp-tag { top: 6px; padding: 3px 6px; font-size: 11px; } .cmp-tag.l { left: 6px; } .cmp-tag.r { right: 6px; }
+  .cmp-tab { font-size: 13px; } .cmp-tab th, .cmp-tab td { padding: 6px 3px; } .cmp-tab thead th { white-space: normal; }
+  .cmp-tab th[scope=row] span { font-size: 11px; } .cmp-tab tr.tot th, .cmp-tab tr.tot td { font-size: 14px; }
+  .cmp-tab tr.tot em { display: block; margin: 0; }
+}
 .m-model .eq-rows { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; align-items: baseline; text-align: left; margin: 8px 4px 2px; }
 .m-model .eq-rows > span:nth-child(odd) { white-space: nowrap; }
 .m-model .eq-rows > span:nth-child(even) { font: 400 14px/1.35 var(--body); color: var(--ink-2); }
