@@ -499,6 +499,8 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 .m-model .eq-rows > span:nth-child(even) { font: 400 14px/1.35 var(--body); color: var(--ink-2); }
 .m-model .eq-rows .katex { font-size: 1.02em; }
 .m-model .katex-display { overflow-x: auto; overflow-y: hidden; }
+.m-model .obj-two { display: none; }
+@media (max-width: 420px) { .m-model .obj-one { display: none; } .m-model .obj-two { display: block; } .m-model .eq-rows > span:nth-child(odd) { white-space: normal; } }
 @media (max-width: 560px) { .m-model .katex-display > .katex { font-size: .92em; } .m-model .eq-rows { grid-template-columns: 1fr; gap: 2px; } .m-model .eq-rows > span:nth-child(even) { margin-bottom: 8px; } }
 div.card.step { cursor: default; }
 .how-more { margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap; }
