@@ -21,6 +21,7 @@ function initMaths() {
     K: fmt(P.COLLECT_EVERY_DAYS), sigma: P.DAILY_FILL_SPREAD.toFixed(2), bag: fmt(P.BAG_L), U: P.FILL_AT_COLLECTION.toFixed(3), noise: fmt(P.SENSOR_NOISE),
     trees: fmt(F.trees), nTrain: fmt(F.n_train), floor: fmt(P.FLOOR), loadM3: fmt(P.TRUCK_LOAD_L / 1000),
     roadKm: fmt(D.site.totals.road_km), nStops: fmt(M.route.stops), fleet: fmt(D.site.fleet.trucks),
+    snap: dayTime(new Date(D.site.snapshot)), tgt: dayTime(fcTarget()), planDay: new Date(D.site.plan_day + "T12:00").toLocaleString("en-GB", { weekday: "long" }),
   };
   $$("[data-mk]").forEach(el => { const v = vals[el.dataset.mk]; if (v != null) el.textContent = v; });
   // @key@ tokens in the text and in the LaTeX, then typeset the LaTeX with KaTeX
@@ -89,7 +90,7 @@ function mathsPredict(M) {
     `<path d="${past}" fill="none" stroke="${PAL.ink}" stroke-width="1.6"/>` +
     `<line x1="${x(0)}" y1="${y(last)}" x2="${x(n1)}" y2="${y(ex.proj)}" stroke="${PAL.accent}" stroke-width="2" stroke-dasharray="5 3"/>` +
     `<circle cx="${x(n1)}" cy="${y(ex.proj)}" r="4" fill="${PAL.accent}"/><text x="${x(n1) - 6}" y="${y(ex.proj) - 8}" text-anchor="end" style="fill:${PAL.accent};font-weight:600">ŷ = ${fmt(ex.proj)} %</text>` +
-    `<line class="ax" x1="${x(0)}" x2="${x(0)}" y1="${t}" y2="${y(0)}"/><text x="${x(0)}" y="${H - 8}" text-anchor="middle">now (05:00)</text><text x="${x(-n0 + 1)}" y="${H - 8}">−72 h</text><text x="${W - r}" y="${H - 8}" text-anchor="end">14:00 tomorrow</text>`;
+    `<line class="ax" x1="${x(0)}" x2="${x(0)}" y1="${t}" y2="${y(0)}"/><text x="${x(0)}" y="${H - 8}" text-anchor="middle">now (${dayTime(new Date(D.site.snapshot))})</text><text x="${x(-n0 + 1)}" y="${H - 8}">−72 h</text><text x="${W - r}" y="${H - 8}" text-anchor="end">${dayTime(fcTarget())}</text>`;
   $("#fcNote").innerHTML = `Solid: the last 72 hours of readings. Dashed: the projection ${tex(`\\hat y = y + H\\hat g`)} with ${tex(`H = ${fmt(n1)}`)} h, <b>${fmt(ex.proj)} %</b>. ${ex.proj >= P.FLOOR ? `Above the ${fmt(P.FLOOR)} % floor, so it is a candidate for tomorrow.` : `Below the ${fmt(P.FLOOR)} % floor, so it can wait.`}`;
   // importance
   const imp = Object.entries(F.importance).sort((p, q) => q[1] - p[1]);
@@ -252,7 +253,7 @@ function mathsRoute(M) {
       k = to;
       const p = plans[k];
       $("#exStage").textContent = k ? "After simulated annealing" : "Quick plan";
-      $("#exSum").innerHTML = `<b>${p.trips.length} trips</b> from Seafield · <b>${fmt(p.km)} km</b> · <b>£${fmt(p.cost)}</b>`;
+      $("#exSum").innerHTML = `<b>${p.trips.length} trips</b> from Seafield · <b>${fmt(p.km)} km</b> · <b>£${fmt(p.cost)}</b> driving cost`;
       $("#exKey").innerHTML = p.trips.map((t, j) => `<span><i style="background:${t.col}"></i>Trip ${j + 1}: ${t.bins.length} stops, ${pc(t.load)} % full</span>`).join("");
       slider.value = k;
       if (!map) return 0;
@@ -274,7 +275,7 @@ function mathsRoute(M) {
     slider.onchange = () => show(+slider.value < .5 ? 0 : 1, true);
     slider.onkeydown = e => { const to = { ArrowLeft: 0, ArrowDown: 0, Home: 0, ArrowRight: 1, ArrowUp: 1, End: 1 }[e.key]; if (to != null) { e.preventDefault(); show(to, true); } };
     const [A, Z] = plans, CA = F.compare.first, CZ = F.compare.final;
-    $("#exWhy").textContent = `${Z.trips.length} trips instead of ${A.trips.length}: ${fmt(A.km - Z.km)} km less, ${fmt(100 * (1 - Z.cost / A.cost))} % cheaper. Across the whole city the same effect gives ${fmt(CA.trips - CZ.trips)} fewer trips and £${fmt(CA.total - CZ.total)} a day less (−${fmt(100 * (1 - CZ.total / CA.total))} %).`;
+    $("#exWhy").textContent = `${Z.trips.length} trips instead of ${A.trips.length}: ${fmt(A.km - Z.km)} km less, ${fmt(100 * (1 - Z.cost / A.cost))} % less driving cost. Across the whole city the same effect gives ${fmt(CA.trips - CZ.trips)} fewer trips and £${fmt(CA.total - CZ.total)} a day less driving cost (−${fmt(100 * (1 - CZ.total / CA.total))} %).`;
     $("#exStops").textContent = fmt(E.bins); $("#exBins").textContent = fmt(nBins); $("#exKm").textContent = fmt(E.depot_km);
     show(0, false); ready();
     // the first time it comes into view: draw the quick plan, wait, then the plan after annealing
