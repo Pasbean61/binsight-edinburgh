@@ -345,13 +345,19 @@
         </ul>
       </div>
       <div class="m-widget">
-        <div class="m-head"><b>Tomorrow’s optimised routes</b></div>
-        <p class="opt-cost" id="optCost">–</p>
-        <div class="rt-hud"><span id="rtState">–</span><span class="rt-key" id="rtKey"></span></div>
-        <svg class="chart" id="mRoute" viewBox="0 0 520 360" role="img" aria-label="One truck’s optimised trips for tomorrow, drawn on the real streets"></svg>
-        <div class="slider"><div class="top"><label for="mRtT">Time of day</label><output id="oRtT">06:00</output></div><div class="rt-time"><div class="rt-seg" id="rtSegBase"></div><div class="rt-seg" id="rtSegOn"></div><input type="range" id="mRtT" min="0" max="480" step="1" value="0"></div></div>
-        <div class="slider"><div class="top"><label for="mRtK">Truck</label><output id="oRtK">1 of 34</output></div><input type="range" id="mRtK" min="1" max="34" step="1" value="1"></div>
-        <div class="m-counts" id="rtOut"></div>
+        <div class="m-head"><b>Tomorrow’s routes, before and after optimising</b></div>
+        <p class="cmp-how">Drag the line across the map. <b>Left:</b> the first plan, where each truck takes the nearest bin that still fits. <b>Right:</b> the same <span data-mk="nStops">2,127</span> bins after simulated annealing. <i class="cmp-red"></i>Red: a trip less than half full.</p>
+        <div class="cmp-map" id="cmpMap">
+          <svg class="chart" id="mRoute" viewBox="0 0 520 380" role="img" aria-label="Tomorrow’s routes for all trucks: the first plan on the left of the line, the plan after simulated annealing on the right"></svg>
+          <span class="cmp-tag l" id="cmpTagL">First plan</span><span class="cmp-tag r" id="cmpTagR">After annealing</span>
+          <div class="cmp-line" id="cmpLine"></div>
+          <div class="cmp-knob" id="cmpKnob" role="slider" tabindex="0" aria-label="Move the line between the first plan and the plan after annealing" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></div>
+        </div>
+        <table class="cmp-tab">
+          <thead><tr><th></th><th>First plan</th><th>After annealing</th></tr></thead>
+          <tbody id="cmpRows"></tbody>
+        </table>
+        <p class="cmp-why" id="cmpWhy"></p>
       </div>
     </div>
   </div>
