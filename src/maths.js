@@ -240,7 +240,12 @@ function mathsRoute(M) {
     el.dots = day.trips.map((tr, j) => [...svgEl.querySelectorAll(`circle[data-j="${j}"]`)]);
     el.truck = $("#rtTruck");
     $("#oRtK").textContent = `${k + 1} of ${routes.length}`;
-    $("#rtKey").innerHTML = day.trips.map((tr, j) => `<span><i style="background:${cols[j % 3]}"></i>Trip ${j + 1} · ${tr.stops.length} bins</span>`).join("");
+    $("#rtKey").innerHTML = day.trips.map((tr, j) => `<button type="button" data-j="${j}" title="Play trip ${j + 1}"><i style="background:${cols[j % 3]}"></i>Trip ${j + 1} · ${tr.stops.length} bins</button>`).join("") +
+      `<span><i style="background:${PAL.ink3}"></i>Tipping</span>`;
+    // the time slider's track is this truck's day: each trip in its colour, tipping at Seafield in grey, spare shift time empty
+    const pc = m => `${(100 * m / tMax).toFixed(2)}%`;
+    const segs = day.trips.map((tr, j) => `<i style="left:${pc(tr.t0)};width:${pc(tr.t1 - tr.t0)};background:${cols[j % 3]}"></i><i style="left:${pc(tr.t1)};width:${pc(tr.tEnd - tr.t1)};background:${PAL.ink3}"></i>`).join("");
+    $("#rtSegBase").innerHTML = segs; $("#rtSegOn").innerHTML = segs;
   };
   const upTo = (tr, d) => {
     const c = tr.cum; let lo = 0, hi = c.length - 1;
@@ -258,21 +263,24 @@ function mathsRoute(M) {
     const pos = p.j < day.trips.length && p.d >= 0 ? along(day.trips[p.j], p.d) : dep;
     el.truck.setAttribute("transform", `translate(${X(pos[1]).toFixed(1)},${Y(pos[0]).toFixed(1)})`);
     tIn.value = t; $("#oRtT").textContent = hhmm(t); $("#rtState").textContent = p.state;
+    $("#rtSegOn").style.clipPath = `inset(0 ${(100 - 100 * Math.min(t, tMax) / tMax).toFixed(2)}% 0 0)`;
+    $$("#rtKey button").forEach((b, j) => b.classList.toggle("on", j === p.j));
     $("#rtOut").innerHTML = [[`${fmt(p.done)} / ${fmt(day.n)}`, "bins emptied"], [`${fmt(p.km, 1)} km`, `of ${fmt(day.km, 1)} km driven`], [`${fmt(100 * p.load / R.capacity_l)} %`, "truck full"]]
       .map(([a, b]) => `<div><b>${a}</b><span>${b}</span></div>`).join("");
   };
-  // play the truck's day in about six seconds; any drag on the sliders takes over
+  // play part of the truck's day (the whole day takes about six seconds); any drag on the sliders takes over
   const halt = () => { cancelAnimationFrame(raf); raf = 0; };
-  const play = () => {
+  const play = (from = 0, to = day.end) => {
     halt();
-    if (still) { t = day.end; show(); return; }
-    let last = 0; t = 0;
-    const step = now => { if (last) t = Math.min(day.end, t + (now - last) * day.end / 6000); last = now; show(); raf = t < day.end ? requestAnimationFrame(step) : 0; };
+    if (still) { t = to; show(); return; }
+    let last = 0; t = from;
+    const step = now => { if (last) t = Math.min(to, t + (now - last) * day.end / 6000); last = now; show(); raf = t < to ? requestAnimationFrame(step) : 0; };
     raf = requestAnimationFrame(step);
   };
   tIn.oninput = () => { halt(); t = +tIn.value; show(); };
   kIn.oninput = () => { halt(); k = +kIn.value - 1; draw(); show(); };
-  kIn.onchange = play;
+  kIn.onchange = () => play();
+  $("#rtKey").onclick = e => { const b = e.target.closest("button[data-j]"); if (b) { const tr = day.trips[+b.dataset.j]; play(tr.t0, tr.tEnd - .01); } };
   draw(); show();
   if ("IntersectionObserver" in window) new IntersectionObserver((es, ob) => { if (es.some(e => e.isIntersecting)) { ob.disconnect(); play(); } }, { threshold: .4 }).observe(svgEl);
   else { t = day.end; show(); }
