@@ -345,19 +345,12 @@
         </ul>
       </div>
       <div class="m-widget">
-        <div class="m-head"><b>Tomorrow’s routes, before and after optimising</b></div>
-        <p class="cmp-how">Drag the line across the map. <b>Left:</b> the first plan, where each truck takes the nearest bin that still fits. <b>Right:</b> the same <span data-mk="nStops">2,127</span> bins after simulated annealing. <i class="cmp-red"></i>Red: a trip less than half full.</p>
-        <div class="cmp-map" id="cmpMap">
-          <svg class="chart" id="mRoute" viewBox="0 0 520 380" role="img" aria-label="Tomorrow’s routes for all trucks: the first plan on the left of the line, the plan after simulated annealing on the right"></svg>
-          <span class="cmp-tag l" id="cmpTagL">First plan</span><span class="cmp-tag r" id="cmpTagR">After annealing</span>
-          <div class="cmp-line" id="cmpLine"></div>
-          <div class="cmp-knob" id="cmpKnob" role="slider" tabindex="0" aria-label="Move the line between the first plan and the plan after annealing" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></div>
-        </div>
-        <table class="cmp-tab">
-          <thead><tr><th></th><th>First plan</th><th>After annealing</th></tr></thead>
-          <tbody id="cmpRows"></tbody>
-        </table>
-        <p class="cmp-why" id="cmpWhy"></p>
+        <div class="m-head"><b>What optimising changes</b><span class="opt-stage" id="optStage">First plan</span></div>
+        <p class="opt-how">Each truck is one trip from Seafield, filled to its load, fullest first. <i class="opt-red"></i>Red: less than half full.</p>
+        <svg class="chart" id="mRoute" viewBox="0 0 520 310" role="img" aria-label="Tomorrow’s trips as trucks filled to their load: 81 trips in the first plan, 70 fuller trips after simulated annealing"></svg>
+        <div class="opt-slide"><span>First plan</span><input type="range" id="mOpt" min="0" max="1" step="0.001" value="0" aria-label="From the first plan to the plan after simulated annealing"><span>After annealing</span></div>
+        <div class="m-counts" id="rtOut"></div>
+        <p class="opt-why" id="optWhy"></p>
       </div>
     </div>
   </div>
