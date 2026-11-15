@@ -156,7 +156,7 @@
   <div class="steps" id="steps">
     <div class="card step"><span class="k">Step 1</span><h3>Measure</h3><p>A small sensor under the lid measures how full the bin is, every hour.</p></div>
     <div class="card step"><span class="k">Step 2</span><h3>Forecast</h3><p>A model combines those readings with the weather, the day of the week and holidays, and predicts how full each bin will be tomorrow.</p></div>
-    <div class="card step"><span class="k">Step 3</span><h3>Route</h3><p>Bins forecast to reach 80 % go on tomorrow’s list, fullest first, and the trucks get the shortest routes to them.</p></div>
+    <div class="card step"><span class="k">Step 3</span><h3>Route</h3><p>Bins forecast to reach 80 % go on tomorrow’s list, fullest first, and the trucks get the lowest-cost routes to them.</p></div>
     <div class="card step"><span class="k">Step 4</span><h3>Collect</h3><p>Crews follow the plan, and residents can report a problem in an app.</p></div>
   </div>
 
@@ -280,7 +280,7 @@
         <div class="eq">\[ \text{Example:}\quad @exY@\,\% + @H@\ \text{h} \times @exG@\ \text{points/h} \approx @exP@\,\% \]</div>
         <ul class="m-list">
           <li><b>What the model looks at:</b> the latest reading, how fast the bin has been filling, the weekday, and the weather and holidays ahead.</li>
-          <li><b>Hours ahead:</b> until 14:00 tomorrow, the bin’s next chance of a truck.</li>
+          <li><b>Hours ahead:</b> from the last reading (<span data-mk="snap">Mon 23:00</span>) to <span data-mk="tgt">Wed 14:00</span>. A bin skipped on <span data-mk="planDay">Tuesday</span>’s shift gets its next truck by then.</li>
           <li><b>Over 100 % is allowed.</b> A forecast of 130 % means the bin will overflow well before the truck comes, so it goes to the top of the list.</li>
         </ul>
       </div>
