@@ -78,7 +78,7 @@ model/                      the BinSight model (Python: numpy, scipy, scikit-lea
   experiment.py             before and after: timetable vs reactive vs BinSight
   export.py, run.py         site data and the entry point
 scripts/build_page.py       src/ → index.html and site/binsight.html
-scripts/export_first_plan.py  tomorrow's first plan before annealing (data/first_plan.json, maths step 4)
+scripts/export_first_plan.py  the plan before annealing and the worked example (data/first_plan.json, data/route_example.json; maths step 4)
 docs/                       README images
 ```
 
@@ -88,7 +88,7 @@ docs/                       README images
 python3 -m pip install numpy scipy scikit-learn pyproj
 python3 scripts/fetch_cache.py       # once: downloads the road-network cache (131 MB) from the release road-cache-v1
 python3 -m model.run --experiments   # about 25 minutes on 10 cores; omit the flag to reuse cached experiments
-python3 scripts/export_first_plan.py # the plan before annealing, for the before-and-after route maps (maths step 4)
+python3 scripts/export_first_plan.py # the plan before annealing and the one-area worked example (maths step 4)
 python3 scripts/build_page.py
 ```
 
