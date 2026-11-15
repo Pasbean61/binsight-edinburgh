@@ -324,7 +324,7 @@
     <div class="m-grid">
       <div class="m-text">
         <h3>What is the lowest-cost way to empty them?</h3>
-        <p class="m-idea">Each truck leaves Seafield, empties its bins and drives back to tip when it is full, all within one shift. We choose the routes with the lowest total cost.</p>
+        <p class="m-idea">Each truck empties its bins in trips from Seafield, all within one shift. We pick the routes with the lowest total cost.</p>
         <div class="eq hl m-model">
           <div class="eq-tag">Objective · lowest total cost</div>
           <div class="obj-one">\[ \min \;\; \underbrace{\textstyle\sum_{k,r}\sum_{i,j} c_{ij}\, x_{ijkr}}_{\text{driving cost}} \;+\; \underbrace{\textstyle\sum_i \pi_i \bigl(1 - \sum_{k,r} z_{ikr}\bigr)}_{\text{bins left out}} \]</div>
@@ -333,33 +333,28 @@
         <div class="eq m-model m-cons">
           <div class="eq-tag">Constraints</div>
           <div class="eq-rows">
-            <span>\(\sum_{k,r} z_{ikr} \le 1\)</span><span>each bin is emptied at most once</span>
-            <span>\(\sum_j x_{ijkr} = \sum_j x_{jikr} = z_{ikr}\)</span><span>a truck that reaches a bin also leaves it</span>
-            <span>\(\sum_j x_{0jkr} = u_{kr}\)</span><span>every trip starts at Seafield</span>
-            <span>\(\sum_i q_i\, z_{ikr} \le Q\, u_{kr}\)</span><span>at most one truckload (@loadM3@ m³) per trip</span>
-            <span>\(\sum_r \bigl(\text{drive} + \text{lift} + \text{tip}\bigr) \le @shift@\ \text{min}\)</span><span>each truck works one shift</span>
-            <span>\(x, z, u \in \{0, 1\}\)</span><span>yes-or-no choices, no loops cut off from Seafield</span>
+            <span>\(\sum_{k,r} z_{ikr} \le 1\)</span><span>each bin at most once</span>
+            <span>\(\sum_i q_i\, z_{ikr} \le Q\, u_{kr}\)</span><span>one truckload (@loadM3@ m³) per trip</span>
+            <span>\(\sum_r \bigl(\text{drive} + \text{lift} + \text{tip}\bigr) \le @shift@\ \text{min}\)</span><span>one shift per truck</span>
+            <span>\(\sum_j x_{ijkr} = \sum_j x_{jikr} = z_{ikr}\)</span><span>trips start at Seafield; a truck that arrives also leaves</span>
           </div>
         </div>
         <ul class="m-list">
-          <li><b>Decisions.</b> \(x_{ijkr} = 1\): truck \(k\) drives from bin \(i\) to bin \(j\) on trip \(r\). \(z_{ikr} = 1\): it empties bin \(i\). \(u_{kr} = 1\): it makes trip \(r\).</li>
-          <li><b>Costs.</b> Driving \(c_{ij}\) = £@costKm@ per km + £@costHour@ per truck-hour, slower in rain. Leaving a bin out costs \(\pi_i = @costOverflow@ \times \hat y_i / 100\), its share of a £@costOverflow@ overflow, so the emptiest bins wait first.</li>
-          <li><b>Solved by simulated annealing.</b> There are far too many routes to try them all, so we improve one plan by small changes, as the demo on the right shows.</li>
+          <li><b>Decisions</b> (each 0 or 1): \(x_{ijkr}\) truck \(k\) drives \(i \to j\) on trip \(r\); \(z_{ikr}\) it empties bin \(i\); \(u_{kr}\) it makes trip \(r\).</li>
+          <li><b>Costs.</b> \(c_{ij}\) = £@costKm@ per km + £@costHour@ per truck-hour. Leaving bin \(i\) out costs \(\pi_i = @costOverflow@ \times \hat y_i / 100\), so the emptiest wait first.</li>
         </ul>
-        <p class="note" id="routeNote"></p>
       </div>
       <div class="m-widget">
-        <div class="m-head"><b>Watch it anneal 12 real stops</b><span class="muted small" id="toySub"></span></div>
-        <div class="m-row" style="margin:6px 0 4px">
-          <button class="btn primary sm" type="button" id="saPlay">Run</button>
-          <button class="btn ghost sm" type="button" id="saStep">One move</button>
-          <button class="btn ghost sm" type="button" id="saNew">New random start</button>
+        <div class="m-head"><b>Tomorrow’s optimised routes</b></div>
+        <div class="opt-gain"><b id="optCost">–</b><span id="optGain"></span></div>
+        <div class="m-row rt-nav">
+          <button class="btn ghost sm" type="button" id="rtPrev" aria-label="Previous truck">‹</button>
+          <b id="rtName">–</b>
+          <button class="btn ghost sm" type="button" id="rtNext" aria-label="Next truck">›</button>
+          <span class="rt-key" id="rtKey"></span>
         </div>
-        <svg class="chart" id="mToy" viewBox="0 0 520 280" role="img" aria-label="The current route through 12 real stops"></svg>
-        <p class="sa-log" id="saLog" aria-live="polite"></p>
-        <svg class="chart" id="mSa" viewBox="0 0 520 170" role="img" aria-label="Route cost and temperature over the annealing moves"></svg>
-        <div class="m-counts" id="toyOut"></div>
-        <p class="note" id="saNote"></p>
+        <svg class="chart" id="mRoute" viewBox="0 0 520 360" role="img" aria-label="One truck’s optimised trips for tomorrow, drawn on the real streets"></svg>
+        <div class="m-counts" id="rtOut"></div>
       </div>
     </div>
   </div>
