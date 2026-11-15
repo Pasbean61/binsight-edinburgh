@@ -490,15 +490,13 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 /* maths steps: no secondary captions, the same in all five tabs */
 .m-pane .note, .m-pane .muted.small, .m-pane .slider small, .m-pane #decCounts > div[style] { display: none; }
 /* step 4: objective and constraints, labelled separately */
-.m-model .eq-tag { font: 600 12px/1 var(--body); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); text-align: left; margin: 4px 4px 0; }
-.m-model .eq-tag + .katex-display, .m-model .eq-tag + .eq-rows { margin-top: 8px; }
 .m-cons { padding: 12px 12px 10px; }
-.m-cons .eq-tag { color: var(--ink-3); }
-.opt-gain { display: flex; align-items: baseline; gap: 6px 12px; flex-wrap: wrap; background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 10px; padding: 12px 14px; margin: 8px 0 12px; }
-.opt-gain b { font: 700 24px/1.1 var(--display); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
-.opt-gain span { font-size: 14px; color: var(--ink-2); }
-.rt-nav { gap: 8px; margin-bottom: 4px; }
-.rt-nav > b { font: 650 15px var(--display); min-width: 7.5em; text-align: center; }
+.m-text .m-lead { color: var(--ink); margin: 16px 0 -2px; }
+.opt-cost { margin: 0 0 6px; color: var(--ink-2); font-size: 15px; font-variant-numeric: tabular-nums; }
+.opt-cost b { color: var(--ink); font: 700 20px var(--display); }
+.opt-cost em { font-style: normal; font-weight: 700; color: var(--accent); margin-left: 4px; }
+.rt-hud { display: flex; align-items: baseline; gap: 4px 12px; flex-wrap: wrap; min-height: 22px; font-size: 14px; }
+#rtState { color: var(--ink); font-weight: 600; }
 .rt-key { margin-left: auto; display: flex; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); }
 .rt-key i { display: inline-block; width: 16px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
 .m-model .eq-rows { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; align-items: baseline; text-align: left; margin: 8px 4px 2px; }
