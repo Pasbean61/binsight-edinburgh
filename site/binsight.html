@@ -500,6 +500,8 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 /* step 4: objective and constraints, labelled separately */
 .m-model .eq-tag { font: 600 12px/1 var(--body); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); text-align: left; margin: 4px 4px 0; }
 .m-model .eq-tag + .katex-display, .m-model .eq-tag + .eq-rows { margin-top: 8px; }
+.m-cons { padding: 12px 12px 10px; }
+.m-cons .eq-tag { color: var(--ink-3); }
 .m-model .eq-rows { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; align-items: baseline; text-align: left; margin: 8px 4px 2px; }
 .m-model .eq-rows > span:nth-child(odd) { white-space: nowrap; }
 .m-model .eq-rows > span:nth-child(even) { font: 400 14px/1.35 var(--body); color: var(--ink-2); }
@@ -1265,7 +1267,7 @@ header.top.over { background: transparent; }
     <button type="button" role="tab" data-m="0" class="on"><span class="k">1</span>Simulate<small>how bins fill</small></button>
     <button type="button" role="tab" data-m="1"><span class="k">2</span>Predict<small>tomorrow’s fill</small></button>
     <button type="button" role="tab" data-m="2"><span class="k">3</span>Decide<small>which stops</small></button>
-    <button type="button" role="tab" data-m="3"><span class="k">4</span>Optimise<small>the lowest-cost plan</small></button>
+    <button type="button" role="tab" data-m="3"><span class="k">4</span>Optimise<small>the lowest-cost routes</small></button>
     <button type="button" role="tab" data-m="4"><span class="k">5</span>Check<small>against the timetable</small></button>
   </div>
 
@@ -1350,6 +1352,8 @@ header.top.over { background: transparent; }
         <div class="eq hl m-model">
           <div class="eq-tag">Objective · lowest total cost</div>
           \[ \min \;\; \underbrace{\textstyle\sum_{k,r}\sum_{i,j} c_{ij}\, x_{ijkr}}_{\text{driving cost}} \;+\; \underbrace{\textstyle\sum_i \pi_i \bigl(1 - \sum_{k,r} z_{ikr}\bigr)}_{\text{bins left out}} \]
+        </div>
+        <div class="eq m-model m-cons">
           <div class="eq-tag">Constraints</div>
           <div class="eq-rows">
             <span>\(\sum_{k,r} z_{ikr} \le 1\)</span><span>each bin is emptied at most once</span>
