@@ -345,11 +345,19 @@
         </ul>
       </div>
       <div class="m-widget">
-        <div class="m-head"><b>What optimising changes</b><span class="opt-stage" id="optStage">First plan</span></div>
-        <p class="opt-how">Each truck is one trip from Seafield, filled to its load, fullest first. <i class="opt-red"></i>Red: less than half full.</p>
-        <svg class="chart" id="mRoute" viewBox="0 0 520 310" role="img" aria-label="Tomorrow’s trips as trucks filled to their load: 81 trips in the first plan, 70 fuller trips after simulated annealing"></svg>
-        <div class="opt-slide"><span>First plan</span><input type="range" id="mOpt" min="0" max="1" step="0.001" value="0" aria-label="From the first plan to the plan after simulated annealing"><span>After annealing</span></div>
-        <div class="m-counts" id="rtOut"></div>
+        <div class="m-head"><b>Tomorrow’s routes, before and after optimising</b></div>
+        <p class="opt-how">Both plans empty the same <span data-mk="nStops">2,127</span> bins with the same <span data-mk="fleet">34</span> trucks. Watch them drive, or drag the slider. <i class="opt-red"></i>Red: a trip less than half full.</p>
+        <div class="rt-pair">
+          <div class="rt-side">
+            <div class="rt-h"><b>First plan</b><span id="rtTripsA"></span><span class="rt-num"><b id="rtCostA">£0</b><span id="rtKmA">0 km</span></span></div>
+            <svg class="chart" id="rtA" viewBox="0 0 520 300" role="img" aria-label="Tomorrow’s routes in the first plan, drawn as the trucks drive them"></svg>
+          </div>
+          <div class="rt-side">
+            <div class="rt-h"><b>After annealing</b><span id="rtTripsB"></span><span class="rt-num"><b id="rtCostB">£0</b><span id="rtKmB">0 km</span></span></div>
+            <svg class="chart" id="rtB" viewBox="0 0 520 300" role="img" aria-label="Tomorrow’s routes after simulated annealing, drawn as the trucks drive them"></svg>
+          </div>
+        </div>
+        <div class="opt-slide"><span>Leave Seafield</span><input type="range" id="mOpt" min="0" max="1" step="0.001" value="0" aria-label="How far through the day the trucks have driven"><span>Day done</span></div>
         <p class="opt-why" id="optWhy"></p>
       </div>
     </div>
