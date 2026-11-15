@@ -516,6 +516,24 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 #rtState { color: var(--ink); font-weight: 600; }
 .rt-key { margin-left: auto; display: flex; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); }
 .rt-key i { display: inline-block; width: 16px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+.rt-key button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.rt-key button:hover, .rt-key button.on { color: var(--ink); }
+.rt-key button:hover { text-decoration: underline; text-underline-offset: 3px; }
+.rt-key button.on { font-weight: 600; }
+/* step 4: the time slider's track shows the truck's day, trip by trip; the thumb is the truck */
+.rt-time { position: relative; height: 24px; }
+.rt-seg { position: absolute; left: 9px; right: 9px; top: 8px; height: 8px; border-radius: 4px; overflow: hidden; }
+#rtSegBase { background: var(--line); }
+#rtSegBase i { opacity: .3; }
+.rt-seg i { position: absolute; top: 0; bottom: 0; }
+.rt-time input { position: absolute; inset: 0; width: 100%; height: 24px; margin: 0; -webkit-appearance: none; appearance: none; background: none; cursor: pointer; }
+.rt-time input::-webkit-slider-runnable-track { height: 24px; background: none; }
+.rt-time input::-moz-range-track { height: 24px; background: none; }
+.rt-time input::-webkit-slider-thumb { -webkit-appearance: none; box-sizing: border-box; width: 18px; height: 18px; margin-top: 3px; border-radius: 50%; background: var(--ink); border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--ink-3); }
+.rt-time input::-moz-range-thumb { box-sizing: border-box; width: 18px; height: 18px; border-radius: 50%; background: var(--ink); border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--ink-3); }
+.rt-time input:focus-visible { outline: none; }
+.rt-time input:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--accent); }
+.rt-time input:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--accent); }
 .m-model .eq-rows { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; align-items: baseline; text-align: left; margin: 8px 4px 2px; }
 .m-model .eq-rows > span:nth-child(odd) { white-space: nowrap; }
 .m-model .eq-rows > span:nth-child(even) { font: 400 14px/1.35 var(--body); color: var(--ink-2); }
@@ -1391,7 +1409,7 @@ header.top.over { background: transparent; }
         <p class="opt-cost" id="optCost">–</p>
         <div class="rt-hud"><span id="rtState">–</span><span class="rt-key" id="rtKey"></span></div>
         <svg class="chart" id="mRoute" viewBox="0 0 520 360" role="img" aria-label="One truck’s optimised trips for tomorrow, drawn on the real streets"></svg>
-        <div class="slider"><div class="top"><label for="mRtT">Time of day</label><output id="oRtT">06:00</output></div><input type="range" id="mRtT" min="0" max="480" step="1" value="0"></div>
+        <div class="slider"><div class="top"><label for="mRtT">Time of day</label><output id="oRtT">06:00</output></div><div class="rt-time"><div class="rt-seg" id="rtSegBase"></div><div class="rt-seg" id="rtSegOn"></div><input type="range" id="mRtT" min="0" max="480" step="1" value="0"></div></div>
         <div class="slider"><div class="top"><label for="mRtK">Truck</label><output id="oRtK">1 of 34</output></div><input type="range" id="mRtK" min="1" max="34" step="1" value="1"></div>
         <div class="m-counts" id="rtOut"></div>
       </div>
@@ -2775,7 +2793,12 @@ function mathsRoute(M) {
     el.dots = day.trips.map((tr, j) => [...svgEl.querySelectorAll(`circle[data-j="${j}"]`)]);
     el.truck = $("#rtTruck");
     $("#oRtK").textContent = `${k + 1} of ${routes.length}`;
-    $("#rtKey").innerHTML = day.trips.map((tr, j) => `<span><i style="background:${cols[j % 3]}"></i>Trip ${j + 1} · ${tr.stops.length} bins</span>`).join("");
+    $("#rtKey").innerHTML = day.trips.map((tr, j) => `<button type="button" data-j="${j}" title="Play trip ${j + 1}"><i style="background:${cols[j % 3]}"></i>Trip ${j + 1} · ${tr.stops.length} bins</button>`).join("") +
+      `<span><i style="background:${PAL.ink3}"></i>Tipping</span>`;
+    // the time slider's track is this truck's day: each trip in its colour, tipping at Seafield in grey, spare shift time empty
+    const pc = m => `${(100 * m / tMax).toFixed(2)}%`;
+    const segs = day.trips.map((tr, j) => `<i style="left:${pc(tr.t0)};width:${pc(tr.t1 - tr.t0)};background:${cols[j % 3]}"></i><i style="left:${pc(tr.t1)};width:${pc(tr.tEnd - tr.t1)};background:${PAL.ink3}"></i>`).join("");
+    $("#rtSegBase").innerHTML = segs; $("#rtSegOn").innerHTML = segs;
   };
   const upTo = (tr, d) => {
     const c = tr.cum; let lo = 0, hi = c.length - 1;
@@ -2793,21 +2816,24 @@ function mathsRoute(M) {
     const pos = p.j < day.trips.length && p.d >= 0 ? along(day.trips[p.j], p.d) : dep;
     el.truck.setAttribute("transform", `translate(${X(pos[1]).toFixed(1)},${Y(pos[0]).toFixed(1)})`);
     tIn.value = t; $("#oRtT").textContent = hhmm(t); $("#rtState").textContent = p.state;
+    $("#rtSegOn").style.clipPath = `inset(0 ${(100 - 100 * Math.min(t, tMax) / tMax).toFixed(2)}% 0 0)`;
+    $$("#rtKey button").forEach((b, j) => b.classList.toggle("on", j === p.j));
     $("#rtOut").innerHTML = [[`${fmt(p.done)} / ${fmt(day.n)}`, "bins emptied"], [`${fmt(p.km, 1)} km`, `of ${fmt(day.km, 1)} km driven`], [`${fmt(100 * p.load / R.capacity_l)} %`, "truck full"]]
       .map(([a, b]) => `<div><b>${a}</b><span>${b}</span></div>`).join("");
   };
-  // play the truck's day in about six seconds; any drag on the sliders takes over
+  // play part of the truck's day (the whole day takes about six seconds); any drag on the sliders takes over
   const halt = () => { cancelAnimationFrame(raf); raf = 0; };
-  const play = () => {
+  const play = (from = 0, to = day.end) => {
     halt();
-    if (still) { t = day.end; show(); return; }
-    let last = 0; t = 0;
-    const step = now => { if (last) t = Math.min(day.end, t + (now - last) * day.end / 6000); last = now; show(); raf = t < day.end ? requestAnimationFrame(step) : 0; };
+    if (still) { t = to; show(); return; }
+    let last = 0; t = from;
+    const step = now => { if (last) t = Math.min(to, t + (now - last) * day.end / 6000); last = now; show(); raf = t < to ? requestAnimationFrame(step) : 0; };
     raf = requestAnimationFrame(step);
   };
   tIn.oninput = () => { halt(); t = +tIn.value; show(); };
   kIn.oninput = () => { halt(); k = +kIn.value - 1; draw(); show(); };
-  kIn.onchange = play;
+  kIn.onchange = () => play();
+  $("#rtKey").onclick = e => { const b = e.target.closest("button[data-j]"); if (b) { const tr = day.trips[+b.dataset.j]; play(tr.t0, tr.tEnd - .01); } };
   draw(); show();
   if ("IntersectionObserver" in window) new IntersectionObserver((es, ob) => { if (es.some(e => e.isIntersecting)) { ob.disconnect(); play(); } }, { threshold: .4 }).observe(svgEl);
   else { t = day.end; show(); }
