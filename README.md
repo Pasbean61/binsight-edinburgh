@@ -88,7 +88,7 @@ docs/                       README images
 python3 -m pip install numpy scipy scikit-learn pyproj
 python3 scripts/fetch_cache.py       # once: downloads the road-network cache (131 MB) from the release road-cache-v1
 python3 -m model.run --experiments   # about 25 minutes on 10 cores; omit the flag to reuse cached experiments
-python3 scripts/export_first_plan.py # the plan before annealing, for the before-and-after map (maths step 4)
+python3 scripts/export_first_plan.py # the plan before annealing, for the before-and-after picture (maths step 4)
 python3 scripts/build_page.py
 ```
 
