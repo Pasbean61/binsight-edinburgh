@@ -487,8 +487,17 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 .eq.hl .katex { font-size: 1.25em; }
 .eq.hl { padding: 14px 12px; }
 .eq.hl .katex-display { margin: 10px 0; }
-/* maths steps 1, 2, 3, 5: no secondary captions (the route tab keeps its own) */
-.m-pane:not([data-m="3"]) .note, .m-pane:not([data-m="3"]) .muted.small, .m-pane:not([data-m="3"]) .slider small, .m-pane:not([data-m="3"]) #decCounts > div[style] { display: none; }
+/* maths steps: no secondary captions, the same in all five tabs */
+.m-pane .note, .m-pane .muted.small, .m-pane .slider small, .m-pane #decCounts > div[style] { display: none; }
+/* step 4: objective and constraints, labelled separately */
+.m-model .eq-tag { font: 600 12px/1 var(--body); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); text-align: left; margin: 4px 4px 0; }
+.m-model .eq-tag + .katex-display, .m-model .eq-tag + .eq-rows { margin-top: 8px; }
+.m-model .eq-rows { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; align-items: baseline; text-align: left; margin: 8px 4px 2px; }
+.m-model .eq-rows > span:nth-child(odd) { white-space: nowrap; }
+.m-model .eq-rows > span:nth-child(even) { font: 400 14px/1.35 var(--body); color: var(--ink-2); }
+.m-model .eq-rows .katex { font-size: 1.02em; }
+.m-model .katex-display { overflow-x: auto; overflow-y: hidden; }
+@media (max-width: 560px) { .m-model .katex-display > .katex { font-size: .92em; } .m-model .eq-rows { grid-template-columns: 1fr; gap: 2px; } .m-model .eq-rows > span:nth-child(even) { margin-bottom: 8px; } }
 div.card.step { cursor: default; }
 .how-more { margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap; }
 /* results: three headline numbers, then the three methods side by side */
