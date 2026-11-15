@@ -66,7 +66,7 @@ On the plan day it was trained on 78,890 stop-mornings with no truck visit in th
 
 | | |
 |---|---:|
-| Stops projected to pass 80 % by 14:00 tomorrow | 2,127 |
+| Stops projected to pass 80 % by 14:00 on 4 Nov (next chance of a truck) | 2,127 |
 | of which projected past 100 % | 817 |
 | Chosen (fullest first, while the fleet has time) | 2,127 |
 | Served by the routes | 2,127 (none dropped) |

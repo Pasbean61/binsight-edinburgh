@@ -1327,7 +1327,7 @@ header.top.over { background: transparent; }
         <div class="eq">\[ \text{Example:}\quad @exY@\% + @H@\ \text{h} \times @exG@\ \text{points/h} \approx @exP@\% \]</div>
         <ul class="m-list">
           <li><b>What the model looks at:</b> the latest reading, how fast the bin has been filling, the weekday, and the weather and holidays ahead.</li>
-          <li><b>Hours ahead:</b> until 14:00 tomorrow, the bin’s next chance of a truck.</li>
+          <li><b>Hours ahead:</b> until @fcEnd@, the bin’s next chance of a truck.</li>
           <li><b>Over 100% is allowed.</b> A forecast of 130% means the bin will overflow well before the truck comes, so it goes to the top of the list.</li>
         </ul>
       </div>
@@ -1634,13 +1634,19 @@ function hullArea(p) {
   return Math.abs(a) / 2;
 }
 const fmtDate = (iso, opts) => new Date(iso.replace(" ", "T")).toLocaleString("en-GB", opts);
+// when the forecast is for: a stop skipped on the plan day next gets a truck by shift start + HORIZON_H (model/config.py)
+const fcEndDate = () => { const d = new Date(D.site.plan_day + "T00:00"); d.setHours(d.getHours() + D.site.fleet.start_h + D.site.maths.params.HORIZON_H); return d; };
+const fcEnd = () => { const d = fcEndDate(); return String(d.getHours()).padStart(2, "0") + ":00 on " + d.toLocaleString("en-GB", { day: "numeric", month: "short" }); };
 
 function strat(name) { return D.site.experiments.aggregate.find(r => r.policy === name); }
 // the model's decision rule (model/decide.py, choose): fullest projected first while the fleet has time,
 // never below the floor. Time per stop = θ·drive from its nearest other candidate + lifting; each full load adds a tip.
 BS.choose = ({ floor = D.site.maths.params.FLOOR, fleet = D.site.fleet.trucks, shift = D.site.fleet.shift_min / 60, svc = D.site.fleet.service_per_bin_min, speed = 1 } = {}) => {
   const S = D.S, f = D.site.fleet, cand = [];
-  for (let i = 0; i < D.n; i++) if (S.pred[i] >= floor) cand.push(i);
+  // stops.json rounds pred to 0.1, so a forecast of 79.97% shows as 80.0; at the model's own floor use the
+  // model's own flag (S.risky, exact) so the count matches site.plan.flagged
+  const exact = floor === D.site.maths.params.FLOOR;
+  for (let i = 0; i < D.n; i++) if (exact ? S.risky[i] : S.pred[i] >= floor) cand.push(i);
   cand.sort((a, b) => S.pred[b] - S.pred[a]);
   const budget = fleet * shift * 60 * .95, sel = [];
   let used = 0, litres = 0;
@@ -1776,7 +1782,7 @@ function coverStep(dt) {
   while (CV.ig < CV.order.length && CV.delay[CV.order[CV.ig]] <= t) {
     const i = CV.order[CV.ig++]; if (CV.state[i]) continue;
     CV.state[i] = 1; litDot(dc, i);
-    if (S.pred[i] >= 80 && CV.fx.length < 700) CV.fx.push([CV.x[i], CV.y[i], CV.t, 0]);
+    if (S.risky[i] && CV.fx.length < 700) CV.fx.push([CV.x[i], CV.y[i], CV.t, 0]);
   }
   // 2. the shift: 06:00 to 14:00 in 46 seconds
   const tt = t - TRUCKS_AT, simT = SIM.end ? clamp(tt / DAY_MS, 0, 1) * SIM.end : 0;
@@ -2084,7 +2090,7 @@ function drawLegend() {
     L_.innerHTML = `<div class="title">Council register, ${fmt(D.site.totals.assets)} assets</div>` + st.filter(s => STREAM_COLORS[s]).map(s => `<div class="row"><i style="background:${STREAM_COLORS[s]}"></i>${esc(s)}</div>`).join("");
     return;
   }
-  const t = { pred: "Projected fill, 14:00 tomorrow", fill: "Fill now" }[UI.layer];
+  const t = { pred: `Projected fill, ${fcEnd()}`, fill: "Fill now" }[UI.layer];
   const rows = [["90% and over", 4], ["80–90%", 3], ["60–80%", 2], ["35–60%", 1], ["< 35%", 0]];
   L_.innerHTML = `<div class="title">${t} <span class="tag sim" style="margin-left:4px">Sim</span></div>` + rows.map(([l, k]) => `<div class="row"><i style="background:${PAL.f[k]}"></i>${l}</div>`).join("") +
     `<div class="row" style="margin-top:6px"><i style="background:${PAL.f0};box-shadow:0 0 0 1.6px ${PAL.accent} inset"></i>Emptied by a truck</div>` +
@@ -2119,7 +2125,7 @@ BS.focusStop = async (i, opts = {}) => {
   L.circleMarker([S.lat[i], S.lon[i]], { radius: 14, color: PAL.ink, weight: 2, fill: false, interactive: false }).addTo(highlight);
   restyleStops();
   const fl = fmt(P.FLOOR), proj = `${fmt(S.pred[i])}%`;
-  const why = ti >= 0 ? `Projected ${proj} by 14:00 tomorrow: above the ${fl}% floor and among the fullest the fleet has time for, so it goes.`
+  const why = ti >= 0 ? `Projected ${proj} by ${fcEnd()}: above the ${fl}% floor and among the fullest the fleet has time for, so it goes.`
     : S.flag[i] ? `Projected ${proj}: chosen, but the routes did not fit the fleet, and routing leaves out the least full stops first.`
     : S.risky[i] ? `Projected ${proj}: above the ${fl}% floor, but the fleet’s time went to fuller stops. It waits for the next day.`
     : `Projected ${proj}, below the ${fl}% floor: it can safely wait.`;
@@ -2128,7 +2134,7 @@ BS.focusStop = async (i, opts = {}) => {
     <h3 style="margin-top:8px">${esc(S.site[i])}</h3>
     <div class="sub">${esc(S.loc[i] || "Communal bin stop")} · <span class="mono">${S.id[i]}</span></div>
     <div style="margin-top:10px">${fillPill(S.pred[i])} ${ti >= 0 ? `<span class="pill md">On tomorrow’s plan</span>` : ""}</div>
-    <div class="gauge"><div><b>${fmt(S.fill[i])}%</b><span>Fill now · sim</span></div><div><b style="color:${S.pred[i] >= 100 ? "var(--bad)" : "inherit"}">${fmt(Math.min(S.pred[i], 100))}%${S.pred[i] > 100 ? "+" : ""}</b><span>Projected by 14:00 tomorrow · sim</span></div></div>
+    <div class="gauge"><div><b>${fmt(S.fill[i])}%</b><span>Fill now · sim</span></div><div><b style="color:${S.pred[i] >= 100 ? "var(--bad)" : "inherit"}">${fmt(Math.min(S.pred[i], 100))}%${S.pred[i] > 100 ? "+" : ""}</b><span>Projected by ${fcEnd()} · sim</span></div></div>
     <h4>Last 72 hours and the forecast</h4><svg class="spark" id="spark" viewBox="0 0 320 110" role="img" aria-label="Fill history and forecast"></svg>
     <h4>Decision</h4><p class="small" style="margin-top:6px">${why}</p>
     <dl class="kv">
@@ -2162,7 +2168,7 @@ async function drawSpark(i) {
     <line x1="${x(last)}" y1="${y(h[last])}" x2="${x(n - 1)}" y2="${y(mu)}" stroke="${PAL.accent}" stroke-width="1.8" stroke-dasharray="4 3"/>
     <circle cx="${x(n - 1)}" cy="${y(mu)}" r="3.5" fill="${PAL.accent}"/>
     <circle cx="${x(last)}" cy="${y(h[last])}" r="3" fill="${PAL.ink}"/>
-    <text x="4" y="${H - 2}">−72 h</text><text x="${x(last)}" y="${H - 2}" text-anchor="middle">now</text><text x="${W - 4}" y="${H - 2}" text-anchor="end">14:00</text>`;
+    <text x="4" y="${H - 2}">−72 h</text><text x="${x(last)}" y="${H - 2}" text-anchor="middle">now</text><text x="${W - 4}" y="${H - 2}" text-anchor="end">${fcEnd().replace(":00 on", ":00,")}</text>`;
 }
 BS.focusTruck = (ti, opts = {}) => {
   if (!map) return;
@@ -2573,7 +2579,7 @@ function initMaths() {
     betas: `${P.RAIN_EFFECT}, ${P.TEMP_EFFECT}, ${P.HOLIDAY_EFFECT}`, H: fmt(F.example.hours), trees: fmt(F.trees), nTrain: fmt(F.n_train),
     floor: fmt(P.FLOOR), fleet: fmt(fl.trucks), loadM3: fmt(P.TRUCK_LOAD_L / 1000), shift: fmt(P.SHIFT_MIN), tip: fmt(P.TIP_MIN),
     s0: fmt(P.SERVICE_BASE_MIN), s1: fmt(P.SERVICE_PER_BIN_MIN), kappa: P.RAIN_SLOWDOWN.toFixed(2), reactive: fmt(P.REACTIVE_AT),
-    costKm: P.COST_KM.toFixed(2), costHour: fmt(P.COST_HOUR), costOverflow: fmt(P.COST_OVERFLOW), exY: fmt(F.example.past[F.example.past.length - 1]), exG: (F.example.gain_day / 24).toFixed(1), exP: fmt(F.example.proj),
+    costKm: P.COST_KM.toFixed(2), costHour: fmt(P.COST_HOUR), costOverflow: fmt(P.COST_OVERFLOW), exY: fmt(F.example.past[F.example.past.length - 1]), exG: (F.example.gain_day / 24).toFixed(1), exP: fmt(F.example.proj), fcEnd: fcEnd(),
   };
   const root = $("#maths"), walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   for (let n; (n = walk.nextNode());) if (n.nodeValue.includes("@")) n.nodeValue = n.nodeValue.replace(/@(\w+)@/g, (m, k) => tok[k] ?? m);
@@ -2624,6 +2630,9 @@ function mathsPredict(M) {
   const ymax = Math.max(130, Math.ceil((ex.proj + 10) / 10) * 10);
   const x = h => l + (h + n0) / (n0 + n1) * (W - l - r), y = v => t + (1 - Math.max(0, Math.min(v, ymax)) / ymax) * (H - t - b);
   const last = ex.past[n0 - 1];
+  // the clock comes from the data: "now" is the last reading (site.snapshot), the end is n1 hours later
+  const t0 = new Date(D.site.snapshot.replace(" ", "T")), t1 = new Date(t0.getTime() + n1 * 3600e3);
+  const clk = d => d.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).replace(",", "");
   const past = ex.past.map((v, j) => `${j ? "L" : "M"}${x(j - n0 + 1).toFixed(1)},${y(v).toFixed(1)}`).join("");
   $("#mFc").innerHTML = svgAxisY(l, W - r, y, [0, 50, 100], v => v + "%") +
     `<line x1="${l}" x2="${W - r}" y1="${y(100)}" y2="${y(100)}" stroke="${PAL.bad}" stroke-dasharray="4 3"/><text x="${l + 4}" y="${y(100) - 5}" style="fill:${PAL.bad}">100%: overflow</text>` +
@@ -2631,7 +2640,7 @@ function mathsPredict(M) {
     `<path d="${past}" fill="none" stroke="${PAL.ink}" stroke-width="1.6"/>` +
     `<line x1="${x(0)}" y1="${y(last)}" x2="${x(n1)}" y2="${y(ex.proj)}" stroke="${PAL.accent}" stroke-width="2" stroke-dasharray="5 3"/>` +
     `<circle cx="${x(n1)}" cy="${y(ex.proj)}" r="4" fill="${PAL.accent}"/><text x="${x(n1) - 6}" y="${y(ex.proj) - 8}" text-anchor="end" style="fill:${PAL.accent};font-weight:600">ŷ = ${fmt(ex.proj)}%</text>` +
-    `<line class="ax" x1="${x(0)}" x2="${x(0)}" y1="${t}" y2="${y(0)}"/><text x="${x(0)}" y="${H - 8}" text-anchor="middle">now (05:00)</text><text x="${x(-n0 + 1)}" y="${H - 8}">−72 h</text><text x="${W - r}" y="${H - 8}" text-anchor="end">14:00 tomorrow</text>`;
+    `<line class="ax" x1="${x(0)}" x2="${x(0)}" y1="${t}" y2="${y(0)}"/><text x="${x(0)}" y="${H - 8}" text-anchor="middle">now (${clk(t0)})</text><text x="${x(-n0 + 1)}" y="${H - 8}">−72 h</text><text x="${W - r}" y="${H - 8}" text-anchor="end">${clk(t1)}</text>`;
   $("#fcNote").innerHTML = `Solid: the last 72 hours of readings. Dashed: the projection ${tex(`\\hat y = y + H\\hat g`)} with ${tex(`H = ${fmt(n1)}`)} h, <b>${fmt(ex.proj)}%</b>. ${ex.proj >= P.FLOOR ? `Above the ${fmt(P.FLOOR)}% floor, so it is a candidate for tomorrow.` : `Below the ${fmt(P.FLOOR)}% floor, so it can wait.`}`;
   // importance
   const imp = Object.entries(F.importance).sort((p, q) => q[1] - p[1]);

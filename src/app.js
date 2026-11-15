@@ -112,13 +112,19 @@ function hullArea(p) {
   return Math.abs(a) / 2;
 }
 const fmtDate = (iso, opts) => new Date(iso.replace(" ", "T")).toLocaleString("en-GB", opts);
+// when the forecast is for: a stop skipped on the plan day next gets a truck by shift start + HORIZON_H (model/config.py)
+const fcEndDate = () => { const d = new Date(D.site.plan_day + "T00:00"); d.setHours(d.getHours() + D.site.fleet.start_h + D.site.maths.params.HORIZON_H); return d; };
+const fcEnd = () => { const d = fcEndDate(); return String(d.getHours()).padStart(2, "0") + ":00 on " + d.toLocaleString("en-GB", { day: "numeric", month: "short" }); };
 
 function strat(name) { return D.site.experiments.aggregate.find(r => r.policy === name); }
 // the model's decision rule (model/decide.py, choose): fullest projected first while the fleet has time,
 // never below the floor. Time per stop = θ·drive from its nearest other candidate + lifting; each full load adds a tip.
 BS.choose = ({ floor = D.site.maths.params.FLOOR, fleet = D.site.fleet.trucks, shift = D.site.fleet.shift_min / 60, svc = D.site.fleet.service_per_bin_min, speed = 1 } = {}) => {
   const S = D.S, f = D.site.fleet, cand = [];
-  for (let i = 0; i < D.n; i++) if (S.pred[i] >= floor) cand.push(i);
+  // stops.json rounds pred to 0.1, so a forecast of 79.97% shows as 80.0; at the model's own floor use the
+  // model's own flag (S.risky, exact) so the count matches site.plan.flagged
+  const exact = floor === D.site.maths.params.FLOOR;
+  for (let i = 0; i < D.n; i++) if (exact ? S.risky[i] : S.pred[i] >= floor) cand.push(i);
   cand.sort((a, b) => S.pred[b] - S.pred[a]);
   const budget = fleet * shift * 60 * .95, sel = [];
   let used = 0, litres = 0;
@@ -254,7 +260,7 @@ function coverStep(dt) {
   while (CV.ig < CV.order.length && CV.delay[CV.order[CV.ig]] <= t) {
     const i = CV.order[CV.ig++]; if (CV.state[i]) continue;
     CV.state[i] = 1; litDot(dc, i);
-    if (S.pred[i] >= 80 && CV.fx.length < 700) CV.fx.push([CV.x[i], CV.y[i], CV.t, 0]);
+    if (S.risky[i] && CV.fx.length < 700) CV.fx.push([CV.x[i], CV.y[i], CV.t, 0]);
   }
   // 2. the shift: 06:00 to 14:00 in 46 seconds
   const tt = t - TRUCKS_AT, simT = SIM.end ? clamp(tt / DAY_MS, 0, 1) * SIM.end : 0;
@@ -562,7 +568,7 @@ function drawLegend() {
     L_.innerHTML = `<div class="title">Council register, ${fmt(D.site.totals.assets)} assets</div>` + st.filter(s => STREAM_COLORS[s]).map(s => `<div class="row"><i style="background:${STREAM_COLORS[s]}"></i>${esc(s)}</div>`).join("");
     return;
   }
-  const t = { pred: "Projected fill, 14:00 tomorrow", fill: "Fill now" }[UI.layer];
+  const t = { pred: `Projected fill, ${fcEnd()}`, fill: "Fill now" }[UI.layer];
   const rows = [["90% and over", 4], ["80–90%", 3], ["60–80%", 2], ["35–60%", 1], ["< 35%", 0]];
   L_.innerHTML = `<div class="title">${t} <span class="tag sim" style="margin-left:4px">Sim</span></div>` + rows.map(([l, k]) => `<div class="row"><i style="background:${PAL.f[k]}"></i>${l}</div>`).join("") +
     `<div class="row" style="margin-top:6px"><i style="background:${PAL.f0};box-shadow:0 0 0 1.6px ${PAL.accent} inset"></i>Emptied by a truck</div>` +
@@ -597,7 +603,7 @@ BS.focusStop = async (i, opts = {}) => {
   L.circleMarker([S.lat[i], S.lon[i]], { radius: 14, color: PAL.ink, weight: 2, fill: false, interactive: false }).addTo(highlight);
   restyleStops();
   const fl = fmt(P.FLOOR), proj = `${fmt(S.pred[i])}%`;
-  const why = ti >= 0 ? `Projected ${proj} by 14:00 tomorrow: above the ${fl}% floor and among the fullest the fleet has time for, so it goes.`
+  const why = ti >= 0 ? `Projected ${proj} by ${fcEnd()}: above the ${fl}% floor and among the fullest the fleet has time for, so it goes.`
     : S.flag[i] ? `Projected ${proj}: chosen, but the routes did not fit the fleet, and routing leaves out the least full stops first.`
     : S.risky[i] ? `Projected ${proj}: above the ${fl}% floor, but the fleet’s time went to fuller stops. It waits for the next day.`
     : `Projected ${proj}, below the ${fl}% floor: it can safely wait.`;
@@ -606,7 +612,7 @@ BS.focusStop = async (i, opts = {}) => {
     <h3 style="margin-top:8px">${esc(S.site[i])}</h3>
     <div class="sub">${esc(S.loc[i] || "Communal bin stop")} · <span class="mono">${S.id[i]}</span></div>
     <div style="margin-top:10px">${fillPill(S.pred[i])} ${ti >= 0 ? `<span class="pill md">On tomorrow’s plan</span>` : ""}</div>
-    <div class="gauge"><div><b>${fmt(S.fill[i])}%</b><span>Fill now · sim</span></div><div><b style="color:${S.pred[i] >= 100 ? "var(--bad)" : "inherit"}">${fmt(Math.min(S.pred[i], 100))}%${S.pred[i] > 100 ? "+" : ""}</b><span>Projected by 14:00 tomorrow · sim</span></div></div>
+    <div class="gauge"><div><b>${fmt(S.fill[i])}%</b><span>Fill now · sim</span></div><div><b style="color:${S.pred[i] >= 100 ? "var(--bad)" : "inherit"}">${fmt(Math.min(S.pred[i], 100))}%${S.pred[i] > 100 ? "+" : ""}</b><span>Projected by ${fcEnd()} · sim</span></div></div>
     <h4>Last 72 hours and the forecast</h4><svg class="spark" id="spark" viewBox="0 0 320 110" role="img" aria-label="Fill history and forecast"></svg>
     <h4>Decision</h4><p class="small" style="margin-top:6px">${why}</p>
     <dl class="kv">
@@ -640,7 +646,7 @@ async function drawSpark(i) {
     <line x1="${x(last)}" y1="${y(h[last])}" x2="${x(n - 1)}" y2="${y(mu)}" stroke="${PAL.accent}" stroke-width="1.8" stroke-dasharray="4 3"/>
     <circle cx="${x(n - 1)}" cy="${y(mu)}" r="3.5" fill="${PAL.accent}"/>
     <circle cx="${x(last)}" cy="${y(h[last])}" r="3" fill="${PAL.ink}"/>
-    <text x="4" y="${H - 2}">−72 h</text><text x="${x(last)}" y="${H - 2}" text-anchor="middle">now</text><text x="${W - 4}" y="${H - 2}" text-anchor="end">14:00</text>`;
+    <text x="4" y="${H - 2}">−72 h</text><text x="${x(last)}" y="${H - 2}" text-anchor="middle">now</text><text x="${W - 4}" y="${H - 2}" text-anchor="end">${fcEnd().replace(":00 on", ":00,")}</text>`;
 }
 BS.focusTruck = (ti, opts = {}) => {
   if (!map) return;
