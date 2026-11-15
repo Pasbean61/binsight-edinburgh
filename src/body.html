@@ -31,13 +31,13 @@
   <span class="cover-bar t" aria-hidden="true"></span><span class="cover-bar b" aria-hidden="true"></span>
   <div class="cover-ui wrap">
     <p class="cover-caps" aria-hidden="true">
-      <span data-c="0">Each dot is a shared street bin.</span>
+      <span data-c="0">Each dot is a stop of street bins.</span>
       <span data-c="1">Red means it will be full tomorrow.</span>
       <span data-c="2">So the trucks visit only the red ones.</span>
       <span data-c="3">A £2 sensor in each bin tells us which.</span>
       <span data-c="4">The result: <b data-k="overflowCutWord">82&nbsp;%</b> fewer overflowing bins. <small>simulated week</small></span>
     </p>
-    <p class="sr">Each dot is a shared street bin. Red means it will be full tomorrow, so the trucks visit only the red ones. A £2 sensor in each bin tells us which. The result in a simulated week: <span data-k="overflowCutWord">82&nbsp;%</span> fewer overflowing bins.</p>
+    <p class="sr">Each dot is a stop of street bins. Red means it will be full tomorrow, so the trucks visit only the red ones. A £2 sensor in each bin tells us which. The result in a simulated week: <span data-k="overflowCutWord">82&nbsp;%</span> fewer overflowing bins.</p>
     <div class="cover-row">
       <div class="cover-copy">
         <h1 id="coverTitle"><span class="ln"><span>Empty the full bins.</span></span> <em class="ln"><span>Skip the rest.</span></em></h1>
@@ -137,7 +137,7 @@
   <div class="card tl-card anim" aria-label="Policy timeline">
     <div class="tl">
       <div class="tl-track"><span class="tl-fill"></span></div>
-      <div class="tl-node" style="--x:13%;--t:.45s"><span class="tl-dot"></span><b>2025</b><h4>Packaging EPR</h4><p>Up to 20 % of £17.3m withheld from inefficient services</p></div>
+      <div class="tl-node" style="--x:13%;--t:.45s"><span class="tl-dot"></span><b>2025</b><h4>Packaging EPR</h4><p>Producers now pay for packaging collection; up to 20 % of £17.3m is withheld from inefficient services</p></div>
       <div class="tl-now" style="--x:40%;--t:.9s"><span class="tl-dot"></span><b>Now</b></div>
       <div class="tl-node" style="--x:56.5%;--t:1.2s"><span class="tl-dot"></span><b>2028</b><h4>Landfill ban</h4><p>Biodegradable waste can no longer go to landfill</p></div>
       <div class="tl-node" style="--x:85.5%;--t:1.8s"><span class="tl-dot"></span><b>2030</b><h4>Circular Economy Act</h4><p>Council recycling targets and contamination penalties</p></div>
@@ -238,6 +238,7 @@
 <section class="chapter wrap" id="maths">
   <div class="chapter-head">
     <div><span class="eyebrow">How the plan is made</span><h2>Five steps behind the plan</h2></div>
+    <p class="say">The council’s question: <b>which bins need a truck tomorrow, and what is the cheapest way to empty them?</b> Steps 1–2 forecast the fill, steps 3–4 choose the stops and the routes, and step 5 checks the result against today’s timetable.</p>
   </div>
   <div class="m-tabs" role="tablist" id="mTabs">
     <button type="button" role="tab" data-m="0" class="on"><span class="k">1</span>Simulate<small>how bins fill</small></button>
@@ -263,7 +264,7 @@
         <p class="note">Every parameter and its source is in <span class="mono">model/README.md</span>.</p>
       </div>
       <div class="m-widget">
-        <div class="slider"><div class="top"><label for="mRho">Daily fill share <var>ρ</var></label><output id="oRho">0.21</output></div><input type="range" id="mRho" min="0.08" max="0.6" step="0.01" value="0.21"><small>Share of the stop’s capacity filled on an average day. 0.21 is the typical stop.</small></div>
+        <div class="slider"><div class="top"><label for="mRho">How busy the stop is, <var>ρ</var></label><output id="oRho">0.21</output></div><input type="range" id="mRho" min="0.08" max="0.6" step="0.01" value="0.21"><small>Share of the stop’s capacity filled on an average day. 0.21 is the typical stop.</small></div>
         <svg class="chart" id="mPaths" viewBox="0 0 520 260" role="img" aria-label="Simulated fill paths over one week with a truck every two days"></svg>
         <div class="m-row"><button class="btn ghost sm" type="button" id="mRedraw">Draw three new weeks</button><span class="muted small" id="mPathNote"></span></div>
       </div>
@@ -342,6 +343,7 @@
         <ul class="m-list">
           <li><b>Decisions</b> (each 0 or 1): \(x_{ijkr}\) truck \(k\) drives \(i \to j\) on trip \(r\); \(z_{ikr}\) it empties bin \(i\); \(u_{kr}\) it makes trip \(r\).</li>
           <li><b>Costs.</b> \(c_{ij}\) = £@costKm@ per km + £@costHour@ per truck-hour. Leaving bin \(i\) out costs \(\pi_i = @costOverflow@ \times \hat y_i / 100\), so the emptiest wait first.</li>
+          <li><b>Solved by simulated annealing.</b> Start from a quick plan (each truck takes the nearest bins), then try small changes: move a stop to another trip, swap two stops, reverse part of a route. Keep a change if it lowers the cost; early on, sometimes keep a worse one too, so the search does not get stuck. Tomorrow’s plan: <span data-mk="saIters">6.2 million</span> changes tried in <span data-mk="saSecs">30</span> seconds.</li>
         </ul>
       </div>
       <div class="m-widget">
