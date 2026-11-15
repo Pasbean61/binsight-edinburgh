@@ -860,7 +860,7 @@ BS.highlightStops = ids => {
 function initConsole() {
   const s = D.site, p = s.plan, t = s.totals;
   $("#consoleKpis").innerHTML = [
-    [fmt(t.stops), "stops monitored"], [fmt(p.flagged), "flagged for tomorrow"], [`${p.trucks_used} / ${p.trips}`, "trucks / trips"],
+    [fmt(t.stops), "stops monitored"], [fmt(p.flagged), "flagged for tomorrow"], [fmt(p.trips), `trips by ${p.trucks_used} trucks`],
     [fmt(p.solver_km) + " km", "planned distance"], [fmt(p.load_l / 1000) + " m³", "waste to collect"], [fmt(p.co2_kg) + " kg", "CO₂ from driving"],
   ].map(([b, s]) => `<div class="ck"><b>${b}</b><span>${s}</span></div>`).join("");
   const ws = $("#wardSel");
@@ -925,7 +925,7 @@ function renderBins() {
   const th = (k, l, n) => `<th class="sortable ${n ? "n" : ""}" data-k="${k}">${l}${binSort.k === k ? (binSort.dir < 0 ? " ↓" : " ↑") : ""}</th>`;
   const bar = (v, c) => `<span class="bar-cell">${fmt(v)}%<span class="bar"><span style="width:${v}%;background:${c}"></span></span></span>`;
   host.innerHTML = `<div class="tablewrap"><table><thead><tr>${th("site", "Street")}<th>Location</th>${th("ward", "Ward")}${th("cap", "Capacity", 1)}${th("fill", "Now", 1)}${th("pred", "Tomorrow", 1)}${th("gain", "Fills a day", 1)}<th>Truck</th></tr></thead><tbody>
-    ${rows.map(i => `<tr data-i="${i}"><td><b>${esc(S.site[i])}</b></td><td class="muted" style="max-width:240px;overflow:hidden;text-overflow:ellipsis">${esc(S.loc[i])}</td><td>${esc(D.wards[S.ward[i]].name)}</td><td class="n">${fmt(S.cap[i])} L</td><td class="n">${bar(S.fill[i], fillColor(S.fill[i]))}</td><td class="n">${bar(S.pred[i], fillColor(S.pred[i]))}</td><td class="n">${fmt(S.gain[i])} pts</td><td class="mono">${S.truck[i] >= 0 ? D.trucks[S.truck[i]].truck.replace("EDI-", "") : "–"}</td></tr>`).join("")}
+    ${rows.map(i => `<tr data-i="${i}"><td><b>${esc(S.site[i])}</b></td><td class="muted" style="max-width:240px;overflow:hidden;text-overflow:ellipsis">${esc(S.loc[i])}</td><td>${esc(D.wards[S.ward[i]].name)}</td><td class="n">${fmt(S.cap[i])} L</td><td class="n">${bar(S.fill[i], fillColor(S.fill[i]))}</td><td class="n">${bar(S.pred[i], fillColor(S.pred[i]))}</td><td class="n">${fmt(S.gain[i])} %</td><td class="mono">${S.truck[i] >= 0 ? D.trucks[S.truck[i]].truck.replace("EDI-", "") : "–"}</td></tr>`).join("")}
   </tbody></table></div><div class="pager"><span>${fmt(ids.length)} stops${binQuery ? ` on ${esc(binQuery)} <button class="linkbtn" id="clearQ">show all</button>` : ""}${UI.ward >= 0 ? " in " + esc(D.wards[UI.ward].name) : ""} · simulated fill</span><span><button id="pgPrev" ${binPage ? "" : "disabled"}>Previous</button> ${binPage + 1} / ${pages} <button id="pgNext" ${binPage < pages - 1 ? "" : "disabled"}>Next</button></span></div>`;
   $$("th.sortable", host).forEach(t => t.onclick = () => { binSort = { k: t.dataset.k, dir: binSort.k === t.dataset.k ? -binSort.dir : -1 }; renderBins(); });
   $$("tbody tr", host).forEach(tr => tr.onclick = () => { BS.focusStop(+tr.dataset.i); BS.jump(".map-shell", "center"); });
@@ -1041,7 +1041,7 @@ function initResults() {
   // 2 · the three methods side by side
   const M = [
     [F, "Today", "Every bin, every 2 days, full or not.", `${fmt(100 * F.share_under_40)} % of its visits find a bin less than 40 % full.`],
-    [R, "Sensors only", `Empty a bin once it reads ${fmt(P.REACTIVE_AT)} %.`, "Too late: the bin often overflows before the truck arrives."],
+    [R, "Sensors only", `Empty a bin once it reads ${fmt(P.REACTIVE_AT)} %.`, `Too late: the bin often overflows before the truck arrives. It drives the least, but ${fmt(100 * R.overflow_events_day * P.COST_OVERFLOW / R.cost_day)} % of its cost is the £${fmt(P.COST_OVERFLOW)} overflow penalty.`],
     [B, "Sensors + forecast", "Empty the bins that will be full tomorrow.", "Sees the overflow coming and gets there first."],
   ];
   $("#methods").innerHTML = M.map(([r, tag, how, verdict]) => `<div class="card method${r.policy === "binsight" ? " on" : ""}">
