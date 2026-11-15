@@ -500,17 +500,15 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 /* step 4: objective and constraints, labelled separately */
 .m-cons { padding: 12px 12px 10px; }
 .m-text .m-lead { color: var(--ink); margin: 16px 0 -2px; }
-/* step 4: before and after optimising — the two plans' route maps, the trucks drive and the meters run */
-.rt-pair { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin-top: 4px; }
-.rt-h { display: flex; align-items: baseline; gap: 4px 10px; flex-wrap: wrap; margin-bottom: 4px; }
-.rt-h > b { font: 650 16px var(--display); }
-.rt-h > span { font-size: 13px; color: var(--ink-2); }
-.rt-h .rt-num { margin-left: auto; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink-2); }
-.rt-num b { font: 700 22px/1.1 var(--display); color: var(--ink); }
-.rt-num span { margin-left: 8px; font-size: 14px; }
-.rt-side svg { background: var(--paper); border-radius: 8px; }
-.opt-how { margin: 2px 0 6px; color: var(--ink-2); font-size: 14px; }
-.opt-red { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: var(--bad); margin: 0 5px 0 2px; vertical-align: -1px; }
+/* step 4: one area, before and after optimising — each colour one trip, red when less than half full */
+.m-head .ex-stage { font: 600 14px var(--body); color: var(--accent); }
+.ex-how { margin: 2px 0 6px; color: var(--ink-2); font-size: 14px; }
+.ex-sum { margin: 2px 0 6px; font-size: 15px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.ex-sum b { color: var(--ink); font: 700 19px var(--display); }
+.ex-map { background: var(--paper); border-radius: 10px; }
+.ex-map .ex-seaf { fill: var(--ink); font: 600 13px var(--body); paint-order: stroke; stroke: var(--paper); stroke-width: 4px; }
+.ex-key { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 0 2px; font-size: 13px; color: var(--ink-2); }
+.ex-key i { display: inline-block; width: 16px; height: 4px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
 .opt-slide { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; font-size: 13px; color: var(--ink-2); white-space: nowrap; }
 .opt-slide input { flex: 1; min-width: 0; accent-color: var(--accent); }
 .opt-why { margin: 10px 0 0; color: var(--ink); font-size: 15px; font-weight: 600; }
@@ -1383,20 +1381,13 @@ header.top.over { background: transparent; }
         </ul>
       </div>
       <div class="m-widget">
-        <div class="m-head"><b>Tomorrow’s routes, before and after optimising</b></div>
-        <p class="opt-how">Both plans empty the same <span data-mk="nStops">2,127</span> bins with the same <span data-mk="fleet">34</span> trucks. Watch them drive, or drag the slider. <i class="opt-red"></i>Red: a trip less than half full.</p>
-        <div class="rt-pair">
-          <div class="rt-side">
-            <div class="rt-h"><b>First plan</b><span id="rtTripsA"></span><span class="rt-num"><b id="rtCostA">£0</b><span id="rtKmA">0 km</span></span></div>
-            <svg class="chart" id="rtA" viewBox="0 0 520 300" role="img" aria-label="Tomorrow’s routes in the first plan, drawn as the trucks drive them"></svg>
-          </div>
-          <div class="rt-side">
-            <div class="rt-h"><b>After annealing</b><span id="rtTripsB"></span><span class="rt-num"><b id="rtCostB">£0</b><span id="rtKmB">0 km</span></span></div>
-            <svg class="chart" id="rtB" viewBox="0 0 520 300" role="img" aria-label="Tomorrow’s routes after simulated annealing, drawn as the trucks drive them"></svg>
-          </div>
-        </div>
-        <div class="opt-slide"><span>Leave Seafield</span><input type="range" id="mOpt" min="0" max="1" step="0.001" value="0" aria-label="How far through the day the trucks have driven"><span>Day done</span></div>
-        <p class="opt-why" id="optWhy"></p>
+        <div class="m-head"><b>One area, before and after optimising</b><span class="ex-stage" id="exStage">Quick plan</span></div>
+        <p class="ex-how">Tomorrow’s <span id="exBins">65</span> bins in <span id="exArea">Sighthill/Gorgie</span>, west Edinburgh. Each colour is one truck trip and its dots are the bins it empties. Seafield is <span id="exKm">12</span> km away: every trip drives there and back.</p>
+        <p class="ex-sum" id="exSum"></p>
+        <svg class="chart ex-map" id="mRoute" viewBox="0 0 520 400" role="img" aria-label="One area of west Edinburgh: the trips of the quick plan and of the plan after simulated annealing, on the streets"></svg>
+        <div class="ex-key" id="exKey"></div>
+        <div class="opt-slide"><span>Quick plan</span><input type="range" id="mEx" min="0" max="1" step="0.001" value="0" aria-label="From the quick plan to the plan after simulated annealing"><span>After annealing</span></div>
+        <p class="opt-why" id="exWhy"></p>
       </div>
     </div>
   </div>
@@ -1558,7 +1549,7 @@ const D = {};
 const UI = { layer: "pred", ward: -1, flagOnly: false, routes: false, selTruck: -1, selStop: -1, follow: -1, hoverWard: -1 };
 window.BS = { D, UI };
 
-const DATA_VER = "754d8f7e84";
+const DATA_VER = "8e35e73b77";
 async function getJSON(p) { const r = await fetch(p.startsWith("data/") ? p + "?v=" + DATA_VER : p); if (!r.ok) throw new Error(p + " " + r.status); return r.json(); }
 
 async function boot() {
@@ -2669,85 +2660,69 @@ function mathsDecide(M) {
   $("#decNote").textContent = `Tomorrow: ${fmt(dm.risky)} stops are projected at ${fmt(dm.floor)} % or more. Fullest first, ${fmt(dm.chosen)} fit the time of ${fmt(fleet0)} trucks; after routing, ${fmt(dm.served)} are emptied.`;
 }
 
-/* 4 · tomorrow's routes before and after optimising, one map above the other: the trucks drive them and the meters run */
+/* 4 · one area, before and after optimising: tomorrow's bins in one window of the city, planned by the quick rule and by simulated annealing */
 function mathsRoute(M) {
-  const R = D.R, dep = [R.depot.latitude, R.depot.longitude], kx = Math.cos(dep[0] * Math.PI / 180), cap = R.capacity_l;
-  const slider = $("#mOpt"), still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  getJSON("data/first_plan.json").then(F => {
-    const plans = [F.routes, R.routes].map(rs => rs.map(r => r.trips.map(t => ({ red: t.load < cap / 2, pts: decode(t.line) }))));
-    const C = [F.compare.first, F.compare.final];
-    // one frame for both maps, so the two are drawn at the same scale
-    let b = [dep[0], dep[0], dep[1], dep[1]];
-    for (const p of plans) for (const tr of p) for (const t of tr) for (const [la, lo] of t.pts) b = [Math.min(b[0], la), Math.max(b[1], la), Math.min(b[2], lo), Math.max(b[3], lo)];
-    const W = 520, pad = 10, sc = (W - 2 * pad) / ((b[3] - b[2]) * kx), H = Math.round((b[1] - b[0]) * sc + 2 * pad);
-    const X = lo => pad + (lo - b[2]) * kx * sc, Y = la => pad + (b[1] - la) * sc;
-    const line = pts => pts.map(([la, lo], j) => `${j ? "L" : "M"}${X(lo).toFixed(1)},${Y(la).toFixed(1)}`).join("");
-    const box = pts => pts.reduce((q, [la, lo]) => [Math.min(q[0], la), Math.max(q[1], la), Math.min(q[2], lo), Math.max(q[3], lo)], [90, -90, 180, -180]);
-    const layer = (list, close) => list.map(decode).filter(p => { const q = box(p); return q[1] >= b[0] && q[0] <= b[1] && q[3] >= b[2] && q[2] <= b[3]; }).map(p => line(p) + (close ? "Z" : "")).join("");
-    const B = D.base, parks = B.parks || [];
-    const base = `<g opacity=".5"><path d="${layer(parks.filter(p => p.k === "park").map(p => p.ring), true)}" fill="${PAL.park}"/><path d="${layer(parks.filter(p => p.k === "water").map(p => p.ring), true)}" fill="${PAL.sea}"/>` +
-      `<path d="${layer((B.water || []).map(x => x.line))}" fill="none" stroke="${PAL.sea}" stroke-width="2"/><path d="${layer((B.roads || {}).major || [])}" fill="none" stroke="${PAL.road}" stroke-width="1"/></g>`;
-    const depot = `<rect x="${(X(dep[1]) - 6).toFixed(1)}" y="${(Y(dep[0]) - 6).toFixed(1)}" width="12" height="12" rx="3" fill="${PAL.ink}" stroke="${PAL.surface}" stroke-width="2"><title>Seafield depot</title></rect>`;
-    // each truck drives its trips one after another; a trip is drawn as far as the truck has got
-    const maps = ["A", "B"].map((s, k) => {
-      const svg = $("#rt" + s);
-      svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-      const trucks = plans[k].map(tr => {
-        const trips = tr.map(t => {
-          const px = t.pts.map(([la, lo]) => [X(lo), Y(la)]), cum = [0];
-          for (let j = 1; j < px.length; j++) cum.push(cum[j - 1] + Math.hypot(px[j][0] - px[j - 1][0], px[j][1] - px[j - 1][1]));
-          return { ...t, px, cum, len: cum[cum.length - 1] || 1 };
-        });
-        let s0 = 0; for (const t of trips) { t.s0 = s0; s0 += t.len; }
-        return { trips, tot: s0 || 1 };
+  const R = D.R, dep = [R.depot.latitude, R.depot.longitude], kx = Math.cos(dep[0] * Math.PI / 180);
+  const svg = $("#mRoute"), slider = $("#mEx"), still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const COLS = ["#4f9fe0", "#e6a23c", "#9b7be0"];
+  Promise.all([getJSON("data/route_example.json"), getJSON("data/first_plan.json")]).then(([E, F]) => {
+    const plans = E.plans.map(p => ({ ...p, trips: p.trips.map((t, j) => ({ ...t, pts: decode(t.line), col: t.load < .5 ? PAL.bad : COLS[j % 3] })) }));
+    // the frame: every bin of the example with a margin; the drive to Seafield leaves it
+    const bins = plans[0].trips.flatMap(t => t.bins);
+    const la0 = Math.min(...bins.map(b => b[0])) - .0035, la1 = Math.max(...bins.map(b => b[0])) + .0035;
+    const lo0 = Math.min(...bins.map(b => b[1])) - .006, lo1 = Math.max(...bins.map(b => b[1])) + .006;
+    const W = 520, H = Math.round(clamp(W * (la1 - la0) / ((lo1 - lo0) * kx), 300, 460));
+    const sc = Math.min(W / ((lo1 - lo0) * kx), H / (la1 - la0)), ox = (W - (lo1 - lo0) * kx * sc) / 2, oy = (H - (la1 - la0) * sc) / 2;
+    const X = lo => ox + (lo - lo0) * kx * sc, Y = la => oy + (la1 - la) * sc;
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    const inside = (x, y, m = 0) => x >= -m && x <= W + m && y >= -m && y <= H + m;
+    // the part of a line inside the frame (with a margin), split where it leaves and comes back
+    const clipped = pts => { let d = "", on = false; for (const [la, lo] of pts) { const x = X(lo), y = Y(la); if (inside(x, y, 40)) { d += `${on ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`; on = true; } else on = false; } return d; };
+    const roads = [...((D.base.roads || {}).minor || []), ...((D.base.roads || {}).major || [])].map(decode).map(clipped).join("");
+    // where the drive from Seafield enters the frame, for the label
+    const entry = (() => { for (const [la, lo] of plans[0].trips[0].pts) { const x = X(lo), y = Y(la); if (inside(x, y)) return [x, y]; } return [W - 10, 20]; })();
+    const right = entry[0] > W / 2, ly = clamp(entry[1] + (entry[1] < H / 2 ? 22 : -14), 18, H - 8);
+    svg.innerHTML = `<path d="${roads}" fill="none" stroke="${PAL.road}" stroke-width=".8" opacity=".6"/>` +
+      plans.map((p, k) => `<g class="ex-plan" data-k="${k}" style="display:none">` +
+        p.trips.map((t, j) => `<path class="ex-line" data-j="${j}" d="${clipped(t.pts)}" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="1" fill="none" stroke="${t.col}" stroke-width="${t.load < .5 ? 4 : 3}" stroke-linejoin="round" stroke-linecap="round"/>`).join("") +
+        p.trips.map((t, j) => t.bins.map(([la, lo]) => `<circle class="ex-bin" data-j="${j}" cx="${X(lo).toFixed(1)}" cy="${Y(la).toFixed(1)}" r="4.2" fill="${t.col}" stroke="${PAL.surface}" stroke-width="1.2" opacity="0"/>`).join("")).join("") +
+        `<text x="${(right ? entry[0] - 6 : entry[0] + 6).toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${right ? "end" : "start"}" class="ex-seaf">To Seafield, ${fmt(E.depot_km)} km: ${p.trips.length} trips drive it</text></g>`).join("");
+    const groups = [...svg.querySelectorAll(".ex-plan")];
+    // show one plan: its trips are drawn one after another, each from where it enters the frame
+    let k = -1, timers = [];
+    const show = (to, animate) => {
+      timers.forEach(clearTimeout); timers = [];
+      k = to;
+      groups.forEach((g, i) => { g.style.display = i === k ? "" : "none"; });
+      const p = plans[k], g = groups[k], step = 1100;
+      $("#exStage").textContent = k ? "After simulated annealing" : "Quick plan";
+      $("#exSum").innerHTML = `<b>${p.trips.length} trips</b> from Seafield · <b>${fmt(p.km)} km</b> · <b>£${fmt(p.cost)}</b>`;
+      $("#exKey").innerHTML = p.trips.map((t, j) => `<span><i style="background:${t.col}"></i>Trip ${j + 1}: ${t.bins.length} bins, ${fmt(100 * t.load)} % full</span>`).join("");
+      slider.value = k;
+      p.trips.forEach((t, j) => {
+        const line = g.querySelector(`.ex-line[data-j="${j}"]`), dots = [...g.querySelectorAll(`.ex-bin[data-j="${j}"]`)];
+        const draw = () => { line.style.transition = animate && !still ? `stroke-dashoffset ${step}ms ease-in-out` : "none"; line.setAttribute("stroke-dashoffset", 0); dots.forEach(c => { c.style.transition = animate && !still ? `opacity ${step / 2}ms` : "none"; c.setAttribute("opacity", 1); }); };
+        line.style.transition = "none"; line.setAttribute("stroke-dashoffset", 1); dots.forEach(c => { c.style.transition = "none"; c.setAttribute("opacity", 0); });
+        if (animate && !still) { line.getBoundingClientRect(); timers.push(setTimeout(draw, 60 + j * step)); } else draw();
       });
-      svg.innerHTML = base + trucks.map(tr => tr.trips.map(t => `<path d="${line(t.pts)}" pathLength="1" fill="none" stroke="${t.red ? PAL.bad : PAL.ink3}" stroke-width="${t.red ? 3 : 1.4}" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="1 1" stroke-dashoffset="1" visibility="hidden"/>`).join("")).join("") +
-        depot + trucks.map(() => `<circle r="4.5" fill="${PAL.ink}" stroke="${PAL.surface}" stroke-width="1.5" visibility="hidden"/>`).join("");
-      const paths = [...svg.querySelectorAll("path[pathLength]")], dots = [...svg.querySelectorAll("circle")];
-      let n = 0; for (const tr of trucks) for (const t of tr.trips) t.el = paths[n++];
-      $("#rtTrips" + s).textContent = `${fmt(C[k].trips)} trips`;
-      return { trucks, dots, c: C[k], cost: $("#rtCost" + s), km: $("#rtKm" + s) };
-    });
-    const at = (t, d) => { let lo = 0, hi = t.cum.length - 1; while (lo < hi - 1) { const m = (lo + hi) >> 1; if (t.cum[m] <= d) lo = m; else hi = m; } const f = t.cum[hi] > t.cum[lo] ? (d - t.cum[lo]) / (t.cum[hi] - t.cum[lo]) : 0, a = t.px[lo], c = t.px[hi]; return [a[0] + (c[0] - a[0]) * f, a[1] + (c[1] - a[1]) * f]; };
-    let u = 0;
-    const show = v => {
-      u = clamp(v, 0, 1);
-      for (const m of maps) {
-        m.trucks.forEach((tr, ti) => {
-          const L = u * tr.tot; let head = null;
-          for (const t of tr.trips) {
-            const f = clamp((L - t.s0) / t.len, 0, 1);
-            t.el.setAttribute("visibility", f > 0 ? "visible" : "hidden");
-            t.el.setAttribute("stroke-dashoffset", (1 - f).toFixed(4));
-            if (f > 0 && f < .9995) head = at(t, f * t.len);
-          }
-          const dot = m.dots[ti];
-          if (head) { dot.setAttribute("cx", head[0].toFixed(1)); dot.setAttribute("cy", head[1].toFixed(1)); dot.setAttribute("visibility", "visible"); }
-          else dot.setAttribute("visibility", "hidden");
-        });
-        m.cost.textContent = `£${fmt(u * m.c.total)}`;
-        m.km.textContent = `${fmt(u * m.c.km)} km`;
-      }
-      slider.value = u;
+      return (p.trips.length) * step + 60;
     };
-    let raf = 0;
-    const halt = () => { cancelAnimationFrame(raf); raf = 0; };
-    const play = () => {
-      halt();
-      if (still) return show(1);
-      const from = u >= 1 ? 0 : u, t0 = performance.now(), dur = 7000 * (1 - from);
-      const step = now => { const e = Math.min(1, (now - t0) / dur); show(from + (1 - from) * e); raf = e < 1 ? requestAnimationFrame(step) : 0; };
-      raf = requestAnimationFrame(step);
-    };
-    slider.oninput = () => { halt(); show(+slider.value); };
-    const [a, z] = C;
-    $("#optWhy").textContent = `Same bins, same trucks: ${fmt(a.trips - z.trips)} fewer trips and ${fmt(a.km - z.km)} km less driving, so £${fmt(a.total - z.total)} a day cheaper (−${fmt(100 * (1 - z.total / a.total))} %).`;
-    show(0);
-    // the first time the maps come into view, the trucks drive
+    slider.oninput = () => { const to = +slider.value < .5 ? 0 : 1; if (to !== k) show(to, false); };
+    slider.onchange = () => show(+slider.value < .5 ? 0 : 1, true);
+    slider.onkeydown = e => { const to = { ArrowLeft: 0, ArrowDown: 0, Home: 0, ArrowRight: 1, ArrowUp: 1, End: 1 }[e.key]; if (to != null) { e.preventDefault(); show(to, true); } };
+    const [A, B] = plans, CA = F.compare.first, CZ = F.compare.final;
+    $("#exWhy").textContent = `${B.trips.length} trips instead of ${A.trips.length}: ${fmt(A.km - B.km)} km less, ${fmt(100 * (1 - B.cost / A.cost))} % cheaper. Across the whole city the same effect gives ${fmt(CA.trips - CZ.trips)} fewer trips and £${fmt(CA.total - CZ.total)} a day less (−${fmt(100 * (1 - CZ.total / CA.total))} %).`;
+    $("#exArea").textContent = E.area; $("#exBins").textContent = fmt(E.bins); $("#exKm").textContent = fmt(E.depot_km);
+    show(0, false);
+    // the first time it comes into view: draw the quick plan, wait, then the plan after annealing
     if ("IntersectionObserver" in window && !still)
-      new IntersectionObserver((es, ob) => { if (es.some(e => e.isIntersecting)) { ob.disconnect(); setTimeout(() => { if (u === 0) play(); }, 500); } }, { threshold: .5 }).observe($("#rtA"));
-    else show(1);
-  }).catch(() => { $("#rtA").innerHTML = `<text x="260" y="40" text-anchor="middle">The routes could not be loaded.</text>`; });
+      new IntersectionObserver((es, ob) => {
+        if (!es.some(e => e.isIntersecting)) return;
+        ob.disconnect();
+        const t1 = show(0, true);
+        timers.push(setTimeout(() => show(1, true), t1 + 1600));
+      }, { threshold: .5 }).observe(svg);
+  }).catch(() => { svg.innerHTML = `<text x="260" y="60" text-anchor="middle">The example could not be loaded.</text>`; });
 }
 
 /* 5 · before and after: the three policies */
