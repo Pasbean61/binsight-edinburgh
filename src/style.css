@@ -499,6 +499,24 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 #rtState { color: var(--ink); font-weight: 600; }
 .rt-key { margin-left: auto; display: flex; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); }
 .rt-key i { display: inline-block; width: 16px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+.rt-key button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+.rt-key button:hover, .rt-key button.on { color: var(--ink); }
+.rt-key button:hover { text-decoration: underline; text-underline-offset: 3px; }
+.rt-key button.on { font-weight: 600; }
+/* step 4: the time slider's track shows the truck's day, trip by trip; the thumb is the truck */
+.rt-time { position: relative; height: 24px; }
+.rt-seg { position: absolute; left: 9px; right: 9px; top: 8px; height: 8px; border-radius: 4px; overflow: hidden; }
+#rtSegBase { background: var(--line); }
+#rtSegBase i { opacity: .3; }
+.rt-seg i { position: absolute; top: 0; bottom: 0; }
+.rt-time input { position: absolute; inset: 0; width: 100%; height: 24px; margin: 0; -webkit-appearance: none; appearance: none; background: none; cursor: pointer; }
+.rt-time input::-webkit-slider-runnable-track { height: 24px; background: none; }
+.rt-time input::-moz-range-track { height: 24px; background: none; }
+.rt-time input::-webkit-slider-thumb { -webkit-appearance: none; box-sizing: border-box; width: 18px; height: 18px; margin-top: 3px; border-radius: 50%; background: var(--ink); border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--ink-3); }
+.rt-time input::-moz-range-thumb { box-sizing: border-box; width: 18px; height: 18px; border-radius: 50%; background: var(--ink); border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--ink-3); }
+.rt-time input:focus-visible { outline: none; }
+.rt-time input:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--accent); }
+.rt-time input:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--accent); }
 .m-model .eq-rows { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; align-items: baseline; text-align: left; margin: 8px 4px 2px; }
 .m-model .eq-rows > span:nth-child(odd) { white-space: nowrap; }
 .m-model .eq-rows > span:nth-child(even) { font: 400 14px/1.35 var(--body); color: var(--ink-2); }
