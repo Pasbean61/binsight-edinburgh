@@ -90,6 +90,8 @@ Serving stop i costs the drive to reach it; skipping it costs πᵢ. A stop is t
    where c̄ is the mean arc cost of the starting plan, and t_max = 30 s for tomorrow's plan, 15 s a day in the experiment.
 4. **Return** the best plan seen.
 
+**Tomorrow, before and after annealing.** The start plan needs 81 trips, 15 of them less than half full (trucks 82 % full on average): 1,677 km and £7,862. Annealing empties the same 2,127 stops in 70 trips, 94 % full on average: 1,289 km and £6,103 (−22 %). Of the 388 km saved, 282 km are drives to and from Seafield: fuller trips mean fewer of them. `scripts/export_first_plan.py` rebuilds the start plan and writes it to `data/first_plan.json` for the before-and-after map on the website (maths, step 4).
+
 **Fleet.** Each timetable round g is routed with the trucks its start needs, then with one fewer at a time until a stop is left out; K(g) is the last count that still empties every stop. The fleet for all three policies is K = max K(g) over the rounds, i.e. what the busiest round needs.
 
 **Check against the previous four-stage heuristic** (savings, local search, annealing, packing), on real stop locations with straight-line distance × 1.35 at 22 km/h, 24 trucks, equal run time:
