@@ -498,15 +498,13 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 /* maths steps: no secondary captions, the same in all five tabs */
 .m-pane .note, .m-pane .muted.small, .m-pane .slider small, .m-pane #decCounts > div[style] { display: none; }
 /* step 4: objective and constraints, labelled separately */
-.m-model .eq-tag { font: 600 12px/1 var(--body); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); text-align: left; margin: 4px 4px 0; }
-.m-model .eq-tag + .katex-display, .m-model .eq-tag + .eq-rows { margin-top: 8px; }
 .m-cons { padding: 12px 12px 10px; }
-.m-cons .eq-tag { color: var(--ink-3); }
-.opt-gain { display: flex; align-items: baseline; gap: 6px 12px; flex-wrap: wrap; background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 10px; padding: 12px 14px; margin: 8px 0 12px; }
-.opt-gain b { font: 700 24px/1.1 var(--display); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
-.opt-gain span { font-size: 14px; color: var(--ink-2); }
-.rt-nav { gap: 8px; margin-bottom: 4px; }
-.rt-nav > b { font: 650 15px var(--display); min-width: 7.5em; text-align: center; }
+.m-text .m-lead { color: var(--ink); margin: 16px 0 -2px; }
+.opt-cost { margin: 0 0 6px; color: var(--ink-2); font-size: 15px; font-variant-numeric: tabular-nums; }
+.opt-cost b { color: var(--ink); font: 700 20px var(--display); }
+.opt-cost em { font-style: normal; font-weight: 700; color: var(--accent); margin-left: 4px; }
+.rt-hud { display: flex; align-items: baseline; gap: 4px 12px; flex-wrap: wrap; min-height: 22px; font-size: 14px; }
+#rtState { color: var(--ink); font-weight: 600; }
 .rt-key { margin-left: auto; display: flex; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); }
 .rt-key i { display: inline-block; width: 16px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
 .m-model .eq-rows { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; align-items: baseline; text-align: left; margin: 8px 4px 2px; }
@@ -1358,13 +1356,13 @@ header.top.over { background: transparent; }
       <div class="m-text">
         <h3>What is the lowest-cost way to empty them?</h3>
         <p class="m-idea">Each truck empties its bins in trips from Seafield, all within one shift. We pick the routes with the lowest total cost.</p>
+        <p class="m-lead"><b>Objective:</b> the lowest total cost.</p>
         <div class="eq hl m-model">
-          <div class="eq-tag">Objective · lowest total cost</div>
           <div class="obj-one">\[ \min \;\; \underbrace{\textstyle\sum_{k,r}\sum_{i,j} c_{ij}\, x_{ijkr}}_{\text{driving cost}} \;+\; \underbrace{\textstyle\sum_i \pi_i \bigl(1 - \sum_{k,r} z_{ikr}\bigr)}_{\text{bins left out}} \]</div>
           <div class="obj-two">\[ \begin{aligned} \min \;\; & \underbrace{\textstyle\sum_{k,r}\sum_{i,j} c_{ij}\, x_{ijkr}}_{\text{driving cost}} \\ +\;\; & \underbrace{\textstyle\sum_i \pi_i \bigl(1 - \sum_{k,r} z_{ikr}\bigr)}_{\text{bins left out}} \end{aligned} \]</div>
         </div>
+        <p class="m-lead"><b>Constraints:</b> what every route must respect.</p>
         <div class="eq m-model m-cons">
-          <div class="eq-tag">Constraints</div>
           <div class="eq-rows">
             <span>\(\sum_{k,r} z_{ikr} \le 1\)</span><span>each bin at most once</span>
             <span>\(\sum_i q_i\, z_{ikr} \le Q\, u_{kr}\)</span><span>one truckload (@loadM3@ m³) per trip</span>
@@ -1379,14 +1377,11 @@ header.top.over { background: transparent; }
       </div>
       <div class="m-widget">
         <div class="m-head"><b>Tomorrow’s optimised routes</b></div>
-        <div class="opt-gain"><b id="optCost">–</b><span id="optGain"></span></div>
-        <div class="m-row rt-nav">
-          <button class="btn ghost sm" type="button" id="rtPrev" aria-label="Previous truck">‹</button>
-          <b id="rtName">–</b>
-          <button class="btn ghost sm" type="button" id="rtNext" aria-label="Next truck">›</button>
-          <span class="rt-key" id="rtKey"></span>
-        </div>
+        <p class="opt-cost" id="optCost">–</p>
+        <div class="rt-hud"><span id="rtState">–</span><span class="rt-key" id="rtKey"></span></div>
         <svg class="chart" id="mRoute" viewBox="0 0 520 360" role="img" aria-label="One truck’s optimised trips for tomorrow, drawn on the real streets"></svg>
+        <div class="slider"><div class="top"><label for="mRtT">Time of day</label><output id="oRtT">06:00</output></div><input type="range" id="mRtT" min="0" max="480" step="1" value="0"></div>
+        <div class="slider"><div class="top"><label for="mRtK">Truck</label><output id="oRtK">1 of 34</output></div><input type="range" id="mRtK" min="1" max="34" step="1" value="1"></div>
         <div class="m-counts" id="rtOut"></div>
       </div>
     </div>
@@ -2660,13 +2655,71 @@ function mathsDecide(M) {
   $("#decNote").textContent = `Tomorrow: ${fmt(dm.risky)} stops are projected at ${fmt(dm.floor)} % or more. Fullest first, ${fmt(dm.chosen)} fit the time of ${fmt(fleet0)} trucks; after routing, ${fmt(dm.served)} are emptied.`;
 }
 
-/* 4 · tomorrow's optimised routes, one truck at a time, on the real streets */
+/* 4 · tomorrow's optimised routes: drag through the day and watch one truck drive its trips on the real streets */
 function mathsRoute(M) {
-  const R = D.R, MR = M.route, S = D.S, dep = [R.depot.latitude, R.depot.longitude];
-  $("#optCost").textContent = `£${fmt(MR.start)} → £${fmt(MR.final)}`;
-  $("#optGain").textContent = `Simulated annealing cut the first plan’s cost by ${fmt(100 * (1 - MR.final / MR.start))} %: ${fmt(MR.stops)} stops, ${MR.trips} trips, ${MR.trucks} trucks.`;
+  const R = D.R, MR = M.route, S = D.S, F = D.site.fleet, dep = [R.depot.latitude, R.depot.longitude];
+  $("#optCost").innerHTML = `Simulated annealing: £${fmt(MR.start)} → <b>£${fmt(MR.final)}</b> a day <em>−${fmt(100 * (1 - MR.final / MR.start))} %</em>`;
   const routes = R.routes.filter(r => r.trips && r.trips.length), cols = [PAL.accent, PAL.warn, PAL.bad];
-  const kx = Math.cos(dep[0] * Math.PI / 180);
+  const kx = Math.cos(dep[0] * Math.PI / 180), dist = (a, b) => Math.hypot((a[1] - b[1]) * 111.32 * kx, (a[0] - b[0]) * 110.57);
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // put the stops on the street line in visiting order: the monotone matching with the least total distance
+  // (dynamic programming; a plain "nearest point" snaps a stop to a later pass along the same street)
+  const align = (pts, qs) => {
+    const V = pts.length, arg = []; let g = new Float64Array(V);
+    for (const q of qs) {
+      const ng = new Float64Array(V), ga = new Int32Array(V);
+      for (let j = 0; j < V; j++) { const f = dist(q, pts[j]) + g[j]; if (j && ng[j - 1] <= f) { ng[j] = ng[j - 1]; ga[j] = ga[j - 1]; } else { ng[j] = f; ga[j] = j; } }
+      arg.push(ga); g = ng;
+    }
+    const out = []; let j = V - 1;
+    for (let n = qs.length - 1; n >= 0; n--) { j = arg[n][j]; out[n] = j; }
+    return out;
+  };
+  // one truck's day on the street geometry, with the times from the schedule
+  const days = new Map();
+  const dayOf = k => {
+    if (days.has(k)) return days.get(k);
+    const trips = routes[k].trips.map(t => {
+      const pts = t.line ? decode(t.line) : [dep, dep], cum = [0];
+      for (let j = 1; j < pts.length; j++) cum.push(cum[j - 1] + dist(pts[j - 1], pts[j]));
+      const fill = t.stops.map(i => S.cap[i] * Math.min(S.pred[i], 100) / 100), tot = fill.reduce((a, v) => a + v, 0) || 1;
+      const at = align(pts, t.stops.map(i => [S.lat[i], S.lon[i]]));
+      let load = 0;
+      const stops = t.stops.map((i, n) => {
+        load += t.load * fill[n] / tot;
+        return { i, d: cum[at[n]], tArr: t.eta[n], tDep: t.eta[n] + svcMin(i), load };
+      });
+      return { pts, cum, total: cum[cum.length - 1] || 1, t0: t.start, t1: t.end - F.tip_min, tEnd: t.end, stops, km: t.road_km || 0 };
+    });
+    const day = { trips, end: trips[trips.length - 1].tEnd, n: trips.reduce((a, t) => a + t.stops.length, 0), km: routes[k].km };
+    days.set(k, day); return day;
+  };
+  const dAt = (tr, t) => {
+    let pd = 0, pt = tr.t0;
+    for (const s of tr.stops) {
+      if (t < s.tArr) return pd + (s.d - pd) * (t - pt) / Math.max(1e-6, s.tArr - pt);
+      if (t <= s.tDep) return s.d;
+      pd = s.d; pt = s.tDep;
+    }
+    return Math.min(tr.total, pd + (tr.total - pd) * (t - pt) / Math.max(1e-6, tr.t1 - pt));
+  };
+  // where the truck is at minute t: trip j, distance d along it, bins emptied, km driven, load on board
+  const at = (day, t) => {
+    let done = 0, km = 0;
+    for (let j = 0; j < day.trips.length; j++) {
+      const tr = day.trips[j], last = tr.stops.length ? tr.stops[tr.stops.length - 1].load : 0;
+      if (t < tr.t0) return { j, d: -1, done, km, load: 0, state: j ? "Back at Seafield" : "At Seafield, ready to go" };
+      if (t <= tr.t1) {
+        let n = 0; while (n < tr.stops.length && tr.stops[n].tArr <= t) n++;
+        const s = tr.stops[n - 1], next = tr.stops[n], d = dAt(tr, t);
+        const state = s && t <= s.tDep ? `emptying bins on ${S.site[s.i]}` : next ? `driving to ${S.site[next.i]}` : "heading back to Seafield to tip";
+        return { j, d, done: done + n, km: km + tr.km * d / tr.total, load: s ? s.load : 0, state: `Trip ${j + 1} · ${state}` };
+      }
+      done += tr.stops.length; km += tr.km;
+      if (t < tr.tEnd) return { j, d: tr.total, done, km, load: last, state: `Trip ${j + 1} · tipping the load at Seafield` };
+    }
+    return { j: day.trips.length, d: 0, done, km, load: 0, state: `Shift done at ${hhmm(day.end)}, back at Seafield` };
+  };
   // faint street map underneath: decoded once, each piece with its bounding box
   let bg = null;
   const box = pts => pts.reduce((b, [la, lo]) => [Math.min(b[0], la), Math.max(b[1], la), Math.min(b[2], lo), Math.max(b[3], lo)], [90, -90, 180, -180]);
@@ -2678,18 +2731,18 @@ function mathsRoute(M) {
     minor: ((D.base.roads || {}).minor || []).map(l => piece(decode(l))),
     major: ((D.base.roads || {}).major || []).map(l => piece(decode(l))),
   });
-  let k = 0;
+  const svgEl = $("#mRoute"), tIn = $("#mRtT"), kIn = $("#mRtK"), el = {};
+  const tMax = Math.max(F.shift_min, ...routes.map(r => r.trips[r.trips.length - 1].end));
+  tIn.max = tMax; kIn.max = routes.length;
+  let k = 0, t = 0, day = null, X = null, Y = null, raf = 0;
   const draw = () => {
-    const r = routes[k], W = 520, H = 360, pad = 16, foot = 26;
-    const trips = r.trips.map(t => ({ pts: t.line ? decode(t.line) : [], stops: t.stops }));
+    day = dayOf(k);
+    const W = 520, H = 360, pad = 16, foot = 26;
     let la0 = dep[0], la1 = dep[0], lo0 = dep[1], lo1 = dep[1];
-    for (const t of trips) {
-      for (const [la, lo] of t.pts) { if (la < la0) la0 = la; if (la > la1) la1 = la; if (lo < lo0) lo0 = lo; if (lo > lo1) lo1 = lo; }
-      for (const i of t.stops) { la0 = Math.min(la0, S.lat[i]); la1 = Math.max(la1, S.lat[i]); lo0 = Math.min(lo0, S.lon[i]); lo1 = Math.max(lo1, S.lon[i]); }
-    }
+    for (const tr of day.trips) for (const [la, lo] of tr.pts) { if (la < la0) la0 = la; if (la > la1) la1 = la; if (lo < lo0) lo0 = lo; if (lo > lo1) lo1 = lo; }
     const w = Math.max((lo1 - lo0) * kx, 1e-4), h = Math.max(la1 - la0, 1e-4);
     const sc = Math.min((W - 2 * pad) / w, (H - 2 * pad - foot) / h), ox = (W - w * sc) / 2, oy = (H - foot - h * sc) / 2;
-    const X = lo => ox + (lo - lo0) * kx * sc, Y = la => oy + (la1 - la) * sc;
+    X = lo => ox + (lo - lo0) * kx * sc; Y = la => oy + (la1 - la) * sc;
     const line = pts => pts.map(([la, lo], j) => `${j ? "L" : "M"}${X(lo).toFixed(1)},${Y(la).toFixed(1)}`).join("");
     const v = [la1 - (H - oy) / sc, la1 + oy / sc, lo0 - ox / (kx * sc), lo0 + (W - ox) / (kx * sc)];
     const inView = p => p.b[1] >= v[0] && p.b[0] <= v[1] && p.b[3] >= v[2] && p.b[2] <= v[3];
@@ -2697,21 +2750,56 @@ function mathsRoute(M) {
     const G = background();
     let svg = `<g opacity=".55"><path d="${layer(G.parks, true)}" fill="${PAL.park}"/><path d="${layer(G.lakes, true)}" fill="${PAL.sea}"/><path d="${layer(G.water)}" fill="none" stroke="${PAL.sea}" stroke-width="2.5"/>` +
       `<path d="${layer(G.minor)}" fill="none" stroke="${PAL.road}" stroke-width=".7"/><path d="${layer(G.major)}" fill="none" stroke="${PAL.road}" stroke-width="1.4"/></g>`;
-    svg += trips.map((t, j) => `<path d="${line(t.pts)}" fill="none" stroke="${cols[j % 3]}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" opacity=".85"/>`).join("");
-    svg += trips.map((t, j) => t.stops.map(i => `<circle cx="${X(S.lon[i]).toFixed(1)}" cy="${Y(S.lat[i]).toFixed(1)}" r="3.2" fill="${PAL.surface}" stroke="${cols[j % 3]}" stroke-width="1.6"><title>${esc(S.site[i])}</title></circle>`).join("")).join("");
+    // the planned trips faint, the road already driven bright on top
+    svg += day.trips.map((tr, j) => `<path d="${line(tr.pts)}" fill="none" stroke="${cols[j % 3]}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity=".25"/>`).join("");
+    svg += day.trips.map((tr, j) => `<path class="rt-done" d="" fill="none" stroke="${cols[j % 3]}" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>`).join("");
+    svg += day.trips.map((tr, j) => tr.stops.map(s => `<circle data-j="${j}" cx="${X(S.lon[s.i]).toFixed(1)}" cy="${Y(S.lat[s.i]).toFixed(1)}" r="3.2" fill="${PAL.surface}" stroke="${cols[j % 3]}" stroke-width="1.6"><title>${esc(S.site[s.i])}</title></circle>`).join("")).join("");
     const dx = X(dep[1]), dy = Y(dep[0]), right = dx > W - 90;
     svg += `<rect x="${(dx - 7).toFixed(1)}" y="${(dy - 7).toFixed(1)}" width="14" height="14" rx="3" fill="${PAL.ink}"/><text x="${(right ? dx - 12 : dx + 12).toFixed(1)}" y="${(dy + 4).toFixed(1)}" text-anchor="${right ? "end" : "start"}" style="fill:${PAL.ink};font-weight:600">Seafield depot</text>`;
     const pxKm = sc / 111.32, km = [0.5, 1, 2, 5, 10].find(v => v * pxKm >= 50) || 10, bx = pad, by = H - 10;
     svg += `<line x1="${bx}" x2="${(bx + km * pxKm).toFixed(1)}" y1="${by}" y2="${by}" stroke="${PAL.ink3}" stroke-width="2"/><text x="${(bx + km * pxKm + 6).toFixed(1)}" y="${by + 4}" style="fill:${PAL.ink3}">${km} km</text>`;
-    $("#mRoute").innerHTML = svg;
-    $("#rtName").textContent = `Truck ${k + 1} of ${routes.length}`;
-    $("#rtKey").innerHTML = trips.map((t, j) => `<span><i style="background:${cols[j % 3]}"></i>Trip ${j + 1} · ${t.stops.length} stops</span>`).join("");
-    const n = trips.reduce((s_, t) => s_ + t.stops.length, 0);
-    $("#rtOut").innerHTML = [[fmt(n), `stops in ${trips.length} trips`], [`${fmt(r.km, 1)} km`, "driven on real streets"], [`${fmt(r.hours, 1)} h`, `of the ${fmt(R.shift_min / 60)}-hour shift`]].map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join("");
+    svg += `<g id="rtTruck"><circle r="11" fill="${PAL.ink}" opacity=".18"/><circle r="6" fill="${PAL.ink}" stroke="${PAL.surface}" stroke-width="2"/></g>`;
+    svgEl.innerHTML = svg;
+    el.done = [...svgEl.querySelectorAll(".rt-done")];
+    el.dots = day.trips.map((tr, j) => [...svgEl.querySelectorAll(`circle[data-j="${j}"]`)]);
+    el.truck = $("#rtTruck");
+    $("#oRtK").textContent = `${k + 1} of ${routes.length}`;
+    $("#rtKey").innerHTML = day.trips.map((tr, j) => `<span><i style="background:${cols[j % 3]}"></i>Trip ${j + 1} · ${tr.stops.length} bins</span>`).join("");
   };
-  $("#rtPrev").onclick = () => { k = (k + routes.length - 1) % routes.length; draw(); };
-  $("#rtNext").onclick = () => { k = (k + 1) % routes.length; draw(); };
-  draw();
+  const upTo = (tr, d) => {
+    const c = tr.cum; let lo = 0, hi = c.length - 1;
+    while (lo < hi - 1) { const mid = (lo + hi) >> 1; if (c[mid] <= d) lo = mid; else hi = mid; }
+    const p = along(tr, d);
+    return tr.pts.slice(0, lo + 1).concat([p]).map(([la, lo_], j) => `${j ? "L" : "M"}${X(lo_).toFixed(1)},${Y(la).toFixed(1)}`).join("");
+  };
+  const show = () => {
+    const p = at(day, t);
+    day.trips.forEach((tr, j) => {
+      const d = j < p.j ? tr.total : j > p.j ? 0 : p.d;
+      el.done[j].setAttribute("d", d > 0 ? upTo(tr, d) : "");
+      el.dots[j].forEach((c, n) => c.setAttribute("fill", tr.stops[n].tArr <= t ? cols[j % 3] : PAL.surface));
+    });
+    const pos = p.j < day.trips.length && p.d >= 0 ? along(day.trips[p.j], p.d) : dep;
+    el.truck.setAttribute("transform", `translate(${X(pos[1]).toFixed(1)},${Y(pos[0]).toFixed(1)})`);
+    tIn.value = t; $("#oRtT").textContent = hhmm(t); $("#rtState").textContent = p.state;
+    $("#rtOut").innerHTML = [[`${fmt(p.done)} / ${fmt(day.n)}`, "bins emptied"], [`${fmt(p.km, 1)} km`, `of ${fmt(day.km, 1)} km driven`], [`${fmt(100 * p.load / R.capacity_l)} %`, "truck full"]]
+      .map(([a, b]) => `<div><b>${a}</b><span>${b}</span></div>`).join("");
+  };
+  // play the truck's day in about six seconds; any drag on the sliders takes over
+  const halt = () => { cancelAnimationFrame(raf); raf = 0; };
+  const play = () => {
+    halt();
+    if (still) { t = day.end; show(); return; }
+    let last = 0; t = 0;
+    const step = now => { if (last) t = Math.min(day.end, t + (now - last) * day.end / 6000); last = now; show(); raf = t < day.end ? requestAnimationFrame(step) : 0; };
+    raf = requestAnimationFrame(step);
+  };
+  tIn.oninput = () => { halt(); t = +tIn.value; show(); };
+  kIn.oninput = () => { halt(); k = +kIn.value - 1; draw(); show(); };
+  kIn.onchange = play;
+  draw(); show();
+  if ("IntersectionObserver" in window) new IntersectionObserver((es, ob) => { if (es.some(e => e.isIntersecting)) { ob.disconnect(); play(); } }, { threshold: .4 }).observe(svgEl);
+  else { t = day.end; show(); }
 }
 
 /* 5 · before and after: the three policies */
