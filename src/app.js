@@ -112,18 +112,13 @@ function hullArea(p) {
   return Math.abs(a) / 2;
 }
 const fmtDate = (iso, opts) => new Date(iso.replace(" ", "T")).toLocaleString("en-GB", opts);
-// what the forecast is for: a stop skipped on the plan day next gets a truck by this time (shift start + horizon, e.g. Wed 14:00)
-const fcTarget = () => { const t = new Date(D.site.plan_day + "T00:00"); t.setHours(t.getHours() + D.site.fleet.start_h + D.site.maths.params.HORIZON_H); return t; };
-const dayTime = d => d.toLocaleString("en-GB", { weekday: "short", hour: "2-digit", minute: "2-digit" });
 
 function strat(name) { return D.site.experiments.aggregate.find(r => r.policy === name); }
 // the model's decision rule (model/decide.py, choose): fullest projected first while the fleet has time,
 // never below the floor. Time per stop = θ·drive from its nearest other candidate + lifting; each full load adds a tip.
 BS.choose = ({ floor = D.site.maths.params.FLOOR, fleet = D.site.fleet.trucks, shift = D.site.fleet.shift_min / 60, svc = D.site.fleet.service_per_bin_min, speed = 1 } = {}) => {
   const S = D.S, f = D.site.fleet, cand = [];
-  // the published forecasts are rounded to 0.1 %, so a stop at 79.96 % shows as 80.0 %: at the model's own floor use its exact list
-  const exact = floor === D.site.maths.params.FLOOR;
-  for (let i = 0; i < D.n; i++) if (exact ? S.risky[i] : S.pred[i] >= floor) cand.push(i);
+  for (let i = 0; i < D.n; i++) if (S.pred[i] >= floor) cand.push(i);
   cand.sort((a, b) => S.pred[b] - S.pred[a]);
   const budget = fleet * shift * 60 * .95, sel = [];
   let used = 0, litres = 0;
@@ -567,7 +562,7 @@ function drawLegend() {
     L_.innerHTML = `<div class="title">Council register, ${fmt(D.site.totals.assets)} assets</div>` + st.filter(s => STREAM_COLORS[s]).map(s => `<div class="row"><i style="background:${STREAM_COLORS[s]}"></i>${esc(s)}</div>`).join("");
     return;
   }
-  const t = { pred: `Projected fill, ${dayTime(fcTarget())}`, fill: "Fill now" }[UI.layer];
+  const t = { pred: "Projected fill, 14:00 tomorrow", fill: "Fill now" }[UI.layer];
   const rows = [["90 % and over", 4], ["80–90 %", 3], ["60–80 %", 2], ["35–60 %", 1], ["< 35 %", 0]];
   L_.innerHTML = `<div class="title">${t} <span class="tag sim" style="margin-left:4px">Sim</span></div>` + rows.map(([l, k]) => `<div class="row"><i style="background:${PAL.f[k]}"></i>${l}</div>`).join("") +
     `<div class="row" style="margin-top:6px"><i style="background:${PAL.f0};box-shadow:0 0 0 1.6px ${PAL.accent} inset"></i>Emptied by a truck</div>` +
@@ -602,7 +597,7 @@ BS.focusStop = async (i, opts = {}) => {
   L.circleMarker([S.lat[i], S.lon[i]], { radius: 14, color: PAL.ink, weight: 2, fill: false, interactive: false }).addTo(highlight);
   restyleStops();
   const fl = fmt(P.FLOOR), proj = `${fmt(S.pred[i])} %`;
-  const why = ti >= 0 ? `Projected ${proj} by ${dayTime(fcTarget())}: above the ${fl} % floor and among the fullest the fleet has time for, so it goes.`
+  const why = ti >= 0 ? `Projected ${proj} by 14:00 tomorrow: above the ${fl} % floor and among the fullest the fleet has time for, so it goes.`
     : S.flag[i] ? `Projected ${proj}: chosen, but the routes did not fit the fleet, and routing leaves out the least full stops first.`
     : S.risky[i] ? `Projected ${proj}: above the ${fl} % floor, but the fleet’s time went to fuller stops. It waits for the next day.`
     : `Projected ${proj}, below the ${fl} % floor: it can safely wait.`;
