@@ -131,80 +131,61 @@ function mathsDecide(M) {
   $("#decNote").textContent = `Tomorrow: ${fmt(dm.risky)} stops are projected at ${fmt(dm.floor)} % or more. Fullest first, ${fmt(dm.chosen)} fit the time of ${fmt(fleet0)} trucks; after routing, ${fmt(dm.served)} are emptied.`;
 }
 
-/* 4 · before and after optimising: the first plan and the plan after simulated annealing, split by a line you drag */
+/* 4 · what optimising changes: every trip a truck, filled to its load; drag from the first plan to the plan after annealing */
 function mathsRoute(M) {
-  const R = D.R, dep = [R.depot.latitude, R.depot.longitude], kx = Math.cos(dep[0] * Math.PI / 180);
-  const svg = $("#mRoute"), wrap = $("#cmpMap"), knob = $("#cmpKnob"), bar = $("#cmpLine"), W = 520, H = 380, pad = 10;
-  const box = pts => pts.reduce((b, [la, lo]) => [Math.min(b[0], la), Math.max(b[1], la), Math.min(b[2], lo), Math.max(b[3], lo)], [90, -90, 180, -180]);
+  const R = D.R, svg = $("#mRoute"), slider = $("#mOpt"), cap = R.capacity_l;
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   getJSON("data/first_plan.json").then(F => {
-    // both plans' trips on the streets; a trip that leaves Seafield less than half full is drawn in red
-    const plans = [F.routes, R.routes].map(rs => rs.flatMap(r => r.trips.map(t => ({ half: t.load < R.capacity_l / 2, line: decode(t.line) }))));
-    let b = [dep[0], dep[0], dep[1], dep[1]];
-    for (const p of plans) for (const t of p) { const q = box(t.line); b = [Math.min(b[0], q[0]), Math.max(b[1], q[1]), Math.min(b[2], q[2]), Math.max(b[3], q[3])]; }
-    const w = (b[3] - b[2]) * kx, h = b[1] - b[0], sc = Math.min((W - 2 * pad) / w, (H - 2 * pad) / h), ox = (W - w * sc) / 2, oy = (H - h * sc) / 2;
-    const X = lo => ox + (lo - b[2]) * kx * sc, Y = la => oy + (b[1] - la) * sc;
-    const line = pts => pts.map(([la, lo], j) => `${j ? "L" : "M"}${X(lo).toFixed(1)},${Y(la).toFixed(1)}`).join("");
-    const v = [b[1] - (H - oy) / sc, b[1] + oy / sc, b[2] - ox / (kx * sc), b[2] + (W - ox) / (kx * sc)];
-    const layer = (list, close) => list.map(decode).filter(p => { const q = box(p); return q[1] >= v[0] && q[0] <= v[1] && q[3] >= v[2] && q[2] <= v[3]; }).map(p => line(p) + (close ? "Z" : "")).join("");
-    const B = D.base, parks = B.parks || [], roads = B.roads || {};
-    const trips = (p, half) => p.filter(t => t.half === half).map(t => line(t.line)).join("");
-    const plan = p => `<path d="${trips(p, false)}" fill="none" stroke="${PAL.ink3}" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round" opacity=".7"/>` +
-      `<path d="${trips(p, true)}" fill="none" stroke="${PAL.bad}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
-    svg.innerHTML = `<defs><clipPath id="cmpClipL"><rect id="cmpRectL" x="0" y="0" width="${W / 2}" height="${H}"/></clipPath><clipPath id="cmpClipR"><rect id="cmpRectR" x="${W / 2}" y="0" width="${W / 2}" height="${H}"/></clipPath></defs>` +
-      `<g opacity=".5"><path d="${layer(parks.filter(p => p.k === "park").map(p => p.ring), true)}" fill="${PAL.park}"/><path d="${layer(parks.filter(p => p.k === "water").map(p => p.ring), true)}" fill="${PAL.sea}"/>` +
-      `<path d="${layer((B.water || []).map(x => x.line))}" fill="none" stroke="${PAL.sea}" stroke-width="2"/><path d="${layer(roads.major || [])}" fill="none" stroke="${PAL.road}" stroke-width="1"/></g>` +
-      `<g clip-path="url(#cmpClipL)">${plan(plans[0])}</g><g clip-path="url(#cmpClipR)">${plan(plans[1])}</g>` +
-      `<rect x="${(X(dep[1]) - 6).toFixed(1)}" y="${(Y(dep[0]) - 6).toFixed(1)}" width="12" height="12" rx="3" fill="${PAL.ink}" stroke="${PAL.surface}" stroke-width="2"><title>Seafield depot</title></rect>`;
-    const rl = $("#cmpRectL"), rr = $("#cmpRectR");
-    // the cost of each side on the map, and the objective term by term underneath
-    const A = F.compare.first, Z = F.compare.final, pc = fmt(100 * (1 - Z.total / A.total));
-    $("#cmpTagL").innerHTML = `First plan <b>£${fmt(A.total)}</b>`;
-    $("#cmpTagR").innerHTML = `After annealing <b>£${fmt(Z.total)}</b>`;
-    const rows = [
-      ["Trips", fmt(A.trips), fmt(Z.trips)],
-      [`<i class="cmp-red"></i>Less than half full`, fmt(A.half_empty), fmt(Z.half_empty)],
-      ["Road driven", `${fmt(A.km)} km`, `${fmt(Z.km)} km`],
-      ["Driving time", `${fmt(A.drive_h, 1)} h`, `${fmt(Z.drive_h, 1)} h`],
-      [`Driving cost <span>£${fmt(D.site.fleet.cost_km, 2)}/km + £${fmt(D.site.fleet.cost_hour)}/h</span>`, `£${fmt(A.cost)}`, `£${fmt(Z.cost)}`],
-      [`Bins left out <span>£${fmt(D.site.fleet.cost_overflow)} × fill each</span>`, fmt(A.left_out), fmt(Z.left_out)],
-    ];
-    $("#cmpRows").innerHTML = rows.map(([a, x, y]) => `<tr><th scope="row">${a}</th><td>${x}</td><td>${y}</td></tr>`).join("") +
-      `<tr class="tot"><th scope="row">Total cost <span>the objective</span></th><td>£${fmt(A.total)}</td><td>£${fmt(Z.total)} <em>−${pc}\u00a0%</em></td></tr>`;
-    $("#cmpWhy").innerHTML = `<b>Why it is cheaper:</b> the same bins go in ${fmt(Z.trips)} fuller trips instead of ${fmt(A.trips)} (trucks ${fmt(Z.load)}\u00a0% full on average, not ${fmt(A.load)}\u00a0%), so the fleet drives ${fmt(A.depot_km - Z.depot_km)} km less to and from Seafield.`;
-    // the dividing line: drag it anywhere on the map, or use the arrow keys on the handle
-    let f = .5, raf = 0;
-    const set = x => {
-      f = clamp(x, 0, 1);
-      rl.setAttribute("width", (W * f).toFixed(1)); rr.setAttribute("x", (W * f).toFixed(1)); rr.setAttribute("width", (W * (1 - f)).toFixed(1));
-      const pct = `${(100 * f).toFixed(2)}%`; knob.style.left = bar.style.left = pct;
-      knob.setAttribute("aria-valuenow", Math.round(100 * f));
-      $("#cmpTagL").style.opacity = f < .18 ? 0 : 1; $("#cmpTagR").style.opacity = f > .82 ? 0 : 1;
+    const fills = rs => rs.flatMap(r => r.trips.map(t => Math.min(1, t.load / cap))).sort((a, b) => b - a);
+    const A = fills(F.routes), Z = fills(R.routes), CA = F.compare.first, CZ = F.compare.final;
+    // a grid of trucks: body (the load), cab and wheels; fullest first, reading order
+    const cols = 9, W = 520, cw = W / cols, ch = 34, H = Math.ceil(A.length / cols) * ch + 4;
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    const bw = cw * .6, bh = ch * .5;
+    svg.innerHTML = A.map((_, i) => {
+      const x = (i % cols) * cw + (cw - bw * 1.4) / 2, y = Math.floor(i / cols) * ch + 6;
+      return `<g class="opt-truck" data-i="${i}" transform="translate(${x.toFixed(1)},${y})">` +
+        `<rect width="${bw.toFixed(1)}" height="${bh}" rx="2" fill="${PAL.paper}" stroke="${PAL.ink3}" stroke-width="1"/>` +
+        `<rect class="ld" x=".5" width="${(bw - 1).toFixed(1)}" rx="1.5"/>` +
+        `<rect x="${(bw + 2).toFixed(1)}" y="${(bh * .3).toFixed(1)}" width="${(bw * .3).toFixed(1)}" height="${(bh * .7).toFixed(1)}" rx="2" fill="${PAL.ink3}"/>` +
+        `<circle cx="${(bw * .25).toFixed(1)}" cy="${bh + 3}" r="3" fill="${PAL.ink3}"/><circle cx="${(bw + 2 + bw * .15).toFixed(1)}" cy="${bh + 3}" r="3" fill="${PAL.ink3}"/></g>`;
+    }).join("");
+    const trucks = [...svg.querySelectorAll(".opt-truck")], loads = trucks.map(g => g.querySelector(".ld"));
+    const lerp = (a, b, u) => a + (b - a) * u;
+    let t = 0;
+    const show = u => {
+      t = clamp(u, 0, 1);
+      A.forEach((a, i) => {
+        const f = i < Z.length ? lerp(a, Z[i], t) : a * (1 - t), h = Math.max(0, (bh - 1) * f);
+        loads[i].setAttribute("y", (bh - .5 - h).toFixed(2)); loads[i].setAttribute("height", h.toFixed(2));
+        loads[i].setAttribute("fill", f < .5 ? PAL.bad : PAL.accent);
+        if (i >= Z.length) trucks[i].setAttribute("opacity", Math.max(0, 1 - 1.6 * t).toFixed(3));
+      });
+      slider.value = t;
+      $("#optStage").textContent = t < .5 ? "First plan" : "After simulated annealing";
+      $("#rtOut").innerHTML = [[`£${fmt(lerp(CA.total, CZ.total, t))}`, "cost a day"], [fmt(lerp(CA.trips, CZ.trips, t)), "trips from Seafield"], [`${fmt(lerp(CA.load, CZ.load, t))} %`, "full on average"]]
+        .map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join("");
     };
+    // play from where it is to one end; dragging takes over, and letting go settles on the nearer end
+    let raf = 0;
     const halt = () => { cancelAnimationFrame(raf); raf = 0; };
-    let drag = false;
-    const at = e => { const r = wrap.getBoundingClientRect(); set((e.clientX - r.left) / r.width); };
-    wrap.addEventListener("pointerdown", e => { halt(); drag = true; wrap.setPointerCapture(e.pointerId); at(e); });
-    wrap.addEventListener("pointermove", e => { if (drag) at(e); });
-    ["pointerup", "pointercancel"].forEach(t => wrap.addEventListener(t, () => { drag = false; }));
-    knob.addEventListener("keydown", e => {
-      const d = { ArrowLeft: -.05, ArrowDown: -.05, ArrowRight: .05, ArrowUp: .05 }[e.key];
-      if (d != null || e.key === "Home" || e.key === "End") { e.preventDefault(); halt(); set(e.key === "Home" ? 0 : e.key === "End" ? 1 : f + d); }
-    });
-    set(.5);
-    // once, when the map comes into view: sweep the line across so it is clear that it moves
-    if (!matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window)
-      new IntersectionObserver((es, ob) => {
-        if (!es.some(e => e.isIntersecting)) return;
-        ob.disconnect();
-        const keys = [.5, .85, .15, .5], dur = 2600; let t0 = 0;
-        const step = now => {
-          t0 = t0 || now; const u = Math.min(1, (now - t0) / dur), s = u * (keys.length - 1), i = Math.min(keys.length - 2, Math.floor(s)), e = s - i;
-          set(keys[i] + (keys[i + 1] - keys[i]) * (e < .5 ? 2 * e * e : 1 - (-2 * e + 2) ** 2 / 2));
-          raf = u < 1 ? requestAnimationFrame(step) : 0;
-        };
-        raf = requestAnimationFrame(step);
-      }, { threshold: .5 }).observe(wrap);
-  }).catch(() => { svg.innerHTML = `<text x="${W / 2}" y="${H / 2}" text-anchor="middle">The routes could not be loaded.</text>`; });
+    const go = (to, ms = 2200) => {
+      halt();
+      if (still) return show(to);
+      const from = t, t0 = performance.now(), ease = e => e < .5 ? 2 * e * e : 1 - (-2 * e + 2) ** 2 / 2;
+      const step = now => { const e = Math.min(1, (now - t0) / (ms * Math.abs(to - from) || 1)); show(lerp(from, to, ease(e))); raf = e < 1 ? requestAnimationFrame(step) : 0; };
+      raf = requestAnimationFrame(step);
+    };
+    slider.oninput = () => { halt(); show(+slider.value); };
+    slider.onchange = () => go(t < .5 ? 0 : 1, 600);
+    slider.onkeydown = e => { const to = { ArrowLeft: 0, ArrowDown: 0, Home: 0, ArrowRight: 1, ArrowUp: 1, End: 1 }[e.key]; if (to != null) { e.preventDefault(); go(to); } };
+    $("#optWhy").textContent = `Fuller trucks mean ${fmt(CA.trips - CZ.trips)} fewer trips to Seafield and back: £${fmt(CA.total - CZ.total)} a day less (−${fmt(100 * (1 - CZ.total / CA.total))} %).`;
+    show(0);
+    // the first time it comes into view: hold on the first plan for a moment, then play
+    if ("IntersectionObserver" in window && !still)
+      new IntersectionObserver((es, ob) => { if (es.some(e => e.isIntersecting)) { ob.disconnect(); setTimeout(() => { if (t === 0) go(1); }, 900); } }, { threshold: .6 }).observe(svg);
+    else show(1);
+  }).catch(() => { svg.innerHTML = `<text x="260" y="40" text-anchor="middle">The plans could not be loaded.</text>`; });
 }
 
 /* 5 · before and after: the three policies */
