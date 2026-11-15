@@ -1390,7 +1390,7 @@ header.top.over { background: transparent; }
       </div>
       <div class="m-widget">
         <div class="m-head"><b>One area, before and after optimising</b><span class="ex-stage" id="exStage">Quick plan</span></div>
-        <p class="ex-how">Tomorrow’s <span id="exBins">65</span> bins in <span id="exArea">Sighthill/Gorgie</span>, west Edinburgh, on the street map. Each colour is one truck trip and its dots are the bins it empties. Every trip starts and ends at the Seafield depot, <span id="exKm">12</span> km away; the small map shows where.</p>
+        <p class="ex-how">Tomorrow’s <span id="exStops">65</span> bin stops (<span id="exBins">139</span> bins) around Sighthill, west Edinburgh, on the street map. Each colour is one truck trip and its dots are the stops it empties. Every trip starts and ends at the Seafield depot, <span id="exKm">12</span> km away by road; the small map shows where.</p>
         <p class="ex-sum" id="exSum"></p>
         <div class="ex-map" id="mRoute" role="region" aria-label="One area of west Edinburgh on the street map: the trips of the quick plan and of the plan after simulated annealing"></div>
         <div class="ex-key" id="exKey"></div>
@@ -2677,6 +2677,10 @@ function mathsRoute(M) {
   Promise.all([getJSON("data/route_example.json"), getJSON("data/first_plan.json")]).then(([E, F]) => {
     const plans = E.plans.map(p => ({ ...p, trips: p.trips.map((t, j) => ({ ...t, pts: decode(t.line), col: t.load < .5 ? RED : COLS[j % 3] })) }));
     const area = L.latLngBounds(plans[0].trips.flatMap(t => t.bins));
+    // how many bins those stops hold (a stop has one to four), from the stops data
+    const at = new Map(D.S.lat.map((la, i) => [`${la.toFixed(5)},${D.S.lon[i].toFixed(5)}`, i]));
+    const nBins = plans[0].trips.flatMap(t => t.bins).reduce((a, [la, lo]) => a + (D.S.nb[at.get(`${la.toFixed(5)},${lo.toFixed(5)}`)] || 0), 0);
+    const pc = l => { const v = 100 * l; return v > 99.5 && v < 100 ? fmt(v, 1) : fmt(v); };   // 99.6 % is not "100 %"
     let map, inset, seaf, k = -1, timers = [], moved = false;
     const layers = [], base = [];
     // the view: every bin of the example, below the Seafield label and clear of the small map (left of it on wide screens, above it on narrow ones)
@@ -2715,7 +2719,7 @@ function mathsRoute(M) {
                   L.polyline(t.pts, { pane, renderer: r, color: t.col, weight: t.load < .5 ? 6 : 4.5, opacity: 1, lineJoin: "round", lineCap: "round", interactive: false })]
             .map(l => { l.addTo(map); l._path.setAttribute("pathLength", 1); l._path.style.strokeDasharray = "1 1"; return l; }),
           dots: t.bins.map(b => L.circleMarker(b, { pane, renderer: r, radius: 5.5, color: "#fff", weight: 1.6, fillColor: t.col, fillOpacity: 1 })
-            .bindTooltip(`Trip ${j + 1}: ${fmt(100 * t.load)} % full`, { direction: "top", offset: [0, -6] }).addTo(map)),
+            .bindTooltip(`Trip ${j + 1}: ${pc(t.load)} % full`, { direction: "top", offset: [0, -6] }).addTo(map)),
         }));
       });
       // the small map: where this area and Seafield are in Edinburgh
@@ -2733,7 +2737,7 @@ function mathsRoute(M) {
           `<rect x="${(rx - (rw < 8 ? 4 : 0)).toFixed(1)}" y="${(ry - (rh < 8 ? 4 : 0)).toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}" fill="rgba(217,48,37,.15)" stroke="${RED}" stroke-width="2" rx="2"/>` +
           `<circle cx="${d[0].toFixed(1)}" cy="${d[1].toFixed(1)}" r="4.5" fill="#202124" stroke="#fff" stroke-width="1.5"/>` +
           `<text x="${(d[0] - 2).toFixed(1)}" y="${(d[1] - 8).toFixed(1)}" text-anchor="middle">Seafield</text>` +
-          `<text x="${c[0].toFixed(1)}" y="${(ry + rh + 13).toFixed(1)}" text-anchor="middle">this map</text></svg>`;
+          `<text x="${c[0].toFixed(1)}" y="${(ry + rh + 13).toFixed(1)}" text-anchor="middle">these stops</text></svg>`;
         L.DomEvent.disableClickPropagation(div);
         return div;
       };
@@ -2774,7 +2778,7 @@ function mathsRoute(M) {
       const p = plans[k];
       $("#exStage").textContent = k ? "After simulated annealing" : "Quick plan";
       $("#exSum").innerHTML = `<b>${p.trips.length} trips</b> from Seafield · <b>${fmt(p.km)} km</b> · <b>£${fmt(p.cost)}</b>`;
-      $("#exKey").innerHTML = p.trips.map((t, j) => `<span><i style="background:${t.col}"></i>Trip ${j + 1}: ${t.bins.length} bins, ${fmt(100 * t.load)} % full</span>`).join("");
+      $("#exKey").innerHTML = p.trips.map((t, j) => `<span><i style="background:${t.col}"></i>Trip ${j + 1}: ${t.bins.length} stops, ${pc(t.load)} % full</span>`).join("");
       slider.value = k;
       if (!map) return 0;
       seaf.innerHTML = seafText(p);
@@ -2796,7 +2800,7 @@ function mathsRoute(M) {
     slider.onkeydown = e => { const to = { ArrowLeft: 0, ArrowDown: 0, Home: 0, ArrowRight: 1, ArrowUp: 1, End: 1 }[e.key]; if (to != null) { e.preventDefault(); show(to, true); } };
     const [A, Z] = plans, CA = F.compare.first, CZ = F.compare.final;
     $("#exWhy").textContent = `${Z.trips.length} trips instead of ${A.trips.length}: ${fmt(A.km - Z.km)} km less, ${fmt(100 * (1 - Z.cost / A.cost))} % cheaper. Across the whole city the same effect gives ${fmt(CA.trips - CZ.trips)} fewer trips and £${fmt(CA.total - CZ.total)} a day less (−${fmt(100 * (1 - CZ.total / CA.total))} %).`;
-    $("#exArea").textContent = E.area; $("#exBins").textContent = fmt(E.bins); $("#exKm").textContent = fmt(E.depot_km);
+    $("#exStops").textContent = fmt(E.bins); $("#exBins").textContent = fmt(nBins); $("#exKm").textContent = fmt(E.depot_km);
     show(0, false); ready();
     // the first time it comes into view: draw the quick plan, wait, then the plan after annealing
     if ("IntersectionObserver" in window && !still)
