@@ -492,6 +492,8 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 /* step 4: objective and constraints, labelled separately */
 .m-model .eq-tag { font: 600 12px/1 var(--body); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); text-align: left; margin: 4px 4px 0; }
 .m-model .eq-tag + .katex-display, .m-model .eq-tag + .eq-rows { margin-top: 8px; }
+.m-cons { padding: 12px 12px 10px; }
+.m-cons .eq-tag { color: var(--ink-3); }
 .m-model .eq-rows { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; align-items: baseline; text-align: left; margin: 8px 4px 2px; }
 .m-model .eq-rows > span:nth-child(odd) { white-space: nowrap; }
 .m-model .eq-rows > span:nth-child(even) { font: 400 14px/1.35 var(--body); color: var(--ink-2); }
