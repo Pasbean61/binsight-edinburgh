@@ -46,9 +46,9 @@ and may pass 100 %: a stop projected at 130 % is expected to overflow well befor
 
 80 % is the threshold smart-bin systems commonly use to flag a bin for collection. A stop's time is its lifting time plus the drive from its nearest other candidate; each full load adds a 25-minute tip. The estimate is rough on purpose: routing has the final say, and if the trips do not fit the fleet it drops the least full stops first.
 
-## 4 · Optimise: the cheapest routes for the chosen stops (`route.py`, `decide.py`, `network.py`)
+## 4 · Optimise: the lowest-cost routes for the chosen stops (`route.py`, `decide.py`, `network.py`)
 
-  **Find the cheapest plan for the fleet to empty the stops chosen in section 3, within one shift per truck.**
+  **Find the lowest-cost plan for the fleet to empty the stops chosen in section 3, within one shift per truck.**
 
 The plan is one **prize-collecting multi-trip vehicle-routing problem with a shift limit**, solved by simulated annealing: K trucks leave the Seafield depot (0), and truck k makes trips r = 1, 2, …, tipping at the depot between them.
 
@@ -59,9 +59,11 @@ The plan is one **prize-collecting multi-trip vehicle-routing problem with a shi
 
 **Variables.** xᵢⱼₖᵣ = 1 if truck k drives i → j on trip r; zᵢₖᵣ = 1 if that trip empties stop i; uₖᵣ = 1 if the trip is made.
 
-  minimise   Σₖᵣ Σᵢⱼ cᵢⱼ xᵢⱼₖᵣ + Σᵢ πᵢ (1 − Σₖᵣ zᵢₖᵣ)   (driving cost + prizes of the stops left out)
+**Objective.** Minimise the total cost: driving, plus the prizes of the stops left out.
 
-subject to
+  minimise   Σₖᵣ Σᵢⱼ cᵢⱼ xᵢⱼₖᵣ + Σᵢ πᵢ (1 − Σₖᵣ zᵢₖᵣ)
+
+**Constraints.**
 
 1. Σₖᵣ zᵢₖᵣ ≤ 1: each stop is emptied at most once;
 2. Σⱼ xᵢⱼₖᵣ = Σⱼ xⱼᵢₖᵣ = zᵢₖᵣ: a truck that arrives at a stop leaves it;
