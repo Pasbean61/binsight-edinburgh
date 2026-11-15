@@ -21,6 +21,7 @@ function initMaths() {
     K: fmt(P.COLLECT_EVERY_DAYS), sigma: P.DAILY_FILL_SPREAD.toFixed(2), bag: fmt(P.BAG_L), U: P.FILL_AT_COLLECTION.toFixed(3), noise: fmt(P.SENSOR_NOISE),
     trees: fmt(F.trees), nTrain: fmt(F.n_train), floor: fmt(P.FLOOR), loadM3: fmt(P.TRUCK_LOAD_L / 1000),
     roadKm: fmt(D.site.totals.road_km), nStops: fmt(M.route.stops), fleet: fmt(D.site.fleet.trucks),
+    saIters: (M.route.iterations / 1e6).toFixed(1) + " million", saSecs: fmt(M.route.seconds),
     snap: dayTime(new Date(D.site.snapshot)), tgt: dayTime(fcTarget()), planDay: new Date(D.site.plan_day + "T12:00").toLocaleString("en-GB", { weekday: "long" }),
   };
   $$("[data-mk]").forEach(el => { const v = vals[el.dataset.mk]; if (v != null) el.textContent = v; });
@@ -46,7 +47,7 @@ function mathsSimulate(M) {
   const hw = M.fill.hour_w, hm = hw.reduce((s, v) => s + v, 0) / hw.length, a = hw.map(v => v / hm);
   let seed = 11;
   const draw = () => {
-    const rho = +$("#mRho").value; $("#oRho").textContent = rho.toFixed(2);
+    const rho = +$("#mRho").value; $("#oRho").textContent = `${Math.round(100 * rho)} % full a day`;
     const W = 520, H = 260, l = 34, r = 10, t = 14, b = 28, x = h => l + h / 168 * (W - l - r), y = v => t + (1 - v / 100) * (H - t - b);
     const bagsDay = cap * rho / P.BAG_L;
     const paths = [], over = [], atColl = [];
