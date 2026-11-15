@@ -492,17 +492,15 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 /* step 4: objective and constraints, labelled separately */
 .m-cons { padding: 12px 12px 10px; }
 .m-text .m-lead { color: var(--ink); margin: 16px 0 -2px; }
-/* step 4: before and after optimising — the two plans' route maps, the trucks drive and the meters run */
-.rt-pair { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin-top: 4px; }
-.rt-h { display: flex; align-items: baseline; gap: 4px 10px; flex-wrap: wrap; margin-bottom: 4px; }
-.rt-h > b { font: 650 16px var(--display); }
-.rt-h > span { font-size: 13px; color: var(--ink-2); }
-.rt-h .rt-num { margin-left: auto; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink-2); }
-.rt-num b { font: 700 22px/1.1 var(--display); color: var(--ink); }
-.rt-num span { margin-left: 8px; font-size: 14px; }
-.rt-side svg { background: var(--paper); border-radius: 8px; }
-.opt-how { margin: 2px 0 6px; color: var(--ink-2); font-size: 14px; }
-.opt-red { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: var(--bad); margin: 0 5px 0 2px; vertical-align: -1px; }
+/* step 4: one area, before and after optimising — each colour one trip, red when less than half full */
+.m-head .ex-stage { font: 600 14px var(--body); color: var(--accent); }
+.ex-how { margin: 2px 0 6px; color: var(--ink-2); font-size: 14px; }
+.ex-sum { margin: 2px 0 6px; font-size: 15px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.ex-sum b { color: var(--ink); font: 700 19px var(--display); }
+.ex-map { background: var(--paper); border-radius: 10px; }
+.ex-map .ex-seaf { fill: var(--ink); font: 600 13px var(--body); paint-order: stroke; stroke: var(--paper); stroke-width: 4px; }
+.ex-key { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 0 2px; font-size: 13px; color: var(--ink-2); }
+.ex-key i { display: inline-block; width: 16px; height: 4px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
 .opt-slide { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; font-size: 13px; color: var(--ink-2); white-space: nowrap; }
 .opt-slide input { flex: 1; min-width: 0; accent-color: var(--accent); }
 .opt-why { margin: 10px 0 0; color: var(--ink); font-size: 15px; font-weight: 600; }
