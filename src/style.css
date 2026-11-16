@@ -1124,3 +1124,6 @@ header.top.over nav.sections a b { color: var(--mint); }
 .demo-go { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 999px; background: var(--accent); color: var(--bg); font-weight: 700; font-size: 15px; transition: transform .25s var(--ease-out); }
 .demo-cta:hover .demo-go { transform: translateX(3px); }
 @media (max-width: 560px) { .demo-cta { flex-wrap: wrap; } .demo-go { width: 100%; justify-content: center; } }
+
+/* references: links wrap at <wbr> points only, never mid-word */
+.refs a { overflow-wrap: normal; word-break: normal; }

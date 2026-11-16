@@ -1063,16 +1063,10 @@ const MODELS = [
   ["G", "Community rewards", "Residents, local shops", "Report a full bin, earn a café voucher."],
 ];
 
-/* ── agenda (the team's 12-minute plan) and the closing frame ── */
-const TEAM = [["Zhance Xu", "1 · 2"], ["Harry", "3 · 4 · 5A · 6A"], ["Ioannis Alexandrides", "3 · 4 · 5A · 6A"], ["Chenyi He", "5B · 6B"], ["Wang Chenzhang", "5B · 6B"]];
+/* ── agenda (who presents what) and the closing frame ── */
+const TEAM = [["Zhance Xu", "Problem · How it works"], ["Harry", "Market · Competition · Business demo · Next steps"], ["Ioannis Alexandrides", "Market · Competition · Business demo · Next steps"], ["Chenyi He", "Maths · Results"], ["Wang Chenzhang", "Maths · Results"]];
 function initAgendaAndClosing() {
-  // a 12-minute bar: one block per section, coloured by who presents it
-  const rows = $$("#agendaCard tbody tr:not(.tot)"), who = { "Zhance Xu": "p1", "Harry & Ioannis Alexandrides": "p2", "Chenyi He & Wang Chenzhang": "p3" };
-  const secs = t => { const [m, s2] = t.split(":").map(Number); return m * 60 + s2; };
-  $("#agBar").innerHTML = rows.map((tr, k) => {
-    const td = tr.children, w = secs(td[2].textContent) / 720 * 100, n = td[1].textContent.split(".")[0];
-    return `<i class="${who[td[0].textContent] || "p4"}" style="width:${w.toFixed(3)}%;--d:${200 + k * 110}ms" title="${td[1].textContent} · ${td[0].textContent} · ${td[2].textContent}"><span>${n}</span></i>`;
-  }).join("") + `<em class="ag-head" aria-hidden="true"></em>`;
+  const rows = $$("#agendaCard tbody tr");
   rows.forEach(tr => { tr.style.cursor = "pointer"; tr.addEventListener("click", e => { if (!e.target.closest("a")) BS.jump(tr.querySelector("a").getAttribute("href")); }); });
   // closing: the three simulated results again, big
   const F = strat("timetable"), B = strat("binsight");
@@ -1245,7 +1239,9 @@ const REFS = [  // Harvard (Cite Them Right) style; links checked 14 Nov 2026
   ["Stirling Observer (2022) [Report on household waste collection costs per property in Scottish councils, 2020/21], <i>Stirling Observer</i>, 8 April. Available via PressReader. Available at: https://www.pressreader.com/uk/stirling-observer/20220408/281689733340251 (Accessed: 14 November 2026).", "https://www.pressreader.com/uk/stirling-observer/20220408/281689733340251"],
 ];
 function initSources() {
-  $("#refs").innerHTML = REFS.map(([t, u]) => `<li>${t.replace(u, `<a href="${u}" target="_blank" rel="noopener">${u}</a>`)}</li>`).join("");
+  // long links may wrap only after / - . _ ? = & , never inside a word
+  const breakable = u => u.replace(/([\/\-._?=&]+)/g, "$1<wbr>");
+  $("#refs").innerHTML = REFS.map(([t, u]) => `<li>${t.replace(u, `<a href="${u}" target="_blank" rel="noopener">${breakable(u)}</a>`)}</li>`).join("");
   BS.REFS = REFS;
 }
 
