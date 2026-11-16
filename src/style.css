@@ -1115,3 +1115,12 @@ header.top.over nav.sections a b { color: var(--mint); }
   .ag-table td:nth-child(-n+2) { white-space: normal; min-width: 88px; }
   .ag-table td:last-child { white-space: normal; }
 }
+
+/* 5A: the live demo link, first thing under the heading */
+.demo-cta { margin-bottom: 18px; padding: 22px 24px; border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: color-mix(in srgb, var(--accent) 8%, var(--surface)); }
+.demo-cta > span:nth-child(2) { flex: 1; min-width: 0; }
+.demo-cta b { font-size: 20px; }
+.demo-cta code { display: block; margin-top: 6px; font-size: 12.5px; color: var(--accent); overflow-wrap: anywhere; }
+.demo-go { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 999px; background: var(--accent); color: var(--bg); font-weight: 700; font-size: 15px; transition: transform .25s var(--ease-out); }
+.demo-cta:hover .demo-go { transform: translateX(3px); }
+@media (max-width: 560px) { .demo-cta { flex-wrap: wrap; } .demo-go { width: 100%; justify-content: center; } }
