@@ -1019,6 +1019,87 @@ header.top.over { background: transparent; }
 .bz-ready .bz:not(.play) :is(.bz-val, .bz-pay) { opacity: 0; }
 .refs li { line-height: 1.55; } .refs a { overflow-wrap: anywhere; word-break: break-word; }
 
+/* ── agenda, sections, closing ── */
+main .bz { margin-top: 14px; }
+main .bz h3 { font-size: 20px; }
+.eyebrow.seg { gap: 10px; }
+.eyebrow.seg b { display: inline-grid; place-items: center; min-width: 30px; height: 24px; padding: 0 7px; border-radius: 7px; background: var(--accent); color: var(--accent-ink); font: 700 13px var(--display); letter-spacing: 0; }
+.eyebrow.seg .seg-who { color: var(--ink); letter-spacing: .06em; }
+.eyebrow.seg .seg-dur { font-family: var(--mono); color: var(--ink-3); letter-spacing: 0; }
+.chapter-head .kicker { margin-top: 12px; font: 600 clamp(19px, 1.9vw, 26px)/1.25 var(--display); color: var(--ink-2); letter-spacing: -.01em; max-width: 34em; }
+.page > section.part2 { padding-top: 24px; }
+.sub-h2 { font-size: clamp(24px, 2.6vw, 34px); margin-top: 10px; letter-spacing: -.02em; }
+nav.sections a { font-size: 13px; padding: 7px 9px; }
+nav.sections a b { color: var(--accent); margin-right: 3px; font-weight: 700; }
+nav.sections a.on b { color: inherit; }
+header.top.over nav.sections a b { color: var(--mint); }
+
+.ag-bar { position: relative; display: flex; height: 34px; border-radius: 10px; overflow: hidden; gap: 2px; margin-bottom: 18px; background: var(--line); }
+.ag-bar i { position: relative; display: grid; place-items: center; height: 100%; font: 700 12px var(--display); color: var(--accent-ink); transform-origin: 0 50%; transition: transform .7s var(--ease-out) var(--d), opacity .4s ease var(--d); }
+.ag-bar i.p1 { background: var(--accent); } .ag-bar i.p2 { background: var(--f2); } .ag-bar i.p3 { background: #7fb2e8; } .ag-bar i.p4 { background: var(--ink-3); color: var(--paper); }
+.bz-ready .bz:not(.play) .ag-bar i { transform: scaleX(0); opacity: 0; }
+.ag-head { position: absolute; top: -3px; bottom: -3px; left: 0; width: 2px; background: var(--ink); box-shadow: 0 0 10px var(--ink); opacity: 0; }
+.bz.play .ag-head { animation: agHead 2.4s cubic-bezier(.45, 0, .2, 1) 1.4s both; }
+@keyframes agHead { from { left: 0; opacity: 1; } 92% { opacity: 1; } to { left: 100%; opacity: 0; } }
+.ag-table { width: 100%; border-collapse: collapse; font-size: 16px; }
+.ag-table th { text-align: left; font-weight: 650; color: var(--ink); padding: 12px 14px; border-bottom: 1px solid var(--line-2); white-space: nowrap; }
+.ag-table td { padding: 13px 14px; border-bottom: 1px solid var(--line); color: var(--ink-2); white-space: nowrap; font-variant-numeric: tabular-nums;
+  transition: opacity .5s ease var(--d), transform .6s var(--ease-out) var(--d); }
+.ag-table td a { color: var(--ink); text-decoration: none; }
+.ag-table tr:not(.tot):hover td { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.ag-table tr:not(.tot):hover td a { color: var(--accent); }
+.ag-table tr.b td, .ag-table tr.b td a { font-weight: 700; color: var(--ink); }
+.ag-table tr.tot td { font-weight: 700; color: var(--ink); border-bottom: 0; }
+.bz-ready .bz:not(.play) .ag-table tbody td { opacity: 0; transform: translateX(-10px); }
+@media (max-width: 700px) { .ag-table { font-size: 13.5px; } .ag-table th, .ag-table td { padding: 10px 8px; } .ag-table td:nth-child(2) { white-space: normal; min-width: 150px; } .ag-table td:first-child { white-space: normal; min-width: 110px; } }
+
+.bz-mkt { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .bz-mkt { grid-template-columns: minmax(0, 1fr); } }
+.mk { padding: 18px; border-radius: 14px; background: var(--raised); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+.mk b { font: 700 clamp(36px, 3.6vw, 52px)/1 var(--display); letter-spacing: -.03em; color: var(--accent); font-variant-numeric: tabular-nums; }
+.mk p { color: var(--ink-2); font-size: 14.5px; } .mk .src { margin-top: auto; font-size: 11.5px; color: var(--ink-3); }
+
+.todo-box { min-height: 46vh; border: 1.5px dashed var(--line-2); border-radius: 22px; }
+
+.demo-cta { display: flex; align-items: center; gap: 16px; text-decoration: none; color: var(--ink); padding: 20px 22px; transition: border-color .2s, transform .3s var(--ease-out); }
+.demo-cta:hover { border-color: var(--accent); transform: translateY(-2px); }
+.demo-cta b { display: block; font-size: 18px; } .demo-cta small { display: block; color: var(--ink-3); font-size: 13px; margin-top: 3px; }
+.demo-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 0 var(--mint); animation: demoLive 1.8s ease-out infinite; flex: none; }
+@keyframes demoLive { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--mint) 60%, transparent); } to { box-shadow: 0 0 0 12px transparent; } }
+.demo-arrow { margin-left: auto; font-size: 22px; color: var(--accent); }
+
+.close-hero { text-align: center; padding: 44px 22px 30px; display: flex; flex-direction: column; align-items: center; gap: 26px; }
+.close-line { font: 700 clamp(34px, 5.2vw, 72px)/1.02 var(--display); letter-spacing: -.035em; }
+.close-line .ln { display: block; overflow: hidden; padding: .06em 0 .1em; font-style: normal; }
+.close-line .ln > span { display: block; transition: transform 1.1s var(--ease-out); }
+.close-line em.ln > span { transition-delay: .25s; background: linear-gradient(92deg, #8be9c2 0%, #4fb58d 90%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.bz-ready .bz:not(.play) .close-line .ln > span { transform: translate3d(0, 110%, 0); }
+.close-nums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; width: 100%; max-width: 860px; }
+.close-nums div { display: flex; flex-direction: column; gap: 6px; transition: opacity .6s ease var(--d), transform .8s var(--ease-out) var(--d); }
+.bz-ready .bz:not(.play) .close-nums div { opacity: 0; transform: translateY(16px); }
+.close-nums b { font: 700 clamp(40px, 5vw, 68px)/1 var(--display); color: var(--accent); letter-spacing: -.03em; }
+
+.close-nums div > span { color: var(--ink-2); font-size: 14px; }
+@media (max-width: 560px) { .close-nums { grid-template-columns: minmax(0, 1fr); } }
+.close-steps { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 10px; }
+.close-steps li { padding: 12px 14px; border-radius: 12px; background: var(--raised); border: 1px solid var(--line); font-size: 14.5px; color: var(--ink-2); transition: opacity .5s ease var(--d), transform .6s var(--ease-out) var(--d); }
+.close-steps li b { display: block; font: 600 12px var(--mono); color: var(--accent); margin-bottom: 3px; }
+.bz-ready .bz:not(.play) .close-steps li { opacity: 0; transform: translateX(-12px); }
+.team { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
+.team li { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 12px; background: var(--raised); border: 1px solid var(--line); transition: opacity .5s ease var(--d), transform .6s var(--ease-out) var(--d); }
+.bz-ready .bz:not(.play) .team li { opacity: 0; transform: translateY(10px); }
+.team .av { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font: 700 13px var(--display); }
+.team b { font-size: 15px; } .team small { font: 600 11.5px var(--mono); color: var(--ink-3); }
+.close-thanks { display: flex; align-items: baseline; justify-content: center; gap: 18px; flex-wrap: wrap; margin-top: 44px; text-align: center; }
+.close-thanks b { font: 700 clamp(40px, 6vw, 84px)/1 var(--display); letter-spacing: -.035em; }
+.close-thanks span { font: 600 clamp(22px, 2.6vw, 34px) var(--display); color: var(--mint); }
+@media (max-width: 560px) {
+  .ag-table { font-size: 12.5px; }
+  .ag-table th, .ag-table td { padding: 9px 7px; }
+  .ag-table td:nth-child(-n+2) { white-space: normal; min-width: 88px; }
+  .ag-table td:last-child { white-space: normal; }
+}
+
 </style>
 </head>
 <body>
@@ -1031,13 +1112,17 @@ header.top.over { background: transparent; }
       BinSight
     </a>
     <nav class="sections" aria-label="Sections">
-      <a href="#problem">Problem</a>
-      <a href="#how">How it works</a>
-      <a href="#console">Live map</a>
-      <a href="#maths">The maths</a>
-      <a href="#results">Results</a>
-      <a href="#business">Business</a>
-      <a href="#sources">Sources</a>
+      <a href="#agenda">Agenda</a>
+      <a href="#problem" title="1. Problem &amp; Need · Zhance Xu"><b>1</b> Problem</a>
+      <a href="#how" title="2. How It Works · Zhance Xu"><b>2</b> How it works</a>
+      <a href="#market" title="3. Market Opportunity &amp; Evidence · Harry &amp; Ioannis Alexandrides"><b>3</b> Market</a>
+      <a href="#competition" title="4. Competition · Harry &amp; Ioannis Alexandrides"><b>4</b> Competition</a>
+      <a href="#demo" title="5A. Implementation - Business Demo · Harry &amp; Ioannis Alexandrides"><b>5A</b> Business demo</a>
+      <a href="#maths" title="5B. Implementation - Mathematics · Chenyi He &amp; Wang Chenzhang"><b>5B</b> Maths</a>
+      <a href="#nextsteps" title="6A. Validation &amp; Next Steps - Business · Harry &amp; Ioannis Alexandrides"><b>6A</b> Next steps</a>
+      <a href="#results" title="6B. Validation - Mathematical Results · Chenyi He &amp; Wang Chenzhang"><b>6B</b> Results</a>
+      <a href="#closing" title="7. Conclusion &amp; Closing · Team / TBD"><b>7</b> Closing</a>
+      <a href="#sources">Refs</a>
     </nav>
   </div>
 </header>
@@ -1082,11 +1167,38 @@ header.top.over { background: transparent; }
   <div class="hero-tip" id="heroTip"></div>
 </section>
 
+<!-- ── AGENDA ─────────────────────────────────────── -->
+<div class="page band">
+<section class="chapter wrap" id="agenda">
+  <div class="chapter-head">
+    <div><span class="eyebrow">12 minutes · 5 presenters</span><h2>Agenda</h2></div>
+  </div>
+  <div class="card bz agenda" id="agendaCard">
+    <div class="ag-bar" id="agBar" aria-hidden="true"></div>
+    <div class="tablewrap"><table class="ag-table">
+      <thead><tr><th>Presenter</th><th>Section</th><th>Duration</th><th>Timeline</th></tr></thead>
+      <tbody>
+      <tr class="" style="--d:0ms"><td>Zhance Xu</td><td><a href="#problem">1. Problem &amp; Need</a></td><td>1:00</td><td>00:00 - 01:00</td></tr>
+      <tr class="" style="--d:70ms"><td>Zhance Xu</td><td><a href="#how">2. How It Works</a></td><td>0:45</td><td>01:00 - 01:45</td></tr>
+      <tr class="" style="--d:140ms"><td>Harry &amp; Ioannis Alexandrides</td><td><a href="#market">3. Market Opportunity &amp; Evidence</a></td><td>1:45</td><td>01:45 - 03:30</td></tr>
+      <tr class="" style="--d:210ms"><td>Harry &amp; Ioannis Alexandrides</td><td><a href="#competition">4. Competition</a></td><td>1:30</td><td>03:30 - 05:00</td></tr>
+      <tr class="" style="--d:280ms"><td>Harry &amp; Ioannis Alexandrides</td><td><a href="#demo">5A. Implementation - Business Demo</a></td><td>1:00</td><td>05:00 - 06:00</td></tr>
+      <tr class="b" style="--d:350ms"><td>Chenyi He &amp; Wang Chenzhang</td><td><a href="#maths">5B. Implementation - Mathematics</a></td><td>1:30</td><td>06:00 - 07:30</td></tr>
+      <tr class="" style="--d:420ms"><td>Harry &amp; Ioannis Alexandrides</td><td><a href="#nextsteps">6A. Validation &amp; Next Steps - Business</a></td><td>1:15</td><td>07:30 - 08:45</td></tr>
+      <tr class="b" style="--d:490ms"><td>Chenyi He &amp; Wang Chenzhang</td><td><a href="#results">6B. Validation - Mathematical Results</a></td><td>1:30</td><td>08:45 - 10:15</td></tr>
+      <tr class="" style="--d:560ms"><td>Team / TBD</td><td><a href="#closing">7. Conclusion &amp; Closing</a></td><td>1:45</td><td>10:15 - 12:00</td></tr>
+      <tr class="tot" style="--d:630ms"><td>Total</td><td></td><td>12:00</td><td></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+</div>
+
 <!-- ── PROBLEM ────────────────────────────────────────── -->
 <div class="page">
 <section class="chapter wrap" id="problem">
   <div class="chapter-head">
-    <div><span class="eyebrow">The problem</span><h2>Bins fill at different speeds. A timetable can’t see that.</h2></div>
+    <div><span class="eyebrow seg"><b>1</b><span class="seg-who">Zhance Xu</span><span class="seg-dur">1:00</span></span><h2>1. Problem &amp; Need</h2><p class="kicker">Bins fill at different speeds. A timetable can’t see that.</p></div>
   </div>
   <div class="stats" id="statAnims">
     <div class="card stat anim">
@@ -1174,7 +1286,7 @@ header.top.over { background: transparent; }
 <div class="page band">
 <section class="chapter wrap" id="how">
   <div class="chapter-head">
-    <div><span class="eyebrow">Our answer</span><h2>Measure, forecast, route, collect</h2></div>
+    <div><span class="eyebrow seg"><b>2</b><span class="seg-who">Zhance Xu</span><span class="seg-dur">0:45</span></span><h2>2. How It Works</h2><p class="kicker">Measure, forecast, route, collect</p></div>
     <p class="say">BinSight gives the city that view. It works in four steps, and it starts with a sensor that costs two pounds.</p>
   </div>
   <div class="steps" id="steps">
@@ -1210,50 +1322,82 @@ header.top.over { background: transparent; }
 </section>
 </div>
 
-<!-- ── CONSOLE ────────────────────────────────────────── -->
+<!-- ── 3 · MARKET ──────────────────────────────── -->
 <div class="page">
-<section class="chapter wrap console" id="console">
+<section class="chapter wrap" id="market">
   <div class="chapter-head">
-    <div><span class="eyebrow">See it working</span><h2>Tomorrow’s plan, stop by stop</h2></div>
+    <div><span class="eyebrow seg"><b>3</b><span class="seg-who">Harry &amp; Ioannis Alexandrides</span><span class="seg-dur">1:45</span></span><h2>3. Market Opportunity &amp; Evidence</h2></div>
   </div>
-  <div class="consolekpis" id="consoleKpis"></div>
-  <div class="toolbar">
-    <div class="grow">
-      <div class="field"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="search" type="search" placeholder="Search a street, e.g. Leith Walk, Easter Road, EDI-…" autocomplete="off" aria-label="Search stops by street or ID"></div>
-      <div class="suggest" id="suggest" hidden></div>
+  <div class="card bz" id="marketNums">
+    <div class="bz-mkt">
+      <div class="mk"><b data-count="32">32</b><p>Scottish councils that run bin collections</p></div>
+      <div class="mk"><b data-count="10657">10,657</b><p>communal bins on Edinburgh’s streets</p><span class="src">(City of Edinburgh Council, no date b)</span></div>
+      <div class="mk"><b>£<span data-count="72.35" data-dec="2">72.35</span></b><p>average collection cost per property a year in Scotland</p><span class="src">(Stirling Observer, 2022)</span></div>
     </div>
-    <div class="field"><label for="layerSel">Colour by</label><select id="layerSel"><option value="pred">Tomorrow’s forecast</option><option value="fill">Fill now</option><option value="net">Council register: all streams</option></select></div>
-    <div class="field"><label for="wardSel">Ward</label><select id="wardSel"><option value="-1">All 17 wards</option></select></div>
-    <label class="toggle"><input type="checkbox" id="routesChk"> All routes</label>
-    <label class="toggle"><input type="checkbox" id="flagChk"> Flagged only</label>
   </div>
-  <div class="fleet" id="fleet" aria-label="Follow a truck"></div>
-  <div class="map-shell">
-    <div id="map" aria-label="Interactive map of Edinburgh communal bin stops"></div>
-    <div class="map-note" id="mapNote">Loading Edinburgh…</div>
-    <div class="legend" id="legend"></div>
-    <div class="playbar" id="playbar" role="group" aria-label="Replay tomorrow's collection">
-      <button class="pb-play" type="button" id="pbPlay" aria-label="Play tomorrow's collection"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path id="pbIcon" d="M3 1.5v11l9-5.5z" fill="currentColor"/></svg></button>
-      <div class="pb-time"><b id="pbClock">06:00</b><span id="pbDay">Shift starts</span></div>
-      <input type="range" id="pbRange" min="0" max="1000" value="0" step="1" aria-label="Time of day">
-      <div class="pb-speed" role="group" aria-label="Playback speed"><button type="button" data-s="5">1×</button><button type="button" data-s="15" class="on">3×</button><button type="button" data-s="50">10×</button></div>
-      <div class="pb-stats" id="pbStats"></div>
-    </div>
-    <div class="map-panel" id="panel" hidden></div>
+  <div class="card bz" id="buyers">
+    <h3>Who buys it</h3>
+    <div class="bz-buyers" id="buyerTiles"></div>
   </div>
 
-  <div class="tabs" role="tablist" id="ctabs">
-    <button role="tab" class="on" data-tab="bins">Stops</button>
-    <button role="tab" data-tab="routes">Routes &amp; drivers</button>
-    <button role="tab" data-tab="wards">Wards</button>
-    <button role="tab" data-tab="alerts">Alerts &amp; sensors</button>
-    <button role="tab" data-tab="weather">Weather</button>
+  <div class="card bz" id="evidence">
+    <h3>Evidence that smarter collection works</h3>
+    <div class="bz-ev" id="evTiles"></div>
+    <p class="note">Manchester’s 2017 sensor trial worked, but did not pay without route optimisation (European Cleaning Journal, no date). That step is BinSight.</p>
   </div>
-  <div class="tabpane" id="pane-bins"></div>
-  <div class="tabpane" id="pane-routes" hidden></div>
-  <div class="tabpane" id="pane-wards" hidden></div>
-  <div class="tabpane" id="pane-alerts" hidden></div>
-  <div class="tabpane" id="pane-weather" hidden></div>
+
+</section>
+</div>
+
+<!-- ── 4 · COMPETITION ──────────────────────────────── -->
+<div class="page band">
+<section class="chapter wrap" id="competition">
+  <div class="chapter-head">
+    <div><span class="eyebrow seg"><b>4</b><span class="seg-who">Harry &amp; Ioannis Alexandrides</span><span class="seg-dur">1:30</span></span><h2>4. Competition</h2></div>
+  </div>
+  <div class="todo-box" aria-hidden="true"></div>
+</section>
+</div>
+
+<!-- ── 5A · BUSINESS DEMO ──────────────────────────────── -->
+<div class="page">
+<section class="chapter wrap" id="demo">
+  <div class="chapter-head">
+    <div><span class="eyebrow seg"><b>5A</b><span class="seg-who">Harry &amp; Ioannis Alexandrides</span><span class="seg-dur">1:00</span></span><h2>5A. Implementation - Business Demo</h2></div>
+  </div>
+  <div class="card bz bz-flow" id="partners">
+    <div class="bz-top"><h3>Who gets what, who pays</h3><p class="bz-key"><span class="k-val"></span>what they get <span class="k-pay"></span>what they pay</p></div>
+    <div class="bz-svg" id="partnersSvg"></div>
+  </div>
+
+  <div class="bz-two">
+    <div class="card bz bz-models" id="models">
+      <h3>Seven ways to earn</h3>
+      <div class="bz-tiles" id="modelTiles"></div>
+    </div>
+    <div class="card bz bz-split" id="split">
+      <h3>Model B: pay from savings</h3>
+      <p class="bz-lead">We fit the sensors for free. The council pays us a share of what it saves.</p>
+      <div class="bz-bars">
+        <div class="bz-bar"><span class="bz-cap">Collection cost a year</span><div class="bz-track"><i class="bz-cost"></i><i class="bz-saved"></i></div><b id="vCost">–</b></div>
+        <div class="bz-bar"><span class="bz-cap">Saved, split two ways</span><div class="bz-track bz-track2"><i class="bz-keep"></i><i class="bz-ours"></i></div><b id="vSaved">–</b></div>
+      </div>
+      <div class="bz-res" id="calcRes"></div>
+      <div class="bz-sliders">
+        <label><span>Properties</span><input id="cProps" type="range" min="10000" max="250000" step="5000" value="100000"><output id="oProps"></output></label>
+        <label><span>Cost per property</span><input id="cCost" type="range" min="40" max="110" step="0.05" value="72.35"><output id="oCost"></output></label>
+        <label><span>Saving</span><input id="cSave" type="range" min="5" max="50" step="1" value="20"><output id="oSave"></output></label>
+        <label><span>Our share</span><input id="cShare" type="range" min="5" max="50" step="1" value="25"><output id="oShare"></output></label>
+      </div>
+      <p class="note">£72.35: Scotland’s average collection cost per property, 2020/21 (LGBF figures, cited in Stirling Observer, 2022). 20 % is cautious: Hannan <i>et al.</i> (2020) model 44 %.</p>
+    </div>
+  </div>
+
+  <a class="card bz demo-cta" id="demoCta" href="https://pasbean61.github.io/binsight-business-demo/" target="_blank" rel="noopener">
+    <span class="demo-dot" aria-hidden="true"></span>
+    <span><b>Open the live business demo</b><small>What a council sees: its bins, its savings, its share</small></span>
+    <span class="demo-arrow" aria-hidden="true">↗</span>
+  </a>
 </section>
 </div>
 
@@ -1261,7 +1405,7 @@ header.top.over { background: transparent; }
 <div class="page band">
 <section class="chapter wrap" id="maths">
   <div class="chapter-head">
-    <div><span class="eyebrow">How the plan is made</span><h2>Five steps behind the plan</h2></div>
+    <div><span class="eyebrow seg"><b>5B</b><span class="seg-who">Chenyi He &amp; Wang Chenzhang</span><span class="seg-dur">1:30</span></span><h2>5B. Implementation - Mathematics</h2><p class="kicker">Five steps behind the plan</p></div>
   </div>
   <div class="m-tabs" role="tablist" id="mTabs">
     <button type="button" role="tab" data-m="0" class="on"><span class="k">1</span>Simulate<small>how bins fill</small></button>
@@ -1404,13 +1548,75 @@ header.top.over { background: transparent; }
     </div>
   </div>
 </section>
+<section class="chapter wrap console part2" id="console">
+  <div class="chapter-head">
+    <div><span class="eyebrow">5B · See it working</span><h3 class="sub-h2">Tomorrow’s plan, stop by stop</h3></div>
+  </div>
+  <div class="consolekpis" id="consoleKpis"></div>
+  <div class="toolbar">
+    <div class="grow">
+      <div class="field"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="search" type="search" placeholder="Search a street, e.g. Leith Walk, Easter Road, EDI-…" autocomplete="off" aria-label="Search stops by street or ID"></div>
+      <div class="suggest" id="suggest" hidden></div>
+    </div>
+    <div class="field"><label for="layerSel">Colour by</label><select id="layerSel"><option value="pred">Tomorrow’s forecast</option><option value="fill">Fill now</option><option value="net">Council register: all streams</option></select></div>
+    <div class="field"><label for="wardSel">Ward</label><select id="wardSel"><option value="-1">All 17 wards</option></select></div>
+    <label class="toggle"><input type="checkbox" id="routesChk"> All routes</label>
+    <label class="toggle"><input type="checkbox" id="flagChk"> Flagged only</label>
+  </div>
+  <div class="fleet" id="fleet" aria-label="Follow a truck"></div>
+  <div class="map-shell">
+    <div id="map" aria-label="Interactive map of Edinburgh communal bin stops"></div>
+    <div class="map-note" id="mapNote">Loading Edinburgh…</div>
+    <div class="legend" id="legend"></div>
+    <div class="playbar" id="playbar" role="group" aria-label="Replay tomorrow's collection">
+      <button class="pb-play" type="button" id="pbPlay" aria-label="Play tomorrow's collection"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path id="pbIcon" d="M3 1.5v11l9-5.5z" fill="currentColor"/></svg></button>
+      <div class="pb-time"><b id="pbClock">06:00</b><span id="pbDay">Shift starts</span></div>
+      <input type="range" id="pbRange" min="0" max="1000" value="0" step="1" aria-label="Time of day">
+      <div class="pb-speed" role="group" aria-label="Playback speed"><button type="button" data-s="5">1×</button><button type="button" data-s="15" class="on">3×</button><button type="button" data-s="50">10×</button></div>
+      <div class="pb-stats" id="pbStats"></div>
+    </div>
+    <div class="map-panel" id="panel" hidden></div>
+  </div>
+
+  <div class="tabs" role="tablist" id="ctabs">
+    <button role="tab" class="on" data-tab="bins">Stops</button>
+    <button role="tab" data-tab="routes">Routes &amp; drivers</button>
+    <button role="tab" data-tab="wards">Wards</button>
+    <button role="tab" data-tab="alerts">Alerts &amp; sensors</button>
+    <button role="tab" data-tab="weather">Weather</button>
+  </div>
+  <div class="tabpane" id="pane-bins"></div>
+  <div class="tabpane" id="pane-routes" hidden></div>
+  <div class="tabpane" id="pane-wards" hidden></div>
+  <div class="tabpane" id="pane-alerts" hidden></div>
+  <div class="tabpane" id="pane-weather" hidden></div>
+</section>
+</div>
+
+<!-- ── 6A · NEXT STEPS ──────────────────────────────── -->
+<div class="page">
+<section class="chapter wrap" id="nextsteps">
+  <div class="chapter-head">
+    <div><span class="eyebrow seg"><b>6A</b><span class="seg-who">Harry &amp; Ioannis Alexandrides</span><span class="seg-dur">1:15</span></span><h2>6A. Validation &amp; Next Steps - Business</h2></div>
+  </div>
+  <div class="card bz" id="gtm">
+    <h3>Go-to-market</h3>
+    <div class="bz-road" id="road"></div>
+  </div>
+
+  <div class="card bz" id="riskCard">
+    <h3>Risks, and the fix for each</h3>
+    <div class="bz-risks" id="risks"></div>
+  </div>
+
+</section>
 </div>
 
 <!-- ── RESULTS ────────────────────────────────────────── -->
 <div class="page">
 <section class="chapter wrap" id="results">
   <div class="chapter-head">
-    <div><span class="eyebrow">Does it work?</span><h2>Fewer overflows, lower cost</h2><span class="tag sim" style="margin-top:12px">Simulated week · same 34 trucks</span></div>
+    <div><span class="eyebrow seg"><b>6B</b><span class="seg-who">Chenyi He &amp; Wang Chenzhang</span><span class="seg-dur">1:30</span></span><h2>6B. Validation - Mathematical Results</h2><p class="kicker">Fewer overflows, lower cost</p><span class="tag sim" style="margin-top:12px">Simulated week · same 34 trucks</span></div>
   </div>
   <div class="takeaways3" id="takeaways"></div>
   <h3 class="res-h">Why forecasting wins</h3>
@@ -1418,61 +1624,28 @@ header.top.over { background: transparent; }
 </section>
 </div>
 
-<!-- ── BUSINESS ───────────────────────────────────────── -->
+<!-- ── 7 · CLOSING ──────────────────────────────── -->
 <div class="page band">
-<section class="chapter wrap" id="business">
+<section class="chapter wrap" id="closing">
   <div class="chapter-head">
-    <div><span class="eyebrow">Who pays for it</span><h2>Three partners, one service</h2></div>
+    <div><span class="eyebrow seg"><b>7</b><span class="seg-who">Team / TBD</span><span class="seg-dur">1:45</span></span><h2>7. Conclusion &amp; Closing</h2></div>
   </div>
-
-  <div class="card bz bz-flow" id="partners">
-    <div class="bz-top"><h3>Who gets what, who pays</h3><p class="bz-key"><span class="k-val"></span>what they get <span class="k-pay"></span>what they pay</p></div>
-    <div class="bz-svg" id="partnersSvg"></div>
+  <div class="card bz close-hero" id="closeHero">
+    <p class="close-line"><span class="ln"><span>Empty the full bins.</span></span><em class="ln"><span>Skip the rest.</span></em></p>
+    <div class="close-nums" id="closeNums"></div>
+    <span class="tag sim">Simulated week · same 34 trucks</span>
   </div>
-
   <div class="bz-two">
-    <div class="card bz bz-models" id="models">
-      <h3>Seven ways to earn</h3>
-      <div class="bz-tiles" id="modelTiles"></div>
+    <div class="card bz close-next" id="closeNext">
+      <h3>What comes next</h3>
+      <ol class="close-steps"><li style="--d:0ms"><b>0–6 months</b> Campus pilot: 50–100 bins</li><li style="--d:200ms"><b>6–18 months</b> Council pilot in one Edinburgh area</li><li style="--d:400ms"><b>18 months +</b> 32 Scottish councils, then the UK</li></ol>
     </div>
-    <div class="card bz bz-split" id="split">
-      <h3>Model B: pay from savings</h3>
-      <p class="bz-lead">We fit the sensors for free. The council pays us a share of what it saves.</p>
-      <div class="bz-bars">
-        <div class="bz-bar"><span class="bz-cap">Collection cost a year</span><div class="bz-track"><i class="bz-cost"></i><i class="bz-saved"></i></div><b id="vCost">–</b></div>
-        <div class="bz-bar"><span class="bz-cap">Saved, split two ways</span><div class="bz-track bz-track2"><i class="bz-keep"></i><i class="bz-ours"></i></div><b id="vSaved">–</b></div>
-      </div>
-      <div class="bz-res" id="calcRes"></div>
-      <div class="bz-sliders">
-        <label><span>Properties</span><input id="cProps" type="range" min="10000" max="250000" step="5000" value="100000"><output id="oProps"></output></label>
-        <label><span>Cost per property</span><input id="cCost" type="range" min="40" max="110" step="0.05" value="72.35"><output id="oCost"></output></label>
-        <label><span>Saving</span><input id="cSave" type="range" min="5" max="50" step="1" value="20"><output id="oSave"></output></label>
-        <label><span>Our share</span><input id="cShare" type="range" min="5" max="50" step="1" value="25"><output id="oShare"></output></label>
-      </div>
-      <p class="note">£72.35: Scotland’s average collection cost per property, 2020/21 (LGBF figures, cited in Stirling Observer, 2022). 20 % is cautious: Hannan <i>et al.</i> (2020) model 44 %.</p>
+    <div class="card bz close-team" id="closeTeam">
+      <h3>The team</h3>
+      <ul class="team" id="teamList"></ul>
     </div>
   </div>
-
-  <div class="card bz" id="buyers">
-    <h3>Who buys it</h3>
-    <div class="bz-buyers" id="buyerTiles"></div>
-  </div>
-
-  <div class="card bz" id="gtm">
-    <h3>Go-to-market</h3>
-    <div class="bz-road" id="road"></div>
-  </div>
-
-  <div class="card bz" id="evidence">
-    <h3>Evidence that smarter collection works</h3>
-    <div class="bz-ev" id="evTiles"></div>
-    <p class="note">Manchester’s 2017 sensor trial worked, but did not pay without route optimisation (European Cleaning Journal, no date). That step is BinSight.</p>
-  </div>
-
-  <div class="card bz" id="riskCard">
-    <h3>Risks, and the fix for each</h3>
-    <div class="bz-risks" id="risks"></div>
-  </div>
+  <div class="close-thanks" id="closeThanks"><b>Thank you.</b><span>Questions?</span></div>
 </section>
 </div>
 
@@ -2819,6 +2992,25 @@ const MODELS = [
   ["F", "Student move-out", "Universities", "Spot the peaks; send reusables to the student marketplace."],
   ["G", "Community rewards", "Residents, local shops", "Report a full bin, earn a café voucher."],
 ];
+
+/* ── agenda (the team's 12-minute plan) and the closing frame ── */
+const TEAM = [["Zhance Xu", "1 · 2"], ["Harry", "3 · 4 · 5A · 6A"], ["Ioannis Alexandrides", "3 · 4 · 5A · 6A"], ["Chenyi He", "5B · 6B"], ["Wang Chenzhang", "5B · 6B"]];
+function initAgendaAndClosing() {
+  // a 12-minute bar: one block per section, coloured by who presents it
+  const rows = $$("#agendaCard tbody tr:not(.tot)"), who = { "Zhance Xu": "p1", "Harry & Ioannis Alexandrides": "p2", "Chenyi He & Wang Chenzhang": "p3" };
+  const secs = t => { const [m, s2] = t.split(":").map(Number); return m * 60 + s2; };
+  $("#agBar").innerHTML = rows.map((tr, k) => {
+    const td = tr.children, w = secs(td[2].textContent) / 720 * 100, n = td[1].textContent.split(".")[0];
+    return `<i class="${who[td[0].textContent] || "p4"}" style="width:${w.toFixed(3)}%;--d:${200 + k * 110}ms" title="${td[1].textContent} · ${td[0].textContent} · ${td[2].textContent}"><span>${n}</span></i>`;
+  }).join("") + `<em class="ag-head" aria-hidden="true"></em>`;
+  rows.forEach(tr => { tr.style.cursor = "pointer"; tr.addEventListener("click", e => { if (!e.target.closest("a")) BS.jump(tr.querySelector("a").getAttribute("href")); }); });
+  // closing: the three simulated results again, big
+  const F = strat("timetable"), B = strat("binsight");
+  const cut = (a, b) => Math.round(100 * (1 - b / a));
+  $("#closeNums").innerHTML = [[cut(F.overflow_events_day, B.overflow_events_day), "fewer overflowing bins"], [cut(F.cost_day, B.cost_day), "lower cost"], [cut(F.km_day, B.km_day), "less distance driven"]]
+    .map(([v, l], k) => `<div style="--d:${300 + k * 180}ms"><b><span data-count="${v}" data-suf="\u00a0%">${v}\u00a0%</span></b><span>${l}</span></div>`).join("");
+  $("#teamList").innerHTML = TEAM.map(([n, part], k) => `<li style="--d:${k * 120}ms"><span class="av">${n.split(" ").map(w => w[0]).join("").slice(0, 2)}</span><b>${n}</b><small>${part}</small></li>`).join("");
+}
 function initBusiness() {
   const NS = "http://www.w3.org/2000/svg";
   // 1. who gets what, who pays: value flows out of BinSight, money flows back in
@@ -2930,14 +3122,16 @@ function initBusiness() {
   // play each card once it comes on screen
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const count = b => {
-    const end = +b.dataset.count, suf = b.dataset.suf || "", show = v => b.textContent = Math.round(v).toLocaleString("en-GB") + suf;
+    const end = +b.dataset.count, suf = b.dataset.suf || "", dec = +(b.dataset.dec || 0);
+    const show = v => b.textContent = v.toLocaleString("en-GB", { minimumFractionDigits: dec, maximumFractionDigits: dec }) + suf;
     if (still) return show(end);
     const t0 = performance.now(), step = now => { const u = Math.min(1, (now - t0) / 1600); show(end * (1 - Math.pow(1 - u, 3))); if (u < 1) requestAnimationFrame(step); };
     show(0); requestAnimationFrame(step);
   };
-  const cards = $$("#business .bz");
+  initAgendaAndClosing();
+  const cards = $$("main .bz");
   document.documentElement.classList.add("bz-ready");
-  const play = c => { c.classList.add("play"); $$("b[data-count]", c).forEach(count); };
+  const play = c => { c.classList.add("play"); $$("[data-count]", c).forEach(count); };
   if (still || !("IntersectionObserver" in window)) return cards.forEach(play);
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); play(e.target); } }), { threshold: .25 });
   cards.forEach(c => io.observe(c));

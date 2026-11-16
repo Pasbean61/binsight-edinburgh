@@ -1056,6 +1056,25 @@ const MODELS = [
   ["F", "Student move-out", "Universities", "Spot the peaks; send reusables to the student marketplace."],
   ["G", "Community rewards", "Residents, local shops", "Report a full bin, earn a café voucher."],
 ];
+
+/* ── agenda (the team's 12-minute plan) and the closing frame ── */
+const TEAM = [["Zhance Xu", "1 · 2"], ["Harry", "3 · 4 · 5A · 6A"], ["Ioannis Alexandrides", "3 · 4 · 5A · 6A"], ["Chenyi He", "5B · 6B"], ["Wang Chenzhang", "5B · 6B"]];
+function initAgendaAndClosing() {
+  // a 12-minute bar: one block per section, coloured by who presents it
+  const rows = $$("#agendaCard tbody tr:not(.tot)"), who = { "Zhance Xu": "p1", "Harry & Ioannis Alexandrides": "p2", "Chenyi He & Wang Chenzhang": "p3" };
+  const secs = t => { const [m, s2] = t.split(":").map(Number); return m * 60 + s2; };
+  $("#agBar").innerHTML = rows.map((tr, k) => {
+    const td = tr.children, w = secs(td[2].textContent) / 720 * 100, n = td[1].textContent.split(".")[0];
+    return `<i class="${who[td[0].textContent] || "p4"}" style="width:${w.toFixed(3)}%;--d:${200 + k * 110}ms" title="${td[1].textContent} · ${td[0].textContent} · ${td[2].textContent}"><span>${n}</span></i>`;
+  }).join("") + `<em class="ag-head" aria-hidden="true"></em>`;
+  rows.forEach(tr => { tr.style.cursor = "pointer"; tr.addEventListener("click", e => { if (!e.target.closest("a")) BS.jump(tr.querySelector("a").getAttribute("href")); }); });
+  // closing: the three simulated results again, big
+  const F = strat("timetable"), B = strat("binsight");
+  const cut = (a, b) => Math.round(100 * (1 - b / a));
+  $("#closeNums").innerHTML = [[cut(F.overflow_events_day, B.overflow_events_day), "fewer overflowing bins"], [cut(F.cost_day, B.cost_day), "lower cost"], [cut(F.km_day, B.km_day), "less distance driven"]]
+    .map(([v, l], k) => `<div style="--d:${300 + k * 180}ms"><b><span data-count="${v}" data-suf="\u00a0%">${v}\u00a0%</span></b><span>${l}</span></div>`).join("");
+  $("#teamList").innerHTML = TEAM.map(([n, part], k) => `<li style="--d:${k * 120}ms"><span class="av">${n.split(" ").map(w => w[0]).join("").slice(0, 2)}</span><b>${n}</b><small>${part}</small></li>`).join("");
+}
 function initBusiness() {
   const NS = "http://www.w3.org/2000/svg";
   // 1. who gets what, who pays: value flows out of BinSight, money flows back in
@@ -1167,14 +1186,16 @@ function initBusiness() {
   // play each card once it comes on screen
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const count = b => {
-    const end = +b.dataset.count, suf = b.dataset.suf || "", show = v => b.textContent = Math.round(v).toLocaleString("en-GB") + suf;
+    const end = +b.dataset.count, suf = b.dataset.suf || "", dec = +(b.dataset.dec || 0);
+    const show = v => b.textContent = v.toLocaleString("en-GB", { minimumFractionDigits: dec, maximumFractionDigits: dec }) + suf;
     if (still) return show(end);
     const t0 = performance.now(), step = now => { const u = Math.min(1, (now - t0) / 1600); show(end * (1 - Math.pow(1 - u, 3))); if (u < 1) requestAnimationFrame(step); };
     show(0); requestAnimationFrame(step);
   };
-  const cards = $$("#business .bz");
+  initAgendaAndClosing();
+  const cards = $$("main .bz");
   document.documentElement.classList.add("bz-ready");
-  const play = c => { c.classList.add("play"); $$("b[data-count]", c).forEach(count); };
+  const play = c => { c.classList.add("play"); $$("[data-count]", c).forEach(count); };
   if (still || !("IntersectionObserver" in window)) return cards.forEach(play);
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); play(e.target); } }), { threshold: .25 });
   cards.forEach(c => io.observe(c));
