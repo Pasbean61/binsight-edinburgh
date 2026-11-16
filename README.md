@@ -30,7 +30,7 @@ The map is a real street map of Edinburgh. Zoom in to see every building, street
 
 ## About
 
-BinSight forecasts how full each of Edinburgh’s general-waste communal bins will be tomorrow and plans the shortest truck routes that reach only the bins that need emptying. This repository holds the public website and the model behind it, written from scratch by the team: a stochastic fill model, a random-forest fill forecast, a fullest-first decision rule, a routing heuristic, and a before-and-after comparison with the council timetable. The maths is explained on the site and in [`model/README.md`](model/README.md).
+BinSight forecasts how full each of Edinburgh’s general-waste communal bins will be tomorrow and plans the lowest-cost truck routes that reach only the bins that need emptying. This repository holds the public website and the model behind it, written from scratch by the team: a stochastic fill model, a random-forest fill forecast, a fullest-first decision rule, a routing heuristic, and a before-and-after comparison with the council timetable. The maths is explained on the site and in [`model/README.md`](model/README.md).
 
 A project by **EMS Group 6, University of Edinburgh**.
 
@@ -40,14 +40,13 @@ One page, in this order:
 
 | Section | What you can do |
 |---|---|
-| **Problem** | Edinburgh’s communal-bin problem in sourced numbers, plus an interactive “timetable vs BinSight” fortnight |
-| **How it works** | Sense → Predict → Optimise → Collect, with the real formulas and methods |
-| **Live map** | A real street map of Edinburgh you can zoom from the whole city down to single buildings and house numbers, with all 4,532 real stops in their real wards, plus a replay of tomorrow’s shift: 34 trucks leave Seafield at 06:00, drive their routes on real streets and empty each flagged bin while trails, counters and the clock run. Follow any truck, hover and open wards, search streets, switch to overflow risk or the council’s full 17,713-asset register; driver view, alerts, sensor health and real weather below the map |
-| **The maths** | Five interactive tabs: the calibrated fill simulator, the random-forest forecast, the fullest-first rule, the routing and the before-and-after check |
-| **Results** | Three collection strategies (timetable, reactive, BinSight) over a 7-day × 2-seed replay, forecast accuracy, the overflow-cost trade-off and a 12-way sensitivity check |
-| **Planner** | Change the threshold, fleet, shift and lift time; distance is estimated with the Beardwood–Halton–Hammersley law calibrated to the optimised plan |
+| **Problem** | Edinburgh’s communal-bin problem in six sourced numbers, and the policy deadlines ahead |
+| **How it works** | Measure → Forecast → Route → Collect in four plain steps, and a 3D model of the £2 ultrasonic sensor that turns an echo into a fill level |
+| **Live map** | A real street map of Edinburgh you can zoom from the whole city down to single buildings and house numbers, with all 4,532 real stops in their real wards, plus a replay of tomorrow’s shift: 34 trucks leave Seafield at 06:00, drive their routes on real streets and empty each flagged bin while trails, counters and the clock run. Follow any truck, hover and open wards, search streets, switch to overflow risk or the council’s full register (17,711 mapped assets); driver view, alerts, sensor health and real weather below the map |
+| **The maths** | Five interactive tabs: the calibrated fill simulator, the random-forest forecast, the fullest-first rule, the route optimisation (one area of west Edinburgh on the real street map you can zoom and drag, before and after simulated annealing, with a small map showing where it and the Seafield depot are) and the before-and-after check |
+| **Results** | Three collection strategies (timetable, reactive, BinSight) in the same simulated week: overflows, cost and distance a day |
 | **Business** | Three-partner model, revenue models A–G, gain-share calculator, go-to-market, evidence and risks |
-| **Sources** | What is real, simulated or assumed, and every reference |
+| **Sources** | Every reference, in Harvard style |
 
 ## What is real
 
@@ -74,10 +73,11 @@ model/                      the BinSight model (Python: numpy, scipy, scikit-lea
   calibrate.py              calibrates the simulator to the council complaint rate
   predict.py                random-forest fill forecast
   decide.py                 fullest-first decision rule
-  route.py                  Clarke–Wright, local search, simulated annealing, shift packing
+  route.py                  the route model, solved by simulated annealing
   experiment.py             before and after: timetable vs reactive vs BinSight
   export.py, run.py         site data and the entry point
 scripts/build_page.py       src/ → index.html and site/binsight.html
+scripts/export_first_plan.py  the plan before annealing and the worked example (data/first_plan.json, data/route_example.json; maths step 4)
 docs/                       README images
 ```
 
@@ -87,6 +87,7 @@ docs/                       README images
 python3 -m pip install numpy scipy scikit-learn pyproj
 python3 scripts/fetch_cache.py       # once: downloads the road-network cache (131 MB) from the release road-cache-v1
 python3 -m model.run --experiments   # about 25 minutes on 10 cores; omit the flag to reuse cached experiments
+python3 scripts/export_first_plan.py # the plan before annealing and the one-area worked example (maths step 4)
 python3 scripts/build_page.py
 ```
 

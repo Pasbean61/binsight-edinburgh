@@ -495,8 +495,41 @@ table.tight td, table.tight th { padding: 6px 10px; font-size: 13.5px; }
 .eq.hl .katex { font-size: 1.25em; }
 .eq.hl { padding: 14px 12px; }
 .eq.hl .katex-display { margin: 10px 0; }
-/* maths steps 1, 2, 3, 5: no secondary captions (the route tab keeps its own) */
-.m-pane:not([data-m="3"]) .note, .m-pane:not([data-m="3"]) .muted.small, .m-pane:not([data-m="3"]) .slider small, .m-pane:not([data-m="3"]) #decCounts > div[style] { display: none; }
+/* maths steps: no secondary captions, the same in all five tabs */
+.m-pane .note, .m-pane .muted.small, .m-pane .slider small, .m-pane #decCounts > div[style] { display: none; }
+/* step 4: objective and constraints, labelled separately */
+.m-cons { padding: 12px 12px 10px; }
+.m-text .m-lead { color: var(--ink); margin: 16px 0 -2px; }
+/* step 4: one area, before and after optimising — each colour one trip, red when less than half full */
+.m-head .ex-stage { font: 600 14px var(--body); color: var(--accent); }
+.ex-how { margin: 2px 0 6px; color: var(--ink-2); font-size: 14px; }
+.ex-sum { margin: 2px 0 6px; font-size: 15px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.ex-sum b { color: var(--ink); font: 700 19px var(--display); }
+.ex-map { position: relative; z-index: 0; isolation: isolate; height: 440px; border-radius: 12px; overflow: hidden; background: #f5f5f3; border: 1px solid #c9cdd2;
+  --surface: #ffffff; --paper: #f8f9fa; --ink: #202124; --ink-2: #3c4043; --ink-3: #5f6368; --line: #e3e5e8; color-scheme: light; color: var(--ink); }
+@media (max-width: 600px) { .ex-map { height: 380px; } }
+.ex-map .ex-seaf { display: flex; align-items: center; gap: 6px; font: 500 13px var(--body); color: #202124; background: rgba(255, 255, 255, .95); padding: 5px 10px; border-radius: 10px; box-shadow: 0 1px 3px rgba(60, 64, 67, .3), 0 2px 6px rgba(60, 64, 67, .15); white-space: nowrap; }
+.ex-map .ex-seaf svg { width: 16px; height: 16px; flex-shrink: 0; color: #202124; }
+.ex-map .leaflet-tooltip.ex-dep { background: #202124; color: #fff; font-weight: 600; }
+.ex-map .ex-reset a { display: flex; align-items: center; justify-content: center; }
+.ex-map .ex-reset svg { width: 16px; height: 16px; }
+.ex-inset { background: rgba(255, 255, 255, .94); border-radius: 10px; box-shadow: 0 1px 3px rgba(60, 64, 67, .3), 0 2px 6px rgba(60, 64, 67, .15); padding: 4px; line-height: 0; }
+.ex-inset svg { display: block; width: 136px; height: auto; }
+.ex-inset text { font: 600 11px var(--body); fill: #3c4043; paint-order: stroke; stroke: #fff; stroke-width: 3px; }
+@media (max-width: 600px) { .ex-inset svg { width: 100px; } }
+.ex-key { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 0 2px; font-size: 13px; color: var(--ink-2); }
+.ex-key i { display: inline-block; width: 16px; height: 4px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+.opt-slide { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+.opt-slide input { flex: 1; min-width: 0; accent-color: var(--accent); }
+.opt-why { margin: 10px 0 0; color: var(--ink); font-size: 15px; font-weight: 600; }
+.m-model .eq-rows { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; align-items: baseline; text-align: left; margin: 8px 4px 2px; }
+.m-model .eq-rows > span:nth-child(odd) { white-space: nowrap; }
+.m-model .eq-rows > span:nth-child(even) { font: 400 14px/1.35 var(--body); color: var(--ink-2); }
+.m-model .eq-rows .katex { font-size: 1.02em; }
+.m-model .katex-display { overflow-x: auto; overflow-y: hidden; }
+.m-model .obj-two { display: none; }
+@media (max-width: 420px) { .m-model .obj-one { display: none; } .m-model .obj-two { display: block; } .m-model .eq-rows > span:nth-child(odd) { white-space: normal; } }
+@media (max-width: 560px) { .m-model .katex-display > .katex { font-size: .92em; } .m-model .eq-rows { grid-template-columns: 1fr; gap: 2px; } .m-model .eq-rows > span:nth-child(even) { margin-bottom: 8px; } }
 div.card.step { cursor: default; }
 .how-more { margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap; }
 /* results: three headline numbers, then the three methods side by side */
@@ -1129,13 +1162,13 @@ header.top.over nav.sections a b { color: var(--mint); }
   <span class="cover-bar t" aria-hidden="true"></span><span class="cover-bar b" aria-hidden="true"></span>
   <div class="cover-ui wrap">
     <p class="cover-caps" aria-hidden="true">
-      <span data-c="0">Each dot is a shared street bin.</span>
+      <span data-c="0">Each dot is a stop of street bins.</span>
       <span data-c="1">Red means it will be full tomorrow.</span>
       <span data-c="2">So the trucks visit only the red ones.</span>
       <span data-c="3">A £2 sensor in each bin tells us which.</span>
-      <span data-c="4">The result: <b data-k="overflowCutWord">82&nbsp;%</b> fewer overflowing bins. <small>simulated week</small></span>
+      <span data-c="4">The result: <b data-k="overflowCutWord">82%</b> fewer overflowing bins. <small>simulated week</small></span>
     </p>
-    <p class="sr">Each dot is a shared street bin. Red means it will be full tomorrow, so the trucks visit only the red ones. A £2 sensor in each bin tells us which. The result in a simulated week: <span data-k="overflowCutWord">82&nbsp;%</span> fewer overflowing bins.</p>
+    <p class="sr">Each dot is a stop of street bins. Red means it will be full tomorrow, so the trucks visit only the red ones. A £2 sensor in each bin tells us which. The result in a simulated week: <span data-k="overflowCutWord">82%</span> fewer overflowing bins.</p>
     <div class="cover-row">
       <div class="cover-copy">
         <h1 id="coverTitle"><span class="ln"><span>Empty the full bins.</span></span> <em class="ln"><span>Skip the rest.</span></em></h1>
@@ -1208,7 +1241,7 @@ header.top.over nav.sections a b { color: var(--mint); }
           <g class="rep" style="--i:1"><rect x="148" y="72" width="160" height="26" rx="13"/><circle cx="163" cy="85" r="4.5"/><text x="175" y="89">Bin overflowing</text></g>
           <g class="rep" style="--i:2"><rect x="148" y="72" width="160" height="26" rx="13"/><circle cx="163" cy="85" r="4.5"/><text x="175" y="89">Full bin reported</text></g>
         </g>
-        <g class="badge"><rect x="252" y="8" width="56" height="22" rx="11"/><text x="280" y="23" text-anchor="middle">+13 %</text></g>
+        <g class="badge"><rect x="252" y="8" width="56" height="22" rx="11"/><text x="280" y="23" text-anchor="middle">+13%</text></g>
       </svg></div>
       <b data-count="6006">6,006</b><p>full or overflowing bins reported in one summer quarter</p>
       <span class="src">(<a href="https://www.edinburghnews.scotsman.com/news/politics/council/edinburgh-council-blames-increase-in-overflowing-bins-on-explosion-of-airbnb-style-short-term-lets-1331605" target="_blank" rel="noopener">Edinburgh Evening News, 2019</a>)</span>
@@ -1218,11 +1251,11 @@ header.top.over nav.sections a b { color: var(--mint); }
         <text x="20" y="24" class="v-lab">Edinburgh</text>
         <rect x="20" y="32" width="280" height="14" rx="7" fill="var(--line)"/>
         <rect class="grow" x="20" y="32" width="105" height="14" rx="7" fill="var(--accent)"/>
-        <g class="avg"><line x1="144" y1="26" x2="144" y2="52"/><text x="148" y="24" class="v-lab">Scotland 44.3 %</text></g>
+        <g class="avg"><line x1="144" y1="26" x2="144" y2="52"/><text x="148" y="24" class="v-lab">Scotland 44.3%</text></g>
         <g class="dots"></g>
         <text x="20" y="114" class="v-note">1st</text><text x="300" y="114" text-anchor="end" class="v-note">32nd of 32 councils</text>
       </svg></div>
-      <b data-count="37.5" data-dec="1" data-suf=" %">37.5 %</b><p>of household waste recycled in 2024</p>
+      <b data-count="37.5" data-dec="1" data-suf="%">37.5%</b><p>of household waste recycled in 2024</p>
       <span class="src">(<a href="https://shiny.data.gov.scot/sepa/waste/household.html" target="_blank" rel="noopener">SEPA, 2025a</a>; <a href="https://beta.sepa.scot/news/2025/small-rise-in-scottish-household-recycling-rate-but-big-gains-are-still-go/" target="_blank" rel="noopener">SEPA, 2025b</a>)</span>
     </div>
     <div class="card stat anim">
@@ -1232,7 +1265,7 @@ header.top.over nav.sections a b { color: var(--mint); }
         <g class="cells"></g>
         <g class="v-leg"><rect x="60" y="112" width="7" height="7" rx="1.5" fill="var(--accent)"/><text x="71" y="119">could be recycled</text></g>
       </svg></div>
-      <b data-count="52" data-suf=" %">52 %</b><p>of what goes in the general bin could have been recycled</p>
+      <b data-count="52" data-suf="%">52%</b><p>of what goes in the general bin could have been recycled</p>
       <span class="src">(Zero Waste Scotland, cited in <a href="https://beta.sepa.scot/news/2025/small-rise-in-scottish-household-recycling-rate-but-big-gains-are-still-go/" target="_blank" rel="noopener">SEPA, 2025b</a>)</span>
     </div>
     <div class="card stat anim">
@@ -1262,7 +1295,7 @@ header.top.over nav.sections a b { color: var(--mint); }
   <div class="card tl-card anim" aria-label="Policy timeline">
     <div class="tl">
       <div class="tl-track"><span class="tl-fill"></span></div>
-      <div class="tl-node" style="--x:13%;--t:.45s"><span class="tl-dot"></span><b>2025</b><h4>Packaging EPR</h4><p>Up to 20 % of £17.3m withheld from inefficient services</p></div>
+      <div class="tl-node" style="--x:13%;--t:.45s"><span class="tl-dot"></span><b>2025</b><h4>Packaging EPR</h4><p>Producers now pay for packaging collection; up to 20% of £17.3m is withheld from inefficient services</p></div>
       <div class="tl-now" style="--x:40%;--t:.9s"><span class="tl-dot"></span><b>Now</b></div>
       <div class="tl-node" style="--x:56.5%;--t:1.2s"><span class="tl-dot"></span><b>2028</b><h4>Landfill ban</h4><p>Biodegradable waste can no longer go to landfill</p></div>
       <div class="tl-node" style="--x:85.5%;--t:1.8s"><span class="tl-dot"></span><b>2030</b><h4>Circular Economy Act</h4><p>Council recycling targets and contamination penalties</p></div>
@@ -1281,7 +1314,7 @@ header.top.over nav.sections a b { color: var(--mint); }
   <div class="steps" id="steps">
     <div class="card step"><span class="k">Step 1</span><h3>Measure</h3><p>A small sensor under the lid measures how full the bin is, every hour.</p></div>
     <div class="card step"><span class="k">Step 2</span><h3>Forecast</h3><p>A model combines those readings with the weather, the day of the week and holidays, and predicts how full each bin will be tomorrow.</p></div>
-    <div class="card step"><span class="k">Step 3</span><h3>Route</h3><p>Bins forecast to reach 80 % go on tomorrow’s list, fullest first, and the trucks get the shortest routes to them.</p></div>
+    <div class="card step"><span class="k">Step 3</span><h3>Route</h3><p>Bins forecast to reach 80% go on tomorrow’s list, fullest first, and the trucks get the lowest-cost routes to them.</p></div>
     <div class="card step"><span class="k">Step 4</span><h3>Collect</h3><p>Crews follow the plan, and residents can report a problem in an app.</p></div>
   </div>
 
@@ -1299,7 +1332,7 @@ header.top.over nav.sections a b { color: var(--mint); }
       </div>
       <div class="echo">
         <input type="range" id="eFill" min="0" max="100" step="1" value="65" aria-label="How full the bin is">
-        <output id="oFill" class="sr">65 %</output>
+        <output id="oFill" class="sr">65%</output>
         <div class="echo-out">
           <div><b id="eTime" class="num">–</b><span>echo</span></div>
           <div><b id="eDist" class="num">–</b><span>distance</span></div>
@@ -1378,7 +1411,7 @@ header.top.over nav.sections a b { color: var(--mint); }
         <label><span>Saving</span><input id="cSave" type="range" min="5" max="50" step="1" value="20"><output id="oSave"></output></label>
         <label><span>Our share</span><input id="cShare" type="range" min="5" max="50" step="1" value="25"><output id="oShare"></output></label>
       </div>
-      <p class="note">£72.35: Scotland’s average collection cost per property, 2020/21 (LGBF figures, cited in Stirling Observer, 2022). 20 % is cautious: Hannan <i>et al.</i> (2020) model 44 %.</p>
+      <p class="note">£72.35: Scotland’s average collection cost per property, 2020/21 (LGBF figures, cited in Stirling Observer, 2022). 20% is cautious: Hannan <i>et al.</i> (2020) model 44%.</p>
     </div>
   </div>
 
@@ -1395,12 +1428,13 @@ header.top.over nav.sections a b { color: var(--mint); }
 <section class="chapter wrap" id="maths">
   <div class="chapter-head">
     <div><span class="eyebrow seg"><b>5B</b><span class="seg-who">Chenyi He &amp; Wang Chenzhang</span><span class="seg-dur">1:30</span></span><h2>5B. Implementation - Mathematics</h2><p class="kicker">Five steps behind the plan</p></div>
+    <p class="say">The council’s question: <b>which bins need a truck tomorrow, and what is the cheapest way to empty them?</b> Steps 1–2 forecast the fill, steps 3–4 choose the stops and the routes, and step 5 checks the result against today’s timetable.</p>
   </div>
   <div class="m-tabs" role="tablist" id="mTabs">
     <button type="button" role="tab" data-m="0" class="on"><span class="k">1</span>Simulate<small>how bins fill</small></button>
     <button type="button" role="tab" data-m="1"><span class="k">2</span>Predict<small>tomorrow’s fill</small></button>
     <button type="button" role="tab" data-m="2"><span class="k">3</span>Decide<small>which stops</small></button>
-    <button type="button" role="tab" data-m="3"><span class="k">4</span>Route<small>simulated annealing</small></button>
+    <button type="button" role="tab" data-m="3"><span class="k">4</span>Optimise<small>the lowest-cost routes</small></button>
     <button type="button" role="tab" data-m="4"><span class="k">5</span>Check<small>against the timetable</small></button>
   </div>
 
@@ -1414,13 +1448,13 @@ header.top.over nav.sections a b { color: var(--mint); }
         \[ \lambda_{it} \;\;\propto\;\; \underbrace{\rho_i}_{\mathclap{\substack{\text{how busy} \\ \text{the stop is}}}} \quad\times\quad \underbrace{a_h}_{\mathclap{\substack{\text{time} \\ \text{of day}}}} \quad\times\quad \underbrace{w_t}_{\mathclap{\substack{\text{weather,} \\ \text{holidays}}}} \]</div>
         <ul class="m-list">
           <li><b>Random, like real life.</b> Two weeks with the same average can look very different. That is why bins overflow by surprise.</li>
-          <li><b>Matched to reality.</b> We tune one number so that the simulated timetable overflows on @target@ % of collections, the same as the council’s complaint rate.</li>
+          <li><b>Matched to reality.</b> We tune one number so that the simulated timetable overflows on @target@% of collections, the same as the council’s complaint rate.</li>
           <li><b>Real inputs.</b> The bins, the weather and the holidays are real. Only the bags are simulated.</li>
         </ul>
         <p class="note">Every parameter and its source is in <span class="mono">model/README.md</span>.</p>
       </div>
       <div class="m-widget">
-        <div class="slider"><div class="top"><label for="mRho">Daily fill share <var>ρ</var></label><output id="oRho">0.21</output></div><input type="range" id="mRho" min="0.08" max="0.6" step="0.01" value="0.21"><small>Share of the stop’s capacity filled on an average day. 0.21 is the typical stop.</small></div>
+        <div class="slider"><div class="top"><label for="mRho">How busy the stop is, <var>ρ</var></label><output id="oRho">0.21</output></div><input type="range" id="mRho" min="0.08" max="0.6" step="0.01" value="0.21"><small>Share of the stop’s capacity filled on an average day. 0.21 is the typical stop.</small></div>
         <svg class="chart" id="mPaths" viewBox="0 0 520 260" role="img" aria-label="Simulated fill paths over one week with a truck every two days"></svg>
         <div class="m-row"><button class="btn ghost sm" type="button" id="mRedraw">Draw three new weeks</button><span class="muted small" id="mPathNote"></span></div>
       </div>
@@ -1434,11 +1468,11 @@ header.top.over nav.sections a b { color: var(--mint); }
         <h3>How full will it be tomorrow?</h3>
         <p class="m-idea">Every morning a machine-learning model (a random forest) learns how fast each bin is filling. Then we extend the line.</p>
         <div class="eq hl">\[ \underbrace{\hat y_i}_{\text{forecast}} \;=\; \underbrace{y_i}_{\substack{\text{fill} \\ \text{now}}} \;+\; \underbrace{H}_{\substack{\text{hours} \\ \text{ahead}}} \times \underbrace{\hat g_i}_{\substack{\text{filling} \\ \text{speed}}} \]</div>
-        <div class="eq">\[ \text{Example:}\quad @exY@\,\% + @H@\ \text{h} \times @exG@\ \text{points/h} \approx @exP@\,\% \]</div>
+        <div class="eq">\[ \text{Example:}\quad @exY@\% + @H@\ \text{h} \times @exG@\ \text{points/h} \approx @exP@\% \]</div>
         <ul class="m-list">
           <li><b>What the model looks at:</b> the latest reading, how fast the bin has been filling, the weekday, and the weather and holidays ahead.</li>
-          <li><b>Hours ahead:</b> until 14:00 tomorrow, the bin’s next chance of a truck.</li>
-          <li><b>Over 100 % is allowed.</b> A forecast of 130 % means the bin will overflow well before the truck comes, so it goes to the top of the list.</li>
+          <li><b>Hours ahead:</b> until @fcEnd@, the bin’s next chance of a truck.</li>
+          <li><b>Over 100% is allowed.</b> A forecast of 130% means the bin will overflow well before the truck comes, so it goes to the top of the list.</li>
         </ul>
       </div>
       <div class="m-widget">
@@ -1457,18 +1491,18 @@ header.top.over nav.sections a b { color: var(--mint); }
       <div class="m-text">
         <h3>Which bins get a truck?</h3>
         <p class="m-idea">Sort the bins from fullest to emptiest. Take them from the top until the trucks have no time left.</p>
-        <div class="eq hl">\[ \underbrace{\hat y_{(1)} \ge \hat y_{(2)} \ge \cdots \ge @floor@\,\%}_{\text{fullest first, skip below @floor@ \%}} \]
+        <div class="eq hl">\[ \underbrace{\hat y_{(1)} \ge \hat y_{(2)} \ge \cdots \ge @floor@\%}_{\text{fullest first, skip below @floor@\%}} \]
         \[ \underbrace{\tau_{(1)} + \tau_{(2)} + \cdots + \tau_{(k)}}_{\text{time the chosen stops need}} \;\le\; \underbrace{m \times T}_{\text{trucks} \,\times\, \text{shift}} \]</div>
         <ul class="m-list">
           <li><b>Fullest first.</b> The bins closest to overflowing are always served first.</li>
-          <li><b>Skip below @floor@ %.</b> A bin forecast under @floor@ % can safely wait, so no truck is sent.</li>
+          <li><b>Skip below @floor@%.</b> A bin forecast under @floor@% can safely wait, so no truck is sent.</li>
           <li><b>Time per stop \(\tau\):</b> lifting the bins, driving there, and tipping when the truck is full.</li>
         </ul>
         <p class="note" id="decNote"></p>
       </div>
       <div class="m-widget">
         <svg class="chart" id="mDec" viewBox="0 0 520 300" role="img" aria-label="Every stop ranked by projected fill, with the floor and the point where the fleet runs out of time"></svg>
-        <div class="slider"><div class="top"><label for="mFloor">Floor</label><output id="oFloor">80 %</output></div><input type="range" id="mFloor" min="50" max="100" step="1" value="80"><small>Never take a stop projected below this.</small></div>
+        <div class="slider"><div class="top"><label for="mFloor">Floor</label><output id="oFloor">80%</output></div><input type="range" id="mFloor" min="50" max="100" step="1" value="80"><small>Never take a stop projected below this.</small></div>
         <div class="slider"><div class="top"><label for="mTrucks">Trucks</label><output id="oTrucks">–</output></div><input type="range" id="mTrucks" min="6" max="60" step="1" value="24"></div>
         <div class="slider"><div class="top"><label for="mShift">Shift length</label><output id="oShiftM">8.0 h</output></div><input type="range" id="mShift" min="6" max="12" step="0.5" value="8"></div>
         <div class="m-counts" id="decCounts"></div>
@@ -1476,43 +1510,40 @@ header.top.over nav.sections a b { color: var(--mint); }
     </div>
   </div>
 
-  <!-- 4 · ROUTE -->
+  <!-- 4 · OPTIMISE -->
   <div class="card m-pane" data-m="3" hidden>
     <div class="m-grid">
       <div class="m-text">
-        <h3>Routing: one model, solved by simulated annealing</h3>
-        <p>Step 3 chose tomorrow’s stops. This step decides which truck empties each one, in what order, and when it drives back to Seafield to tip.</p>
-        <p><b>The model.</b> On the road graph (<span data-mk="roadKm">–</span> km of Edinburgh streets from OpenStreetMap, shortest paths by Dijkstra), truck <var>k</var> makes trips <var>r</var>. Driving <var>i</var> → <var>j</var> costs <var>c<sub>ij</sub></var> = £1.45·km + £75·θ·hours. Leaving stop <var>i</var> out costs its prize <var>π<sub>i</sub></var> = £60 × <var>ŷ<sub>i</sub></var>/100, its share of an overflow.</p>
-        <div class="eq left eq-lines hl">
-          <div>min &nbsp; Σ <var>c<sub>ij</sub> x<sub>ijkr</sub></var> + Σ<sub><var>i</var></sub> <var>π<sub>i</sub></var>(1 − Σ<sub><var>kr</var></sub> <var>z<sub>ikr</sub></var>)</div>
-          <div class="in st">Σ<sub><var>kr</var></sub> <var>z<sub>ikr</sub></var> ≤ 1 &emsp; each stop at most once</div>
-          <div class="in">Σ<sub><var>i</var></sub> <var>q<sub>i</sub> z<sub>ikr</sub></var> ≤ <var>Q</var> = 60 m³ &emsp; one load per trip</div>
-          <div class="in">Σ<sub><var>r</var></sub> (θ·drive + lift + tip) ≤ 480 min &emsp; each of <span data-mk="fleet">–</span> trucks</div>
-          <div class="in">flow in = flow out, no subtours, &nbsp;<var>x</var>, <var>z</var>, <var>u</var> ∈ {0, 1}</div>
+        <h3>What is the lowest-cost way to empty them?</h3>
+        <p class="m-idea">Each truck empties its bins in trips from Seafield, all within one shift. We pick the routes with the lowest total cost.</p>
+        <p class="m-lead"><b>Objective:</b> the lowest total cost.</p>
+        <div class="eq hl m-model">
+          <div class="obj-one">\[ \min \;\; \underbrace{\textstyle\sum_{k,r}\sum_{i,j} c_{ij}\, x_{ijkr}}_{\text{driving cost}} \;+\; \underbrace{\textstyle\sum_i \pi_i \bigl(1 - \sum_{k,r} z_{ikr}\bigr)}_{\text{bins left out}} \]</div>
+          <div class="obj-two">\[ \begin{aligned} \min \;\; & \underbrace{\textstyle\sum_{k,r}\sum_{i,j} c_{ij}\, x_{ijkr}}_{\text{driving cost}} \\ +\;\; & \underbrace{\textstyle\sum_i \pi_i \bigl(1 - \sum_{k,r} z_{ikr}\bigr)}_{\text{bins left out}} \end{aligned} \]</div>
         </div>
-        <p><b>The algorithm: simulated annealing.</b> The model is NP-hard and tomorrow has <b data-mk="nStops">–</b> stops, so no exact solver finishes in minutes. Annealing searches instead:</p>
-        <div class="algo"><ol>
-          <li><b>Start.</b> Fill truck after truck, trip after trip, with the nearest stop that still fits.</li>
-          <li><b>Propose a small change.</b> Pick a stop <var>v</var> and one of its 20 nearest stops <var>w</var>, then: move <var>v</var> next to <var>w</var> · swap them · reverse the path between them (2-opt) · cross two trips at them (2-opt*) · drop <var>v</var> · give <var>v</var> a new trip. Changes that break a constraint are never made.</li>
-          <li><b>Accept or reject.</b> Δ = new cost − old cost. Keep the change if Δ ≤ 0; if it is worse, keep it anyway with probability <span class="eq inline">e<sup>−Δ/<var>T</var></sup></span>.</li>
-          <li><b>Cool.</b> The temperature <var>T</var> falls geometrically over the time budget. Early on, worse plans are often kept, so the search can climb out of a dead end. At the end it only goes downhill.</li>
-          <li><b>Return</b> the best plan seen.</li>
-        </ol></div>
-        <p><b>Weather and holidays sit in the constraints.</b> The load <var>q<sub>i</sub></var> grows with the hourly factor <var>w<sub>h</sub></var> (rain, temperature, holidays) until the truck arrives, and rain slows driving: θ = 1 + 0.10 × the share of the shift’s hours with rain. Both effect sizes are assumptions.</p>
-        <p class="note" id="routeNote"></p>
+        <p class="m-lead"><b>Constraints:</b> what every route must respect.</p>
+        <div class="eq m-model m-cons">
+          <div class="eq-rows">
+            <span>\(\sum_{k,r} z_{ikr} \le 1\)</span><span>each bin at most once</span>
+            <span>\(\sum_i q_i\, z_{ikr} \le Q\, u_{kr}\)</span><span>one truckload (@loadM3@ m³) per trip</span>
+            <span>\(\sum_r \bigl(\text{drive} + \text{lift} + \text{tip}\bigr) \le @shift@\ \text{min}\)</span><span>one shift per truck</span>
+            <span>\(\sum_j x_{ijkr} = \sum_j x_{jikr} = z_{ikr}\)</span><span>trips start at Seafield; a truck that arrives also leaves</span>
+          </div>
+        </div>
+        <ul class="m-list">
+          <li><b>Decisions</b> (each 0 or 1): \(x_{ijkr}\) truck \(k\) drives \(i \to j\) on trip \(r\); \(z_{ikr}\) it empties bin \(i\); \(u_{kr}\) it makes trip \(r\).</li>
+          <li><b>Costs.</b> \(c_{ij}\) = £@costKm@ per km + £@costHour@ per truck-hour. Leaving bin \(i\) out costs \(\pi_i = @costOverflow@ \times \hat y_i / 100\), so the emptiest wait first.</li>
+          <li><b>Solved by simulated annealing:</b> from a quick plan, try small route changes and keep those that cut the cost (early on, a few worse ones too, so it does not get stuck). <span data-mk="saIters">6.2 million</span> tries in <span data-mk="saSecs">30</span>&nbsp;s.</li>
+        </ul>
       </div>
       <div class="m-widget">
-        <div class="m-head"><b>Watch it anneal 12 real stops</b><span class="muted small" id="toySub"></span></div>
-        <div class="m-row" style="margin:6px 0 4px">
-          <button class="btn primary sm" type="button" id="saPlay">Run</button>
-          <button class="btn ghost sm" type="button" id="saStep">One move</button>
-          <button class="btn ghost sm" type="button" id="saNew">New random start</button>
-        </div>
-        <svg class="chart" id="mToy" viewBox="0 0 520 280" role="img" aria-label="The current route through 12 real stops"></svg>
-        <p class="sa-log" id="saLog" aria-live="polite"></p>
-        <svg class="chart" id="mSa" viewBox="0 0 520 170" role="img" aria-label="Route cost and temperature over the annealing moves"></svg>
-        <div class="m-counts" id="toyOut"></div>
-        <p class="note" id="saNote"></p>
+        <div class="m-head"><b>One area, before and after optimising</b><span class="ex-stage" id="exStage">Quick plan</span></div>
+        <p class="ex-how">Tomorrow’s <span id="exStops">65</span> stops (<span id="exBins">139</span> bins) around Sighthill. Each colour is one trip; every trip starts and ends at Seafield, <span id="exKm">12</span> km away. Scroll or pinch to zoom, drag to move.</p>
+        <p class="ex-sum" id="exSum"></p>
+        <div class="ex-map" id="mRoute" role="region" aria-label="One area of west Edinburgh on the street map: the trips of the quick plan and of the plan after simulated annealing"></div>
+        <div class="ex-key" id="exKey"></div>
+        <div class="opt-slide"><span>Quick plan</span><input type="range" id="mEx" min="0" max="1" step="0.001" value="0" aria-label="From the quick plan to the plan after simulated annealing"><span>After annealing</span></div>
+        <p class="opt-why" id="exWhy"></p>
       </div>
     </div>
   </div>
@@ -1524,7 +1555,7 @@ header.top.over nav.sections a b { color: var(--mint); }
       <p class="m-idea">We run one simulated week three times, once for each way of collecting, and compare overflows and cost.</p>
       <div class="m-three">
         <div><b>Timetable</b><span>Every bin, every 2 days. What Edinburgh does today.</span></div>
-        <div><b>Reactive</b><span>Empty a bin once it reads @reactive@ %. Sensors, no forecast.</span></div>
+        <div><b>Reactive</b><span>Empty a bin once it reads @reactive@%. Sensors, no forecast.</span></div>
         <div><b>BinSight</b><span>Forecast, fullest first, best routes.</span></div>
       </div>
       <div class="eq hl">\[ \text{cost per day} = \underbrace{£@costKm@ \times \text{km}}_{\text{driving}} + \underbrace{£@costHour@ \times \text{truck-hours}}_{\text{crew}} + \underbrace{£@costOverflow@ \times \text{overflows}}_{\text{penalty}} \]</div>
@@ -1668,7 +1699,7 @@ header.top.over nav.sections a b { color: var(--mint); }
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const fmt = (n, d = 0) => n == null || isNaN(n) ? "–" : Number(n).toLocaleString("en-GB", { minimumFractionDigits: d, maximumFractionDigits: d });
-const pct = (n, d = 0) => fmt(n, d) + " %";
+const pct = (n, d = 0) => fmt(n, d) + "%";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -1703,7 +1734,7 @@ const D = {};
 const UI = { layer: "pred", ward: -1, flagOnly: false, routes: false, selTruck: -1, selStop: -1, follow: -1, hoverWard: -1 };
 window.BS = { D, UI };
 
-const DATA_VER = "f22f6ba4bc";
+const DATA_VER = "8e35e73b77";
 async function getJSON(p) { const r = await fetch(p.startsWith("data/") ? p + "?v=" + DATA_VER : p); if (!r.ok) throw new Error(p + " " + r.status); return r.json(); }
 
 async function boot() {
@@ -1776,13 +1807,19 @@ function hullArea(p) {
   return Math.abs(a) / 2;
 }
 const fmtDate = (iso, opts) => new Date(iso.replace(" ", "T")).toLocaleString("en-GB", opts);
+// when the forecast is for: a stop skipped on the plan day next gets a truck by shift start + HORIZON_H (model/config.py)
+const fcEndDate = () => { const d = new Date(D.site.plan_day + "T00:00"); d.setHours(d.getHours() + D.site.fleet.start_h + D.site.maths.params.HORIZON_H); return d; };
+const fcEnd = () => { const d = fcEndDate(); return String(d.getHours()).padStart(2, "0") + ":00 on " + d.toLocaleString("en-GB", { day: "numeric", month: "short" }); };
 
 function strat(name) { return D.site.experiments.aggregate.find(r => r.policy === name); }
 // the model's decision rule (model/decide.py, choose): fullest projected first while the fleet has time,
 // never below the floor. Time per stop = θ·drive from its nearest other candidate + lifting; each full load adds a tip.
 BS.choose = ({ floor = D.site.maths.params.FLOOR, fleet = D.site.fleet.trucks, shift = D.site.fleet.shift_min / 60, svc = D.site.fleet.service_per_bin_min, speed = 1 } = {}) => {
   const S = D.S, f = D.site.fleet, cand = [];
-  for (let i = 0; i < D.n; i++) if (S.pred[i] >= floor) cand.push(i);
+  // stops.json rounds pred to 0.1, so a forecast of 79.97% shows as 80.0; at the model's own floor use the
+  // model's own flag (S.risky, exact) so the count matches site.plan.flagged
+  const exact = floor === D.site.maths.params.FLOOR;
+  for (let i = 0; i < D.n; i++) if (exact ? S.risky[i] : S.pred[i] >= floor) cand.push(i);
   cand.sort((a, b) => S.pred[b] - S.pred[a]);
   const budget = fleet * shift * 60 * .95, sel = [];
   let used = 0, litres = 0;
@@ -1802,9 +1839,9 @@ function fillKeys() {
   const vals = {
     stops: fmt(t.stops), assets: fmt(t.assets), gwRecords: fmt(t.general_waste_records), flagged: fmt(p.flagged),
     planKm: fmt(p.road_km) + " km", trucksUsed: fmt(p.trucks_used), wardsN: String(s.wards.length),
-    overflowCut: fixed && bs ? "−" + fmt(100 * (1 - bs.overflow_events_day / fixed.overflow_events_day)) + " %" : "–",
-    overflowCutWord: fixed && bs ? fmt(100 * (1 - bs.overflow_events_day / fixed.overflow_events_day)) + "\u00a0%" : "–",
-    costCutWord: fixed && bs ? fmt(100 * (1 - bs.cost_day / fixed.cost_day)) + "\u00a0%" : "–",
+    overflowCut: fixed && bs ? "−" + fmt(100 * (1 - bs.overflow_events_day / fixed.overflow_events_day)) + "%" : "–",
+    overflowCutWord: fixed && bs ? fmt(100 * (1 - bs.overflow_events_day / fixed.overflow_events_day)) + "%" : "–",
+    costCutWord: fixed && bs ? fmt(100 * (1 - bs.cost_day / fixed.cost_day)) + "%" : "–",
     forecastShort: fmtDate(s.plan_day + "T06:00", { day: "numeric", month: "short" }),
     generated: "Data built " + fmtDate(s.generated, { day: "numeric", month: "long", year: "numeric" }),
   };
@@ -1918,7 +1955,7 @@ function coverStep(dt) {
   while (CV.ig < CV.order.length && CV.delay[CV.order[CV.ig]] <= t) {
     const i = CV.order[CV.ig++]; if (CV.state[i]) continue;
     CV.state[i] = 1; litDot(dc, i);
-    if (S.pred[i] >= 80 && CV.fx.length < 700) CV.fx.push([CV.x[i], CV.y[i], CV.t, 0]);
+    if (S.risky[i] && CV.fx.length < 700) CV.fx.push([CV.x[i], CV.y[i], CV.t, 0]);
   }
   // 2. the shift: 06:00 to 14:00 in 46 seconds
   const tt = t - TRUCKS_AT, simT = SIM.end ? clamp(tt / DAY_MS, 0, 1) * SIM.end : 0;
@@ -1994,7 +2031,7 @@ function initHeroHover() {
     const h = pick(e, 8);
     if (!h) { tip.style.opacity = 0; cv.style.cursor = ""; return; }
     const hr = host.getBoundingClientRect(), i = h.i;
-    tip.textContent = `${D.S.site[i]} · ${D.wards[D.S.ward[i]].name} · ${fmt(D.S.pred[i])} % tomorrow`;
+    tip.textContent = `${D.S.site[i]} · ${D.wards[D.S.ward[i]].name} · ${fmt(D.S.pred[i])}% tomorrow`;
     tip.style.left = (h.cx - hr.left) + "px"; tip.style.top = (h.cy - hr.top) + "px"; tip.style.opacity = 1; cv.style.cursor = "pointer";
   });
   cv.addEventListener("mouseleave", () => tip.style.opacity = 0);
@@ -2063,7 +2100,7 @@ function initMap() {
   for (let i = 0; i < D.n; i++) {
     const m = L.circleMarker([S.lat[i], S.lon[i]], { renderer: canvas, radius: 4, weight: 1, color: PAL.surface, fillOpacity: .95 });
     m.on("click", () => BS.focusStop(i));
-    m.bindTooltip(() => `<b>${esc(S.site[i])}</b><br>${esc(D.wards[S.ward[i]].name)} · ${fmt(S.pred[i])} % tomorrow`, { direction: "top", offset: [0, -4] });
+    m.bindTooltip(() => `<b>${esc(S.site[i])}</b><br>${esc(D.wards[S.ward[i]].name)} · ${fmt(S.pred[i])}% tomorrow`, { direction: "top", offset: [0, -4] });
     markers[i] = m;
   }
   restyleStops();
@@ -2226,8 +2263,8 @@ function drawLegend() {
     L_.innerHTML = `<div class="title">Council register, ${fmt(D.site.totals.assets)} assets</div>` + st.filter(s => STREAM_COLORS[s]).map(s => `<div class="row"><i style="background:${STREAM_COLORS[s]}"></i>${esc(s)}</div>`).join("");
     return;
   }
-  const t = { pred: "Projected fill, 14:00 tomorrow", fill: "Fill now" }[UI.layer];
-  const rows = [["90 % and over", 4], ["80–90 %", 3], ["60–80 %", 2], ["35–60 %", 1], ["< 35 %", 0]];
+  const t = { pred: `Projected fill, ${fcEnd()}`, fill: "Fill now" }[UI.layer];
+  const rows = [["90% and over", 4], ["80–90%", 3], ["60–80%", 2], ["35–60%", 1], ["< 35%", 0]];
   L_.innerHTML = `<div class="title">${t} <span class="tag sim" style="margin-left:4px">Sim</span></div>` + rows.map(([l, k]) => `<div class="row"><i style="background:${PAL.f[k]}"></i>${l}</div>`).join("") +
     `<div class="row" style="margin-top:6px"><i style="background:${PAL.f0};box-shadow:0 0 0 1.6px ${PAL.accent} inset"></i>Emptied by a truck</div>` +
     `<div class="row"><i style="background:${truckColor(0)};box-shadow:0 0 0 2px #fff inset"></i>Truck and its trail (${D.trucks.length})</div>`;
@@ -2250,7 +2287,7 @@ async function showNetwork(on) {
 
 /* detail panel */
 function panel(html) { const p = $("#panel"); p.innerHTML = `<button class="x" type="button" aria-label="Close panel">×</button>` + html; p.hidden = false; $(".x", p).onclick = () => { p.hidden = true; UI.selStop = -1; UI.selTruck = -1; UI.follow = -1; $$("#fleet button").forEach(b => b.classList.remove("on")); highlight.clearLayers(); restyleStops(); }; p.scrollTop = 0; }
-const fillPill = v => v >= 100 ? `<span class="pill hi">Projected to overflow</span>` : v >= D.site.maths.params.FLOOR ? `<span class="pill md">Above the ${fmt(D.site.maths.params.FLOOR)} % floor</span>` : `<span class="pill lo">Can wait</span>`;
+const fillPill = v => v >= 100 ? `<span class="pill hi">Projected to overflow</span>` : v >= D.site.maths.params.FLOOR ? `<span class="pill md">Above the ${fmt(D.site.maths.params.FLOOR)}% floor</span>` : `<span class="pill lo">Can wait</span>`;
 BS.focusStop = async (i, opts = {}) => {
   if (!map) return;
   UI.selStop = i; UI.selTruck = D.S.truck[i] >= 0 && opts.keepTruck ? D.S.truck[i] : UI.selTruck;
@@ -2260,27 +2297,27 @@ BS.focusStop = async (i, opts = {}) => {
   highlight.clearLayers();
   L.circleMarker([S.lat[i], S.lon[i]], { radius: 14, color: PAL.ink, weight: 2, fill: false, interactive: false }).addTo(highlight);
   restyleStops();
-  const fl = fmt(P.FLOOR), proj = `${fmt(S.pred[i])} %`;
-  const why = ti >= 0 ? `Projected ${proj} by 14:00 tomorrow: above the ${fl} % floor and among the fullest the fleet has time for, so it goes.`
+  const fl = fmt(P.FLOOR), proj = `${fmt(S.pred[i])}%`;
+  const why = ti >= 0 ? `Projected ${proj} by ${fcEnd()}: above the ${fl}% floor and among the fullest the fleet has time for, so it goes.`
     : S.flag[i] ? `Projected ${proj}: chosen, but the routes did not fit the fleet, and routing leaves out the least full stops first.`
-    : S.risky[i] ? `Projected ${proj}: above the ${fl} % floor, but the fleet’s time went to fuller stops. It waits for the next day.`
-    : `Projected ${proj}, below the ${fl} % floor: it can safely wait.`;
+    : S.risky[i] ? `Projected ${proj}: above the ${fl}% floor, but the fleet’s time went to fuller stops. It waits for the next day.`
+    : `Projected ${proj}, below the ${fl}% floor: it can safely wait.`;
   panel(`<div class="dp">
     <span class="eyebrow">${esc(w.name)} ward · ${esc(area)}</span>
     <h3 style="margin-top:8px">${esc(S.site[i])}</h3>
     <div class="sub">${esc(S.loc[i] || "Communal bin stop")} · <span class="mono">${S.id[i]}</span></div>
     <div style="margin-top:10px">${fillPill(S.pred[i])} ${ti >= 0 ? `<span class="pill md">On tomorrow’s plan</span>` : ""}</div>
-    <div class="gauge"><div><b>${fmt(S.fill[i])}%</b><span>Fill now · sim</span></div><div><b style="color:${S.pred[i] >= 100 ? "var(--bad)" : "inherit"}">${fmt(Math.min(S.pred[i], 100))}%${S.pred[i] > 100 ? "+" : ""}</b><span>Projected by 14:00 tomorrow · sim</span></div></div>
+    <div class="gauge"><div><b>${fmt(S.fill[i])}%</b><span>Fill now · sim</span></div><div><b style="color:${S.pred[i] >= 100 ? "var(--bad)" : "inherit"}">${fmt(Math.min(S.pred[i], 100))}%${S.pred[i] > 100 ? "+" : ""}</b><span>Projected by ${fcEnd()} · sim</span></div></div>
     <h4>Last 72 hours and the forecast</h4><svg class="spark" id="spark" viewBox="0 0 320 110" role="img" aria-label="Fill history and forecast"></svg>
     <h4>Decision</h4><p class="small" style="margin-top:6px">${why}</p>
     <dl class="kv">
       <dt>Bins at this stop</dt><dd>${S.nb[i]} · ${fmt(S.cap[i])} L total <span class="tag real">Real</span></dd>
       <dt>Council asset records</dt><dd>${S.rec[i]}</dd>
       <dt>Forecast fill speed, ĝ</dt><dd>${fmt(S.gain[i], 1)} points a day</dd>
-      <dt>Projected fill, ŷ</dt><dd>${fmt(S.pred[i], 1)} %</dd>
+      <dt>Projected fill, ŷ</dt><dd>${fmt(S.pred[i], 1)}%</dd>
       <dt>Truck time it uses, t</dt><dd>${S.risky[i] ? fmt(S.tmin[i], 1) + " min" : "– (below the floor)"}</dd>
       <dt>Last emptied</dt><dd>${S.since[i] == null ? "–" : S.since[i] + " h ago"}</dd>
-      <dt>Sensor battery · signal</dt><dd>${fmt(S.bat[i])} % · ${S.sig[i]} <span class="tag sim">Sim</span></dd>
+      <dt>Sensor battery · signal</dt><dd>${fmt(S.bat[i])}% · ${S.sig[i]} <span class="tag sim">Sim</span></dd>
       <dt>Coordinates</dt><dd class="mono">${S.lat[i].toFixed(5)}, ${S.lon[i].toFixed(5)}</dd>
     </dl>
     <h4>Tomorrow’s collection</h4>
@@ -2298,13 +2335,13 @@ async function drawSpark(i) {
   const last = h.length - 1, mu = D.S.pred[i];
   svg.innerHTML = `
     <line class="grid" x1="4" x2="${W - 4}" y1="${y(100)}" y2="${y(100)}" stroke="${PAL.f[4]}" stroke-dasharray="3 3"/>
-    <text x="6" y="${y(100) - 4}" style="fill:${PAL.f[4]};font-size:10px">100 %: overflow</text>
+    <text x="6" y="${y(100) - 4}" style="fill:${PAL.f[4]};font-size:10px">100%: overflow</text>
     <path d="${line} L${x(last)},${y(0)} L${x(0)},${y(0)} Z" fill="${PAL.accent}" opacity=".10"/>
     <path d="${line}" fill="none" stroke="${PAL.ink}" stroke-width="1.6"/>
     <line x1="${x(last)}" y1="${y(h[last])}" x2="${x(n - 1)}" y2="${y(mu)}" stroke="${PAL.accent}" stroke-width="1.8" stroke-dasharray="4 3"/>
     <circle cx="${x(n - 1)}" cy="${y(mu)}" r="3.5" fill="${PAL.accent}"/>
     <circle cx="${x(last)}" cy="${y(h[last])}" r="3" fill="${PAL.ink}"/>
-    <text x="4" y="${H - 2}">−72 h</text><text x="${x(last)}" y="${H - 2}" text-anchor="middle">now</text><text x="${W - 4}" y="${H - 2}" text-anchor="end">14:00</text>`;
+    <text x="4" y="${H - 2}">−72 h</text><text x="${x(last)}" y="${H - 2}" text-anchor="middle">now</text><text x="${W - 4}" y="${H - 2}" text-anchor="end">${fcEnd().replace(":00 on", ":00,")}</text>`;
 }
 BS.focusTruck = (ti, opts = {}) => {
   if (!map) return;
@@ -2342,7 +2379,7 @@ BS.focusWard = wi => {
   panel(`<div class="dp"><span class="eyebrow">Ward ${wi + 1} of 17 · ${w.code}</span><h3 style="margin-top:8px">${esc(w.name)}</h3>
     <div class="sub">Electoral ward, City of Edinburgh <span class="tag real">Real boundary</span></div>
     <div class="gauge"><div><b>${fmt(w.stops)}</b><span>communal bin stops</span></div><div><b>${fmt(w.bins)}</b><span>bins · ${fmt(w.cap_l / 1000)} m³</span></div><div><b>${fmt(w.flagged)}</b><span>flagged tomorrow</span></div><div><b>${fmt(w.pred)}%</b><span>mean forecast</span></div></div>
-    <dl class="kv"><dt>Mean fill now</dt><dd>${fmt(w.fill)} %</dd><dt>Projected ≥ ${fmt(D.site.maths.params.FLOOR)} %</dt><dd>${fmt(w.risk)} stops</dd><dt>Over 90 % now</dt><dd>${fmt(w.over90)} stops</dd><dt>Trucks serving it</dt><dd>${w.trucks.length}</dd></dl>
+    <dl class="kv"><dt>Mean fill now</dt><dd>${fmt(w.fill)}%</dd><dt>Projected ≥ ${fmt(D.site.maths.params.FLOOR)}%</dt><dd>${fmt(w.risk)} stops</dd><dt>Over 90% now</dt><dd>${fmt(w.over90)} stops</dd><dt>Trucks serving it</dt><dd>${w.trucks.length}</dd></dl>
     <h4>Area mix</h4><p class="small" style="margin-top:6px">${Object.entries(w.areas).filter(a => a[1]).map(([a, c]) => `${a}: ${c}`).join(" · ")}</p>
   </div>`);
 };
@@ -2519,7 +2556,7 @@ BS.highlightStops = ids => {
 function initConsole() {
   const s = D.site, p = s.plan, t = s.totals;
   $("#consoleKpis").innerHTML = [
-    [fmt(t.stops), "stops monitored"], [fmt(p.flagged), "flagged for tomorrow"], [`${p.trucks_used} / ${p.trips}`, "trucks / trips"],
+    [fmt(t.stops), "stops monitored"], [fmt(p.flagged), "flagged for tomorrow"], [fmt(p.trips), `trips by ${p.trucks_used} trucks`],
     [fmt(p.solver_km) + " km", "planned distance"], [fmt(p.load_l / 1000) + " m³", "waste to collect"], [fmt(p.co2_kg) + " kg", "CO₂ from driving"],
   ].map(([b, s]) => `<div class="ck"><b>${b}</b><span>${s}</span></div>`).join("");
   const ws = $("#wardSel");
@@ -2584,7 +2621,7 @@ function renderBins() {
   const th = (k, l, n) => `<th class="sortable ${n ? "n" : ""}" data-k="${k}">${l}${binSort.k === k ? (binSort.dir < 0 ? " ↓" : " ↑") : ""}</th>`;
   const bar = (v, c) => `<span class="bar-cell">${fmt(v)}%<span class="bar"><span style="width:${v}%;background:${c}"></span></span></span>`;
   host.innerHTML = `<div class="tablewrap"><table><thead><tr>${th("site", "Street")}<th>Location</th>${th("ward", "Ward")}${th("cap", "Capacity", 1)}${th("fill", "Now", 1)}${th("pred", "Tomorrow", 1)}${th("gain", "Fills a day", 1)}<th>Truck</th></tr></thead><tbody>
-    ${rows.map(i => `<tr data-i="${i}"><td><b>${esc(S.site[i])}</b></td><td class="muted" style="max-width:240px;overflow:hidden;text-overflow:ellipsis">${esc(S.loc[i])}</td><td>${esc(D.wards[S.ward[i]].name)}</td><td class="n">${fmt(S.cap[i])} L</td><td class="n">${bar(S.fill[i], fillColor(S.fill[i]))}</td><td class="n">${bar(S.pred[i], fillColor(S.pred[i]))}</td><td class="n">${fmt(S.gain[i])} pts</td><td class="mono">${S.truck[i] >= 0 ? D.trucks[S.truck[i]].truck.replace("EDI-", "") : "–"}</td></tr>`).join("")}
+    ${rows.map(i => `<tr data-i="${i}"><td><b>${esc(S.site[i])}</b></td><td class="muted" style="max-width:240px;overflow:hidden;text-overflow:ellipsis">${esc(S.loc[i])}</td><td>${esc(D.wards[S.ward[i]].name)}</td><td class="n">${fmt(S.cap[i])} L</td><td class="n">${bar(S.fill[i], fillColor(S.fill[i]))}</td><td class="n">${bar(S.pred[i], fillColor(S.pred[i]))}</td><td class="n">${fmt(S.gain[i])}%</td><td class="mono">${S.truck[i] >= 0 ? D.trucks[S.truck[i]].truck.replace("EDI-", "") : "–"}</td></tr>`).join("")}
   </tbody></table></div><div class="pager"><span>${fmt(ids.length)} stops${binQuery ? ` on ${esc(binQuery)} <button class="linkbtn" id="clearQ">show all</button>` : ""}${UI.ward >= 0 ? " in " + esc(D.wards[UI.ward].name) : ""} · simulated fill</span><span><button id="pgPrev" ${binPage ? "" : "disabled"}>Previous</button> ${binPage + 1} / ${pages} <button id="pgNext" ${binPage < pages - 1 ? "" : "disabled"}>Next</button></span></div>`;
   $$("th.sortable", host).forEach(t => t.onclick = () => { binSort = { k: t.dataset.k, dir: binSort.k === t.dataset.k ? -binSort.dir : -1 }; renderBins(); });
   $$("tbody tr", host).forEach(tr => tr.onclick = () => { BS.focusStop(+tr.dataset.i); BS.jump(".map-shell", "center"); });
@@ -2616,7 +2653,7 @@ function renderWards() {
   const rows = D.wards.map((w, i) => ({ ...w, i })).sort((a, b) => ((a[wardSort.k] > b[wardSort.k]) - (a[wardSort.k] < b[wardSort.k])) * wardSort.dir);
   const max = Math.max(...D.wards.map(w => w.stops));
   const th = (k, l, n) => `<th class="sortable ${n ? "n" : ""}" data-k="${k}">${l}${wardSort.k === k ? (wardSort.dir < 0 ? " ↓" : " ↑") : ""}</th>`;
-  host.innerHTML = `<div class="tablewrap"><table><thead><tr>${th("name", "Ward")}${th("stops", "Stops", 1)}${th("bins", "Bins", 1)}${th("cap_l", "Capacity", 1)}${th("fill", "Mean now", 1)}${th("pred", "Mean tomorrow", 1)}${th("flagged", "Flagged", 1)}${th("risk", "Projected ≥ " + fmt(D.site.maths.params.FLOOR) + " %", 1)}<th class="n">Trucks</th></tr></thead><tbody>
+  host.innerHTML = `<div class="tablewrap"><table><thead><tr>${th("name", "Ward")}${th("stops", "Stops", 1)}${th("bins", "Bins", 1)}${th("cap_l", "Capacity", 1)}${th("fill", "Mean now", 1)}${th("pred", "Mean tomorrow", 1)}${th("flagged", "Flagged", 1)}${th("risk", "Projected ≥ " + fmt(D.site.maths.params.FLOOR) + "%", 1)}<th class="n">Trucks</th></tr></thead><tbody>
     ${rows.map(w => `<tr data-i="${w.i}"><td><b>${esc(w.name)}</b> <span class="muted mono small">${w.code}</span></td><td class="n"><span class="bar-cell">${w.stops}<span class="bar"><span style="width:${w.stops / max * 100}%;background:var(--accent)"></span></span></span></td><td class="n">${fmt(w.bins)}</td><td class="n">${fmt(w.cap_l / 1000)} m³</td><td class="n">${fmt(w.fill)}%</td><td class="n">${fmt(w.pred)}%</td><td class="n">${fmt(w.flagged)}</td><td class="n">${fmt(w.risk)}</td><td class="n">${w.trucks.length}</td></tr>`).join("")}</tbody></table></div>
     <p class="note">Ward boundaries: Edinburgh’s 17 multi-member wards (Office for National Statistics, no date). Stop counts and capacities are real; fill levels are simulated.</p>`;
   $$("th.sortable", host).forEach(t => t.onclick = () => { wardSort = { k: t.dataset.k, dir: wardSort.k === t.dataset.k ? -wardSort.dir : -1 }; renderWards(); });
@@ -2632,9 +2669,9 @@ function renderAlerts() {
   const bins = new Array(6).fill(0); S.bat.forEach(b => bins[clamp(Math.floor((b - 70) / 5), 0, 5)]++);
   const mx = Math.max(...bins);
   host.innerHTML = `<div class="mini-grid">
-    <div class="card"><h4 style="font-size:16px">At 80 % or more right now</h4><p class="muted small">${fmt(over.length)} stops already past the collection line. Crews should check these first.</p>${list(over, i => fmt(S.fill[i]) + "%")}</div>
+    <div class="card"><h4 style="font-size:16px">At 80% or more right now</h4><p class="muted small">${fmt(over.length)} stops already past the collection line. Crews should check these first.</p>${list(over, i => fmt(S.fill[i]) + "%")}</div>
     <div class="card"><h4 style="font-size:16px">Flagged but not routed</h4><p class="muted small">${fmt(unserved.length)} stops the fleet could not fit tomorrow.</p>${unserved.length ? list(unserved, i => fmt(S.pred[i]) + "%") : `<p style="margin-top:14px">None. Every flagged stop is on a route.</p>`}</div>
-    <div class="card"><h4 style="font-size:16px">Sensor batteries <span class="tag sim">Sim</span></h4><p class="muted small">${fmt(lowbat.length)} sensors below 80 % for the maintenance team.</p>
+    <div class="card"><h4 style="font-size:16px">Sensor batteries <span class="tag sim">Sim</span></h4><p class="muted small">${fmt(lowbat.length)} sensors below 80% for the maintenance team.</p>
       <svg class="chart" viewBox="0 0 300 130" style="margin-top:12px">${bins.map((c, k) => `<rect x="${10 + k * 48}" y="${105 - c / mx * 90}" width="38" height="${c / mx * 90}" rx="3" fill="${k < 2 ? PAL.f[3] : PAL.accent}" opacity=".85"/><text x="${29 + k * 48}" y="122" text-anchor="middle">${70 + k * 5}–${75 + k * 5}</text><text class="val" x="${29 + k * 48}" y="${100 - c / mx * 90}" text-anchor="middle">${c}</text>`).join("")}</svg>
       ${list(lowbat.slice(0, 20), i => fmt(S.bat[i]) + "%")}</div></div>`;
   $$("li[data-i]", host).forEach(li => li.onclick = () => { BS.focusStop(+li.dataset.i); BS.jump(".map-shell", "center"); });
@@ -2704,6 +2741,7 @@ function initMaths() {
     K: fmt(P.COLLECT_EVERY_DAYS), sigma: P.DAILY_FILL_SPREAD.toFixed(2), bag: fmt(P.BAG_L), U: P.FILL_AT_COLLECTION.toFixed(3), noise: fmt(P.SENSOR_NOISE),
     trees: fmt(F.trees), nTrain: fmt(F.n_train), floor: fmt(P.FLOOR), loadM3: fmt(P.TRUCK_LOAD_L / 1000),
     roadKm: fmt(D.site.totals.road_km), nStops: fmt(M.route.stops), fleet: fmt(D.site.fleet.trucks),
+    saIters: (M.route.iterations / 1e6).toFixed(1) + " million", saSecs: fmt(M.route.seconds),
   };
   $$("[data-mk]").forEach(el => { const v = vals[el.dataset.mk]; if (v != null) el.textContent = v; });
   // @key@ tokens in the text and in the LaTeX, then typeset the LaTeX with KaTeX
@@ -2714,7 +2752,7 @@ function initMaths() {
     betas: `${P.RAIN_EFFECT}, ${P.TEMP_EFFECT}, ${P.HOLIDAY_EFFECT}`, H: fmt(F.example.hours), trees: fmt(F.trees), nTrain: fmt(F.n_train),
     floor: fmt(P.FLOOR), fleet: fmt(fl.trucks), loadM3: fmt(P.TRUCK_LOAD_L / 1000), shift: fmt(P.SHIFT_MIN), tip: fmt(P.TIP_MIN),
     s0: fmt(P.SERVICE_BASE_MIN), s1: fmt(P.SERVICE_PER_BIN_MIN), kappa: P.RAIN_SLOWDOWN.toFixed(2), reactive: fmt(P.REACTIVE_AT),
-    costKm: P.COST_KM.toFixed(2), costHour: fmt(P.COST_HOUR), costOverflow: fmt(P.COST_OVERFLOW), exY: fmt(F.example.past[F.example.past.length - 1]), exG: (F.example.gain_day / 24).toFixed(1), exP: fmt(F.example.proj),
+    costKm: P.COST_KM.toFixed(2), costHour: fmt(P.COST_HOUR), costOverflow: fmt(P.COST_OVERFLOW), exY: fmt(F.example.past[F.example.past.length - 1]), exG: (F.example.gain_day / 24).toFixed(1), exP: fmt(F.example.proj), fcEnd: fcEnd(),
   };
   const root = $("#maths"), walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   for (let n; (n = walk.nextNode());) if (n.nodeValue.includes("@")) n.nodeValue = n.nodeValue.replace(/@(\w+)@/g, (m, k) => tok[k] ?? m);
@@ -2728,7 +2766,7 @@ function mathsSimulate(M) {
   const hw = M.fill.hour_w, hm = hw.reduce((s, v) => s + v, 0) / hw.length, a = hw.map(v => v / hm);
   let seed = 11;
   const draw = () => {
-    const rho = +$("#mRho").value; $("#oRho").textContent = rho.toFixed(2);
+    const rho = +$("#mRho").value; $("#oRho").textContent = `${Math.round(100 * rho)}% full a day`;
     const W = 520, H = 260, l = 34, r = 10, t = 14, b = 28, x = h => l + h / 168 * (W - l - r), y = v => t + (1 - v / 100) * (H - t - b);
     const bagsDay = cap * rho / P.BAG_L;
     const paths = [], over = [], atColl = [];
@@ -2751,7 +2789,7 @@ function mathsSimulate(M) {
       paths.map((p, s) => `<path d="${line(p)}" fill="none" stroke="${cols[s]}" stroke-width="1.7" opacity=".9"/>` + over[s].map(h => `<circle cx="${x(h)}" cy="${y(100)}" r="4" fill="${PAL.bad}"/>`).join("")).join("") +
       `<text x="${W - r}" y="${y(100) - 5}" text-anchor="end" style="fill:${PAL.bad}">full: overflow until the truck comes</text>`;
     const nOver = over.reduce((s, h) => s + h.length, 0), mean = atColl.length ? atColl.reduce((s, v) => s + v, 0) / atColl.length : 0;
-    $("#mPathNote").textContent = `A ${fmt(cap)} L stop filling ${fmt(100 * rho)} % a day, emptied every ${P.COLLECT_EVERY_DAYS} days. These three weeks: ${fmt(mean)} % full on average when the truck came (about ${fmt(Math.min(100, 100 * rho * P.COLLECT_EVERY_DAYS))} % expected), ${nOver} overflow${nOver === 1 ? "" : "s"} in ${atColl.length} collections. Bags arrive at random, so the same rate overflows in one week and not the next. (Weather left out here.)`;
+    $("#mPathNote").textContent = `A ${fmt(cap)} L stop filling ${fmt(100 * rho)}% a day, emptied every ${P.COLLECT_EVERY_DAYS} days. These three weeks: ${fmt(mean)}% full on average when the truck came (about ${fmt(Math.min(100, 100 * rho * P.COLLECT_EVERY_DAYS))}% expected), ${nOver} overflow${nOver === 1 ? "" : "s"} in ${atColl.length} collections. Bags arrive at random, so the same rate overflows in one week and not the next. (Weather left out here.)`;
   };
   $("#mRho").oninput = draw; $("#mRedraw").onclick = () => { seed++; draw(); };
   draw();
@@ -2765,20 +2803,23 @@ function mathsPredict(M) {
   const ymax = Math.max(130, Math.ceil((ex.proj + 10) / 10) * 10);
   const x = h => l + (h + n0) / (n0 + n1) * (W - l - r), y = v => t + (1 - Math.max(0, Math.min(v, ymax)) / ymax) * (H - t - b);
   const last = ex.past[n0 - 1];
+  // the clock comes from the data: "now" is the last reading (site.snapshot), the end is n1 hours later
+  const t0 = new Date(D.site.snapshot.replace(" ", "T")), t1 = new Date(t0.getTime() + n1 * 3600e3);
+  const clk = d => d.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).replace(",", "");
   const past = ex.past.map((v, j) => `${j ? "L" : "M"}${x(j - n0 + 1).toFixed(1)},${y(v).toFixed(1)}`).join("");
   $("#mFc").innerHTML = svgAxisY(l, W - r, y, [0, 50, 100], v => v + "%") +
-    `<line x1="${l}" x2="${W - r}" y1="${y(100)}" y2="${y(100)}" stroke="${PAL.bad}" stroke-dasharray="4 3"/><text x="${l + 4}" y="${y(100) - 5}" style="fill:${PAL.bad}">100 %: overflow</text>` +
-    `<line x1="${l}" x2="${W - r}" y1="${y(P.FLOOR)}" y2="${y(P.FLOOR)}" stroke="${PAL.ink3}" stroke-dasharray="2 3"/><text x="${l + 4}" y="${y(P.FLOOR) + 13}" style="fill:${PAL.ink3}">${fmt(P.FLOOR)} % floor</text>` +
+    `<line x1="${l}" x2="${W - r}" y1="${y(100)}" y2="${y(100)}" stroke="${PAL.bad}" stroke-dasharray="4 3"/><text x="${l + 4}" y="${y(100) - 5}" style="fill:${PAL.bad}">100%: overflow</text>` +
+    `<line x1="${l}" x2="${W - r}" y1="${y(P.FLOOR)}" y2="${y(P.FLOOR)}" stroke="${PAL.ink3}" stroke-dasharray="2 3"/><text x="${l + 4}" y="${y(P.FLOOR) + 13}" style="fill:${PAL.ink3}">${fmt(P.FLOOR)}% floor</text>` +
     `<path d="${past}" fill="none" stroke="${PAL.ink}" stroke-width="1.6"/>` +
     `<line x1="${x(0)}" y1="${y(last)}" x2="${x(n1)}" y2="${y(ex.proj)}" stroke="${PAL.accent}" stroke-width="2" stroke-dasharray="5 3"/>` +
-    `<circle cx="${x(n1)}" cy="${y(ex.proj)}" r="4" fill="${PAL.accent}"/><text x="${x(n1) - 6}" y="${y(ex.proj) - 8}" text-anchor="end" style="fill:${PAL.accent};font-weight:600">ŷ = ${fmt(ex.proj)} %</text>` +
-    `<line class="ax" x1="${x(0)}" x2="${x(0)}" y1="${t}" y2="${y(0)}"/><text x="${x(0)}" y="${H - 8}" text-anchor="middle">now (05:00)</text><text x="${x(-n0 + 1)}" y="${H - 8}">−72 h</text><text x="${W - r}" y="${H - 8}" text-anchor="end">14:00 tomorrow</text>`;
-  $("#fcNote").innerHTML = `Solid: the last 72 hours of readings. Dashed: the projection ${tex(`\\hat y = y + H\\hat g`)} with ${tex(`H = ${fmt(n1)}`)} h, <b>${fmt(ex.proj)} %</b>. ${ex.proj >= P.FLOOR ? `Above the ${fmt(P.FLOOR)} % floor, so it is a candidate for tomorrow.` : `Below the ${fmt(P.FLOOR)} % floor, so it can wait.`}`;
+    `<circle cx="${x(n1)}" cy="${y(ex.proj)}" r="4" fill="${PAL.accent}"/><text x="${x(n1) - 6}" y="${y(ex.proj) - 8}" text-anchor="end" style="fill:${PAL.accent};font-weight:600">ŷ = ${fmt(ex.proj)}%</text>` +
+    `<line class="ax" x1="${x(0)}" x2="${x(0)}" y1="${t}" y2="${y(0)}"/><text x="${x(0)}" y="${H - 8}" text-anchor="middle">now (${clk(t0)})</text><text x="${x(-n0 + 1)}" y="${H - 8}">−72 h</text><text x="${W - r}" y="${H - 8}" text-anchor="end">${clk(t1)}</text>`;
+  $("#fcNote").innerHTML = `Solid: the last 72 hours of readings. Dashed: the projection ${tex(`\\hat y = y + H\\hat g`)} with ${tex(`H = ${fmt(n1)}`)} h, <b>${fmt(ex.proj)}%</b>. ${ex.proj >= P.FLOOR ? `Above the ${fmt(P.FLOOR)}% floor, so it is a candidate for tomorrow.` : `Below the ${fmt(P.FLOOR)}% floor, so it can wait.`}`;
   // importance
   const imp = Object.entries(F.importance).sort((p, q) => q[1] - p[1]);
   const Wi = 520, rowH = 25, x0 = 210, bw = Wi - x0 - 60, mx = imp[0][1] || 1;
   $("#mImp").setAttribute("viewBox", `0 0 ${Wi} ${imp.length * rowH + 8}`);
-  $("#mImp").innerHTML = imp.map(([k, v], j) => `<text class="lbl" x="${x0 - 10}" y="${j * rowH + 17}" text-anchor="end">${esc(FEATURE_LABEL[k] || k)}</text><rect x="${x0}" y="${j * rowH + 5}" width="${Math.max(2, v / mx * bw)}" height="16" rx="3" fill="${j ? PAL.ink3 : PAL.accent}" opacity="${j ? .6 : 1}"/><text class="val" x="${x0 + Math.max(2, v / mx * bw) + 6}" y="${j * rowH + 17}">${fmt(100 * v)} %</text>`).join("");
+  $("#mImp").innerHTML = imp.map(([k, v], j) => `<text class="lbl" x="${x0 - 10}" y="${j * rowH + 17}" text-anchor="end">${esc(FEATURE_LABEL[k] || k)}</text><rect x="${x0}" y="${j * rowH + 5}" width="${Math.max(2, v / mx * bw)}" height="16" rx="3" fill="${j ? PAL.ink3 : PAL.accent}" opacity="${j ? .6 : 1}"/><text class="val" x="${x0 + Math.max(2, v / mx * bw) + 6}" y="${j * rowH + 17}">${fmt(100 * v)}%</text>`).join("");
 }
 
 /* 3 · fullest first: every stop ranked by projected fill */
@@ -2792,146 +2833,183 @@ function mathsDecide(M) {
   $("#mTrucks").max = Math.max(60, 2 * fleet0); $("#mTrucks").value = fleet0;
   const draw = () => {
     const floor = +$("#mFloor").value, fleet = +$("#mTrucks").value, shift = +$("#mShift").value;
-    $("#oFloor").textContent = floor + " %"; $("#oTrucks").textContent = fleet; $("#oShiftM").textContent = shift.toFixed(1) + " h";
+    $("#oFloor").textContent = floor + "%"; $("#oTrucks").textContent = fleet; $("#oShiftM").textContent = shift.toFixed(1) + " h";
     const r_ = BS.choose({ floor, fleet, shift }), nc = r_.cand.length, ns = r_.sel.length;
     const over = r_.cand.slice(ns).filter(i => S.pred[i] >= 100).length;
     const area = pts.filter(([k]) => k < ns).map(([k, v], j) => `${j ? "L" : "M"}${X(k).toFixed(1)},${Y(v).toFixed(1)}`).join("");
     $("#mDec").innerHTML = svgAxisY(l, W - r, Y, [0, 50, 100, 150], v => v + "%") +
       (ns > 1 ? `<path d="${area} L${X(ns - 1)},${Y(0)} L${X(0)},${Y(0)} Z" fill="${PAL.accent}" opacity=".16"/>` : "") +
       `<path d="${line}" fill="none" stroke="${PAL.ink}" stroke-width="1.8"/>` +
-      `<line x1="${l}" x2="${W - r}" y1="${Y(floor)}" y2="${Y(floor)}" stroke="${PAL.ink}" stroke-dasharray="5 3"/><text x="${W - r}" y="${Y(floor) - 5}" text-anchor="end">${floor} % line: below it, a bin can wait</text>` +
-      `<line x1="${l}" x2="${W - r}" y1="${Y(100)}" y2="${Y(100)}" stroke="${PAL.bad}" stroke-dasharray="2 3" opacity=".7"/><text x="${W - r}" y="${Y(100) - 5}" text-anchor="end" style="fill:${PAL.bad}">100 %: overflow</text>` +
+      `<line x1="${l}" x2="${W - r}" y1="${Y(floor)}" y2="${Y(floor)}" stroke="${PAL.ink}" stroke-dasharray="5 3"/><text x="${W - r}" y="${Y(floor) - 5}" text-anchor="end">${floor}% line: below it, a bin can wait</text>` +
+      `<line x1="${l}" x2="${W - r}" y1="${Y(100)}" y2="${Y(100)}" stroke="${PAL.bad}" stroke-dasharray="2 3" opacity=".7"/><text x="${W - r}" y="${Y(100) - 5}" text-anchor="end" style="fill:${PAL.bad}">100%: overflow</text>` +
       (ns ? `<line x1="${X(ns - 1)}" x2="${X(ns - 1)}" y1="${t}" y2="${Y(0)}" stroke="${PAL.accent}" stroke-width="1.8"/>` +
         (X(ns - 1) - l > 120 ? `<text x="${(l + X(ns - 1)) / 2}" y="${Y(0) - 12}" text-anchor="middle" style="fill:${PAL.accent};font-weight:650;font-size:13px">get a truck: ${fmt(ns)}</text>` : "") +
         (W - r - X(ns - 1) > 110 ? `<text x="${(X(ns - 1) + W - r) / 2}" y="${Y(0) - 12}" text-anchor="middle" style="font-size:13px">wait: ${fmt(n - ns)}</text>` : "") : "") +
       [1, 1000, 2000, 3000, 4000].filter(k => k < n).map(k => `<line class="ax" x1="${X(k - 1)}" x2="${X(k - 1)}" y1="${Y(0)}" y2="${Y(0) + 4}"/><text x="${X(k - 1)}" y="${Y(0) + 16}" text-anchor="middle">${k === 1 ? "1st" : fmt(k) + "th"}</text>`).join("") +
       `<text x="${l}" y="${H - 6}" style="font-weight:600">← fullest</text><text x="${(l + W - r) / 2}" y="${H - 6}" text-anchor="middle">all ${fmt(n)} bin stops, in order</text><text x="${W - r}" y="${H - 6}" text-anchor="end" style="font-weight:600">emptiest →</text>` +
       `<text x="4" y="14" style="font-weight:600">Forecast fill for tomorrow</text>`;
-    $("#decCounts").innerHTML = [[nc, `at or above ${floor} %`], [ns, "fit the fleet’s time"], [nc - ns, "wait a day"]].map(([v, l_]) => `<div><b>${fmt(v)}</b><span>${l_}</span></div>`).join("") +
-      `<div style="grid-column:1/-1"><span>${over ? `<b style="display:inline;font-size:15px">${fmt(over)}</b> of the waiting stops are projected past 100 %.` : "No stop projected past 100 % has to wait."} A quick estimate; routing has the final say.</span></div>`;
+    $("#decCounts").innerHTML = [[nc, `at or above ${floor}%`], [ns, "fit the fleet’s time"], [nc - ns, "wait a day"]].map(([v, l_]) => `<div><b>${fmt(v)}</b><span>${l_}</span></div>`).join("") +
+      `<div style="grid-column:1/-1"><span>${over ? `<b style="display:inline;font-size:15px">${fmt(over)}</b> of the waiting stops are projected past 100%.` : "No stop projected past 100% has to wait."} A quick estimate; routing has the final say.</span></div>`;
   };
   $("#mFloor").oninput = draw; $("#mTrucks").oninput = draw; $("#mShift").oninput = draw; draw();
-  $("#decNote").textContent = `Tomorrow: ${fmt(dm.risky)} stops are projected at ${fmt(dm.floor)} % or more. Fullest first, ${fmt(dm.chosen)} fit the time of ${fmt(fleet0)} trucks; after routing, ${fmt(dm.served)} are emptied.`;
+  $("#decNote").textContent = `Tomorrow: ${fmt(dm.risky)} stops are projected at ${fmt(dm.floor)}% or more. Fullest first, ${fmt(dm.chosen)} fit the time of ${fmt(fleet0)} trucks; after routing, ${fmt(dm.served)} are emptied.`;
 }
 
-/* 4 · simulated annealing, live, on 12 real stops of one of tomorrow's trips */
+/* 4 · one area, before and after optimising: tomorrow's bins in one window of the city on Edinburgh's street map, planned by the quick rule and by simulated annealing */
 function mathsRoute(M) {
-  const toy = M.route.toy, C = toy.cost, K = toy.km, n = toy.stops.length;
-  const cost = t => { let s = 0; for (let k = 1; k < t.length; k++) s += C[t[k - 1]][t[k]]; return s; };
-  const km = t => t.slice(1).reduce((a, v, k) => a + K[t[k]][v], 0);
-  // the exact optimum (Held–Karp), for reference
-  const hk = () => {
-    const S = 1 << n, dp = new Float64Array(S * n).fill(Infinity);
-    for (let j = 0; j < n; j++) dp[(1 << j) * n + j] = C[0][j + 1];
-    for (let m = 1; m < S; m++) for (let j = 0; j < n; j++) {
-      if (!(m & (1 << j))) continue; const cur = dp[m * n + j]; if (cur === Infinity) continue;
-      for (let k = 0; k < n; k++) { if (m & (1 << k)) continue; const nm = m | (1 << k), v = cur + C[j + 1][k + 1]; if (v < dp[nm * n + k]) dp[nm * n + k] = v; }
-    }
-    let best = Infinity; for (let j = 0; j < n; j++) best = Math.min(best, dp[(S - 1) * n + j] + C[j + 1][0]);
-    return best;
-  };
-  const t0 = performance.now(), OPT = hk(), hkMs = performance.now() - t0;
-  const greedy = (() => { const left = new Set(Array.from({ length: n }, (_, k) => k + 1)), t = [0]; let cur = 0; while (left.size) { let b = -1, bc = Infinity; for (const j of left) if (C[cur][j] < bc) { bc = C[cur][j]; b = j; } t.push(b); left.delete(b); cur = b; } t.push(0); return t; })();
-  // annealing settings, as in route.py: T from 3 to 0.002 times the mean cost of one leg
-  let arcs = 0; for (let i = 0; i <= n; i++) for (let j = 0; j <= n; j++) if (i !== j) arcs += C[i][j];
-  const meanArc = arcs / (n * (n + 1)), T0 = 3 * meanArc, T1 = .002 * meanArc, N = 2000, NEAR = 5;
-  const near = Array.from({ length: n + 1 }, (_, v) => Array.from({ length: n }, (_, k) => k + 1).filter(w => w !== v).sort((a, b) => C[v][a] - C[v][b]).slice(0, NEAR));
-  const temp = k => T0 * Math.pow(T1 / T0, k / N);
-
-  // ── map: zoom to the stops; the depot sits off the edge, in its true direction ──
-  const W = 520, H = 280, pad = 30, kx = Math.cos(55.95 * Math.PI / 180);
-  const sx = toy.stops.map(s => s.lon * kx), sy = toy.stops.map(s => s.lat);
-  const x0 = Math.min(...sx), x1 = Math.max(...sx), y0 = Math.min(...sy), y1 = Math.max(...sy);
-  const sc = Math.min((W - 2 * pad - 150) / (x1 - x0 || 1e-9), (H - 2 * pad) / (y1 - y0 || 1e-9));
-  const ox = pad + 20 + ((W - 2 * pad - 150) - (x1 - x0) * sc) / 2, oy = pad + ((H - 2 * pad) - (y1 - y0) * sc) / 2;
-  const P = toy.stops.map((s, k) => [ox + (sx[k] - x0) * sc, oy + (y1 - sy[k]) * sc]);
-  for (let it = 0; it < 300; it++) for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) {   // nudge overlapping circles apart (display only)
-    const dx = P[b][0] - P[a][0], dy = P[b][1] - P[a][1], d = Math.hypot(dx, dy) || .01;
-    if (d < 23) { const m = (23 - d) / 2, ux = dx / d || 1, uy = dy / d; P[a][0] -= ux * m; P[a][1] -= uy * m; P[b][0] += ux * m; P[b][1] += uy * m; }
-  }
-  const cx = P.reduce((a, p) => a + p[0], 0) / n, cy = P.reduce((a, p) => a + p[1], 0) / n;
-  const dX = ox + (toy.depot.longitude * kx - x0) * sc - cx, dY = oy + (y1 - toy.depot.latitude) * sc - cy;
-  const DP = [W - 24, Math.max(52, Math.min(H - 60, cy + (W - 24 - cx) * dY / (Math.abs(dX) > 1e-9 ? dX : 1e-9)))];
-  const pt = v => v === 0 ? DP : P[v - 1];
-  const dist0 = Math.min(...Array.from({ length: n }, (_, k) => K[0][k + 1]));
-
-  const drawMap = (t, hl = []) => {
-    const legs = t.slice(1).map((v, k) => { const a = pt(t[k]), b = pt(v), dep = t[k] === 0 || v === 0; return `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="${PAL.ink}" stroke-width="${dep ? 1.4 : 2}" ${dep ? 'stroke-dasharray="5 4" opacity=".55"' : 'opacity=".85"'} stroke-linecap="round"/>`; }).join("");
-    $("#mToy").innerHTML = legs +
-      P.map((p, k) => { const on = hl.includes(k + 1); return `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="10" fill="${on ? PAL.accent : PAL.surface}" stroke="${on ? PAL.accent : PAL.ink}" stroke-width="1.4"><title>${esc(toy.stops[k].site)} · ${esc(toy.stops[k].id)}</title></circle><text x="${p[0].toFixed(1)}" y="${(p[1] + 3.8).toFixed(1)}" text-anchor="middle" style="fill:${on ? PAL.paper : PAL.ink};font-weight:650;font-size:10.5px">${k + 1}</text>`; }).join("") +
-      `<rect x="${DP[0] - 8}" y="${DP[1] - 8}" width="16" height="16" rx="3" fill="${PAL.ink}"/><text x="${DP[0] + 8}" y="${DP[1] - 28}" text-anchor="end" style="fill:${PAL.ink};font-weight:600">Seafield depot</text><text x="${DP[0] + 8}" y="${DP[1] - 14}" text-anchor="end">${fmt(dist0, 1)} km away by road</text>`;
-  };
-
-  // ── chart: cost over the moves, best so far, the exact optimum, and the temperature ──
-  const CW = 520, CH = 170, l = 46, r = 12, tp = 10, bt = 26;
-  const drawChart = () => {
-    const ymax = Math.ceil(Math.max(...S.hist) / 5) * 5 + 2, ymin = Math.floor(OPT * .88);
-    const X = k => l + k / N * (CW - l - r), Y = v => tp + (1 - (v - ymin) / (ymax - ymin)) * (CH - tp - bt);
-    const step = Math.max(1, Math.floor(S.hist.length / 400));
-    const line = (arr) => arr.map((v, k) => (k % step && k !== arr.length - 1) ? "" : `${k ? "L" : "M"}${X(k).toFixed(1)},${Y(v).toFixed(1)}`).join("");
-    const Ty = k => tp + (1 - Math.log(temp(k) / T1) / Math.log(T0 / T1)) * (CH - tp - bt);
-    let tl = ""; for (let k = 0; k <= N; k += 50) tl += `${k ? "L" : "M"}${X(k).toFixed(1)},${Ty(k).toFixed(1)}`;
-    $("#mSa").innerHTML = svgAxisY(l, CW - r, Y, [ymin, Math.round((ymin + ymax) / 2), ymax], v => "£" + fmt(v)) +
-      `<path d="${tl}" fill="none" stroke="${PAL.f[3]}" stroke-width="1.2" stroke-dasharray="2 3"/><text x="${X(N * .3) + 6}" y="${Ty(N * .3) - 6}" style="fill:${PAL.f[3]}">temperature T (log scale)</text>` +
-      `<line x1="${l}" x2="${CW - r}" y1="${Y(OPT)}" y2="${Y(OPT)}" stroke="${PAL.ink}" stroke-dasharray="5 3" opacity=".7"/><text x="${X(N * .62)}" y="${Y(OPT) + 13}" text-anchor="middle" style="fill:${PAL.ink}">exact optimum (Held–Karp) £${fmt(OPT, 2)}</text>` +
-      `<path d="${line(S.hist)}" fill="none" stroke="${PAL.ink3}" stroke-width="1" opacity=".75"/>` +
-      `<path d="${line(S.bestHist)}" fill="none" stroke="${PAL.accent}" stroke-width="2.2"/>` +
-      `<text x="${l}" y="${CH - 7}">move 0</text><text x="${CW - r}" y="${CH - 7}" text-anchor="end">move ${fmt(N)}</text><text x="${(l + CW - r) / 2}" y="${CH - 7}" text-anchor="middle"><tspan style="fill:${PAL.accent};font-weight:600">best so far</tspan> · <tspan>current plan</tspan></text>`;
-  };
-
-  // ── the annealing state ──
-  let seed = 1, S, raf = 0;
-  const reset = () => {
-    cancelAnimationFrame(raf);
-    const u = rng32(seed * 7919 + 3), order = Array.from({ length: n }, (_, k) => k + 1);
-    for (let k = n - 1; k > 0; k--) { const j = Math.floor(u() * (k + 1)); [order[k], order[j]] = [order[j], order[k]]; }
-    const tour = [0, ...order, 0], c = cost(tour);
-    S = { u, tour, c, best: c, bestTour: tour.slice(), k: 0, up: 0, hist: [c], bestHist: [c], running: false, last: null };
-    paint();
-  };
-  const NAMES = ["move", "swap", "reverse"];
-  const step = () => {
-    if (S.k >= N) return false;
-    const u = S.u, T = temp(S.k), v = 1 + Math.floor(u() * n), w = near[v][Math.floor(u() * NEAR)], m = Math.floor(u() * 3);
-    const t = S.tour.slice(), a = t.indexOf(v), b = t.indexOf(w);
-    if (m === 0) { t.splice(a, 1); t.splice(t.indexOf(w) + 1, 0, v); }
-    else if (m === 1) { t[a] = w; t[b] = v; }
-    else { const i = Math.min(a, b), j = Math.max(a, b); const seg = t.slice(i, j + 1).reverse(); t.splice(i, seg.length, ...seg); }
-    const nc = cost(t), d = nc - S.c, p = d <= 0 ? 1 : Math.exp(-d / T), ok = d <= 1e-12 || u() < p;
-    if (ok) { if (d > 1e-9) S.up++; S.tour = t; S.c = nc; if (nc < S.best - 1e-9) { S.best = nc; S.bestTour = t.slice(); } }
-    S.k++; S.hist.push(S.c); S.bestHist.push(S.best);
-    S.last = { m, v, w, d, T, p, ok };
-    return true;
-  };
-  const moveText = L => L.m === 0 ? `move stop ${L.v} next to ${L.w}` : L.m === 1 ? `swap stops ${L.v} and ${L.w}` : `reverse the path between ${L.v} and ${L.w}`;
-  const paint = () => {
-    const L = S.last, done = S.k >= N;
-    drawMap(done ? S.bestTour : S.tour, L && !done ? [L.v, L.w] : []);
-    drawChart();
-    $("#saLog").innerHTML = !L ? `A random order through the 12 stops: £${fmt(S.c, 2)}. Press <b>Run</b>, or <b>One move</b> to see a single decision.`
-      : done ? `Done: the best plan seen costs <b>£${fmt(S.best, 2)}</b>, ${S.best <= OPT + 1e-6 ? "the exact optimum" : `${fmt(100 * (S.best / OPT - 1), 2)} % above the exact optimum`}. ${fmt(S.up)} of the ${fmt(N)} moves made the plan worse and were kept anyway.`
-      : `Move ${fmt(S.k)}: ${moveText(L)}. Δ = ${Math.abs(L.d) < .005 ? "" : L.d > 0 ? "+" : "−"}£${fmt(Math.abs(L.d), 2)}, <var>T</var> = £${fmt(L.T, 2)}. ` +
-        (L.d <= 1e-12 ? `Not worse, so <b>kept</b>.` : `Worse, so kept with probability e<sup>−Δ/<var>T</var></sup> = ${fmt(L.p, 2)}: <b>${L.ok ? "kept" : "rejected"}</b>.`);
-    $("#toyOut").innerHTML = [[`£${fmt(S.c, 2)}`, `current plan · ${fmt(km(S.tour), 1)} km`], [`£${fmt(S.best, 2)}`, S.best <= OPT + 1e-6 ? "best so far · optimal" : `best so far · +${fmt(100 * (S.best / OPT - 1), 1)} %`], [fmt(S.k), `of ${fmt(N)} moves · T = £${fmt(temp(Math.min(S.k, N)), 2)}`]].map(([v, l_]) => `<div><b>${v}</b><span>${l_}</span></div>`).join("");
-    $("#saPlay").textContent = S.running ? "Pause" : done ? "Run again" : S.k ? "Continue" : "Run";
-  };
-  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const run = () => {
-    if (S.k >= N) { seed++; reset(); }
-    S.running = true;
-    if (reduce) { while (step()); S.running = false; paint(); return; }
-    const frame = () => { if (!S.running) return; for (let j = 0; j < 3 && step(); j++); paint(); if (S.k < N) raf = requestAnimationFrame(frame); else { S.running = false; paint(); } };
-    raf = requestAnimationFrame(frame);
-  };
-  $("#saPlay").onclick = () => { if (S.running) { S.running = false; cancelAnimationFrame(raf); paint(); } else run(); };
-  $("#saStep").onclick = () => { S.running = false; cancelAnimationFrame(raf); if (S.k >= N) { seed++; reset(); } step(); paint(); };
-  $("#saNew").onclick = () => { seed++; reset(); };
-  $("#toySub").textContent = `${toy.stops[0].site} and nearby, from one of tomorrow’s trips`;
-  reset();
-  const gGap = 100 * (cost(greedy) / OPT - 1);
-  $("#saNote").innerHTML = `The demo starts from a random order so the search has work to do: on these stops, the greedy start used for the full plan is already ${gGap < .05 ? "at the optimum" : `${fmt(gGap, 1)} % above it`}. The three in-trip moves are shown (crossing trips, dropping a stop and opening a trip need more than one trip). <var>T</var> runs from 3 to 0.002 times the mean cost of one leg, as in the full model. The dashed line is the exact optimum by Held–Karp dynamic programming over ${fmt((1 << n) * n)} states, solved in your browser in ${fmt(hkMs, 0)} ms. Lines are straight; costs are road costs.`;
-  const R = M.route;
-  $("#routeNote").textContent = `Tomorrow’s ${fmt(R.stops)} stops: the greedy start costs £${fmt(R.start)}. Annealing tried ${fmt(R.iterations)} changes in ${fmt(R.seconds, 0)} s and ended at £${fmt(R.final)} (${fmt(100 * (1 - R.final / R.start), 1)} % less), in ${R.trips} trips on ${R.trucks} trucks. Rain slowdown θ = ${fmt(R.theta, 3)}.`;
+  const host = $("#mRoute"), slider = $("#mEx"), still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const COLS = ["#1a73e8", "#f29900", "#9334e6"], RED = "#d93025", step = 1100;   // a colour per trip, red when less than half full
+  const dep = [D.site.depot.latitude, D.site.depot.longitude];
+  if (!window.L) { host.textContent = "The map library did not load. Check your connection."; return; }
+  Promise.all([getJSON("data/route_example.json"), getJSON("data/first_plan.json")]).then(([E, F]) => {
+    const plans = E.plans.map(p => ({ ...p, trips: p.trips.map((t, j) => ({ ...t, pts: decode(t.line), col: t.load < .5 ? RED : COLS[j % 3] })) }));
+    const area = L.latLngBounds(plans[0].trips.flatMap(t => t.bins));
+    // how many bins those stops hold (a stop has one to four), from the stops data
+    const at = new Map(D.S.lat.map((la, i) => [`${la.toFixed(5)},${D.S.lon[i].toFixed(5)}`, i]));
+    const nBins = plans[0].trips.flatMap(t => t.bins).reduce((a, [la, lo]) => a + (D.S.nb[at.get(`${la.toFixed(5)},${lo.toFixed(5)}`)] || 0), 0);
+    const pc = l => { const v = 100 * l; return v > 99.5 && v < 100 ? fmt(v, 1) : fmt(v); };   // 99.6% is not "100%"
+    let map, inset, seaf, k = -1, timers = [], moved = false;
+    const layers = [], base = [];
+    // the view: every bin of the example, below the Seafield label and clear of the small map (left of it on wide screens, above it on narrow ones)
+    const fit = (animate = false) => {
+      const w = inset.offsetWidth + 22, h = inset.offsetHeight + 22, narrow = host.clientWidth < 480;
+      map.fitBounds(area, { paddingTopLeft: [narrow ? 20 : w, seaf.offsetHeight + 22], paddingBottomRight: [34, narrow ? h : 24], animate });
+    };
+    // which way Seafield is from the area, for the arrow on its label
+    const mid = area.getCenter(), deg = Math.atan2(dep[0] - mid.lat, (dep[1] - mid.lng) * Math.cos(dep[0] * Math.PI / 180)) * 180 / Math.PI;
+    const seafText = p => `<svg viewBox="0 0 16 16" style="transform:rotate(${(-deg).toFixed(0)}deg)" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>To Seafield, ${fmt(E.depot_km)} km: <b>${p.trips.length} trips</b> drive it</span>`;
+    const build = () => {
+      map = L.map(host, { zoomControl: true, attributionControl: true, scrollWheelZoom: true, wheelPxPerZoomLevel: 80, dragging: true, tap: false, minZoom: 10, maxZoom: 19, zoomSnap: .25, zoomDelta: .5 });
+      map.fitBounds(area, { animate: false });
+      map.attributionControl.setPrefix(false);
+      const OSM = '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
+      map.attributionControl.addAttribution(OSM);
+      // zoom freely: wheel, trackpad pinch, double-click, the buttons, two fingers on a phone; drag to move.
+      // A page scroll that runs onto the map keeps scrolling the page: the wheel zooms only once it has paused for half a second.
+      let pageWheel = 0;
+      addEventListener("wheel", e => { if (!host.contains(e.target)) pageWheel = performance.now(); }, { capture: true, passive: true });
+      host.addEventListener("wheel", e => { if (performance.now() - pageWheel < 500) { pageWheel = performance.now(); e.stopPropagation(); } }, { capture: true });
+      // a button under the zoom buttons goes back to the whole example
+      const rc = L.control({ position: "topleft" });
+      rc.onAdd = () => {
+        const bar = L.DomUtil.create("div", "leaflet-bar ex-reset");
+        bar.innerHTML = '<a href="#" role="button" title="Back to the whole example" aria-label="Back to the whole example"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>';
+        L.DomEvent.disableClickPropagation(bar);
+        L.DomEvent.on(bar.firstChild, "click", e => { L.DomEvent.preventDefault(e); fit(true); setTimeout(() => { moved = false; }, 0); });
+        return bar;
+      };
+      rc.addTo(map);
+      ["pointerdown", "wheel", "touchstart"].forEach(ev => host.addEventListener(ev, () => { moved = true; }, { passive: true }));
+      // a light vector map from our own road data, until the street tiles are drawn
+      const cv = L.canvas({ padding: .3 }), B = D.base;
+      const parks = B.parks.filter(p => p.k === "park").map(p => decode(p.ring)), lakes = B.parks.filter(p => p.k === "water").map(p => decode(p.ring));
+      if (parks.length) base.push(L.polygon(parks, { renderer: cv, stroke: false, fillColor: "#c9eac6", fillOpacity: 1, interactive: false }));
+      if (lakes.length) base.push(L.polygon(lakes, { renderer: cv, stroke: false, fillColor: "#aadaff", fillOpacity: 1, interactive: false }));
+      for (const [cls, w] of [["local", 1], ["minor", 1.6], ["major", 2.6]]) if ((B.roads[cls] || []).length) base.push(L.polyline(B.roads[cls].map(l => decode(l)), { renderer: cv, color: "#d3d6da", weight: w, interactive: false }));
+      base.forEach(l => l.addTo(map));
+      // Seafield, for anyone who zooms out
+      L.circleMarker(dep, { radius: 7, color: "#fff", weight: 2, fillColor: "#202124", fillOpacity: 1 }).bindTooltip("Seafield depot", { permanent: true, direction: "right", offset: [8, 0], className: "ex-dep" }).addTo(map);
+      // one pane per plan; each trip a white-cased line in its colour and its bins as dots
+      plans.forEach((p, i) => {
+        const pane = "ex" + i; map.createPane(pane).style.zIndex = 450; map.getPane(pane).style.display = "none";
+        const r = L.svg({ pane, padding: .5 });
+        layers[i] = p.trips.map((t, j) => ({
+          lines: [L.polyline(t.pts, { pane, renderer: r, color: "#fff", weight: t.load < .5 ? 10 : 8.5, opacity: .95, lineJoin: "round", lineCap: "round", interactive: false }),
+                  L.polyline(t.pts, { pane, renderer: r, color: t.col, weight: t.load < .5 ? 6 : 4.5, opacity: 1, lineJoin: "round", lineCap: "round", interactive: false })]
+            .map(l => { l.addTo(map); l._path.setAttribute("pathLength", 1); l._path.style.strokeDasharray = "1 1"; return l; }),
+          dots: t.bins.map(b => L.circleMarker(b, { pane, renderer: r, radius: 5.5, color: "#fff", weight: 1.6, fillColor: t.col, fillOpacity: 1 })
+            .bindTooltip(`Trip ${j + 1}: ${pc(t.load)}% full`, { direction: "top", offset: [0, -6] }).addTo(map)),
+        }));
+      });
+      // the small map: where this area and Seafield are in Edinburgh
+      const ctl = L.control({ position: "bottomleft" });
+      ctl.onAdd = () => {
+        const div = L.DomUtil.create("div", "ex-inset"), rings = B.wards.flatMap(w => w.rings.map(r => decode(r))), all = rings.flat();
+        const la0 = Math.min(...all.map(p => p[0])), la1 = Math.max(...all.map(p => p[0])), lo0 = Math.min(...all.map(p => p[1])), lo1 = Math.max(...all.map(p => p[1]));
+        const kx = Math.cos(dep[0] * Math.PI / 180), W = 150, s = W / ((lo1 - lo0) * kx), H = Math.round((la1 - la0) * s);
+        const X = lo => (lo - lo0) * kx * s, Y = la => (la1 - la) * s, P = ([la, lo]) => `${X(lo).toFixed(1)},${Y(la).toFixed(1)}`;
+        const sw = area.getSouthWest(), ne = area.getNorthEast(), rx = X(sw.lng), ry = Y(ne.lat), rw = Math.max(8, X(ne.lng) - rx), rh = Math.max(8, Y(sw.lat) - ry);
+        const c = [rx + rw / 2, ry + rh / 2], d = [X(dep[1]), Y(dep[0])];
+        div.innerHTML = `<svg viewBox="-6 -6 ${W + 12} ${H + 12}" role="img" aria-label="Where this area and the Seafield depot are in Edinburgh">` +
+          `<path d="${rings.map(r => "M" + r.map(P).join("L") + "Z").join("")}" fill="#eceff1" stroke="#c4c9cf" stroke-width=".6"/>` +
+          `<line x1="${c[0].toFixed(1)}" y1="${c[1].toFixed(1)}" x2="${d[0].toFixed(1)}" y2="${d[1].toFixed(1)}" stroke="#5f6368" stroke-width="1.4" stroke-dasharray="3 3"/>` +
+          `<rect x="${(rx - (rw < 8 ? 4 : 0)).toFixed(1)}" y="${(ry - (rh < 8 ? 4 : 0)).toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}" fill="rgba(217,48,37,.15)" stroke="${RED}" stroke-width="2" rx="2"/>` +
+          `<circle cx="${d[0].toFixed(1)}" cy="${d[1].toFixed(1)}" r="4.5" fill="#202124" stroke="#fff" stroke-width="1.5"/>` +
+          `<text x="${(d[0] - 2).toFixed(1)}" y="${(d[1] - 8).toFixed(1)}" text-anchor="middle">Seafield</text>` +
+          `<text x="${c[0].toFixed(1)}" y="${(ry + rh + 13).toFixed(1)}" text-anchor="middle">these stops</text></svg>`;
+        L.DomEvent.disableClickPropagation(div);
+        return div;
+      };
+      ctl.addTo(map); inset = ctl.getContainer();
+      // the drive to Seafield leaves the view: a label says where it goes and how many trips drive it
+      const sc = L.control({ position: "topright" });
+      sc.onAdd = () => L.DomUtil.create("div", "ex-seaf");
+      sc.addTo(map); seaf = sc.getContainer(); seaf.innerHTML = seafText(plans[0]);
+      fit();
+      streetTiles(OSM);
+    };
+    // the same OpenStreetMap street map as the live map (OpenFreeMap, drawn by MapLibre); if it can't load, the vector map stays
+    const streetTiles = async OSM => {
+      try {
+        const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 8000);
+        const style = await fetch(OFM_STYLE, { signal: ctl.signal }).then(r => { if (!r.ok) throw new Error("style"); return r.json(); });
+        clearTimeout(tm);
+        if (!document.querySelector(`link[href="${ML_CSS}"]`)) { const css = document.createElement("link"); css.rel = "stylesheet"; css.href = ML_CSS; document.head.appendChild(css); }
+        if (!window.maplibregl) await loadScript(ML_JS);
+        if (!L.maplibreGL) await loadScript(MLL_JS);
+        if (!window.maplibregl || !L.maplibreGL) return;
+        platinumStyle(style);
+        const gl = L.maplibreGL({ style, interactive: false, attributionControl: false,
+          attribution: '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' }).addTo(map);
+        const glm = gl.getMaplibreMap(); let on = false;
+        const swap = () => { if (on) return; on = true; base.forEach(l => map.removeLayer(l)); map.attributionControl.removeAttribution(OSM).addAttribution(gl.options.attribution); host.classList.add("street"); };
+        glm.once("idle", swap);
+        setTimeout(() => { if (!on && glm.loaded()) swap(); }, 9000);
+      } catch (e) { /* keep the vector map */ }
+    };
+    const ready = () => { if (!map && host.clientWidth) { build(); show(k < 0 ? 0 : k, false); } return !!map; };
+    // the pane is hidden until its tab opens: build the map the first time it has a size, then keep it filled
+    new ResizeObserver(() => { if (!ready()) return; map.invalidateSize(); if (!moved) fit(); }).observe(host);
+    // show one plan: its trips are drawn one after another, each with its bins
+    const show = (to, animate) => {
+      timers.forEach(clearTimeout); timers = [];
+      k = to;
+      const p = plans[k];
+      $("#exStage").textContent = k ? "After simulated annealing" : "Quick plan";
+      $("#exSum").innerHTML = `<b>${p.trips.length} trips</b> from Seafield · <b>${fmt(p.km)} km</b> · <b>£${fmt(p.cost)}</b> driving cost`;
+      $("#exKey").innerHTML = p.trips.map((t, j) => `<span><i style="background:${t.col}"></i>Trip ${j + 1}: ${t.bins.length} stops, ${pc(t.load)}% full</span>`).join("");
+      slider.value = k;
+      if (!map) return 0;
+      seaf.innerHTML = seafText(p);
+      plans.forEach((_, i) => { map.getPane("ex" + i).style.display = i === k ? "" : "none"; });
+      const go = animate && !still;
+      layers[k].forEach((T, j) => {
+        const lines = T.lines.map(l => l._path), dots = T.dots.map(d => d._path);
+        const set = (on, ms) => {
+          lines.forEach(e => { e.style.transition = ms ? `stroke-dashoffset ${ms}ms ease-in-out` : "none"; e.style.strokeDashoffset = on ? 0 : 1; });
+          dots.forEach(e => { e.style.transition = ms ? `opacity ${ms / 2}ms` : "none"; e.style.opacity = on ? 1 : 0; });
+        };
+        set(false, 0);
+        if (go) { lines[0].getBoundingClientRect(); timers.push(setTimeout(() => set(true, step), 60 + j * step)); } else set(true, 0);
+      });
+      return p.trips.length * step + 60;
+    };
+    slider.oninput = () => { const to = +slider.value < .5 ? 0 : 1; if (to !== k) show(to, false); };
+    slider.onchange = () => show(+slider.value < .5 ? 0 : 1, true);
+    slider.onkeydown = e => { const to = { ArrowLeft: 0, ArrowDown: 0, Home: 0, ArrowRight: 1, ArrowUp: 1, End: 1 }[e.key]; if (to != null) { e.preventDefault(); show(to, true); } };
+    const [A, Z] = plans, CA = F.compare.first, CZ = F.compare.final;
+    $("#exWhy").textContent = `${Z.trips.length} trips instead of ${A.trips.length}: ${fmt(A.km - Z.km)} km and ${fmt(100 * (1 - Z.cost / A.cost))}% of the driving cost saved. Citywide: ${fmt(CA.trips - CZ.trips)} fewer trips, £${fmt(CA.total - CZ.total)} less driving cost a day (−${fmt(100 * (1 - CZ.total / CA.total))}%).`;
+    $("#exStops").textContent = fmt(E.bins); $("#exBins").textContent = fmt(nBins); $("#exKm").textContent = fmt(E.depot_km);
+    show(0, false); ready();
+    // the first time it comes into view: draw the quick plan, wait, then the plan after annealing
+    if ("IntersectionObserver" in window && !still)
+      new IntersectionObserver((es, ob) => {
+        if (!es.some(e => e.isIntersecting) || !ready()) return;
+        ob.disconnect();
+        const t1 = show(0, true);
+        timers.push(setTimeout(() => show(1, true), t1 + 1600));
+      }, { threshold: .5 }).observe(host);
+  }).catch(() => { host.textContent = "The example could not be loaded."; });
 }
 
 /* 5 · before and after: the three policies */
@@ -2939,8 +3017,8 @@ function mathsCheck(M) {
   const ag = D.site.experiments.aggregate, f = p => ag.find(a => a.policy === p), tt = f("timetable"), re = f("reactive"), bs = f("binsight");
   if (!tt || !bs) return;
   const cut = (a, b) => fmt(100 * (1 - b / a));
-  $("#chkResult").textContent = `${cut(tt.overflow_events_day, bs.overflow_events_day)} % fewer overflows and ${cut(tt.cost_day, bs.cost_day)} % lower cost than the timetable.`;
-  $("#chkReact").textContent = re ? `By the time a bin reads ${fmt(M.params.REACTIVE_AT)} % it is often too late: reacting overflows ${fmt(re.overflow_events_day)} times a day, against ${fmt(bs.overflow_events_day)} for BinSight.` : "";
+  $("#chkResult").textContent = `${cut(tt.overflow_events_day, bs.overflow_events_day)}% fewer overflows and ${cut(tt.cost_day, bs.cost_day)}% lower cost than the timetable.`;
+  $("#chkReact").textContent = re ? `By the time a bin reads ${fmt(M.params.REACTIVE_AT)}% it is often too late: reacting overflows ${fmt(re.overflow_events_day)} times a day, against ${fmt(bs.overflow_events_day)} for BinSight.` : "";
 }
 
 
@@ -2949,7 +3027,7 @@ const POLICIES = ["timetable", "reactive", "binsight"];
 const STRAT_LABEL = { timetable: "Timetable", reactive: "Reactive", binsight: "BinSight" };
 function initResults() {
   const ex = D.site.experiments, P = D.site.maths.params, F = strat("timetable"), R = strat("reactive"), B = strat("binsight");
-  const ch = (a, b) => `${b <= a ? "−" : "+"}${fmt(Math.abs(100 * (b / a - 1)))} %`;
+  const ch = (a, b) => `${b <= a ? "−" : "+"}${fmt(Math.abs(100 * (b / a - 1)))}%`;
   // 1 · three headline numbers, each with a before/after pair of bars
   const pair = (a, b, f) => { const m = Math.max(a, b); return [["Timetable", a, 0], ["BinSight", b, 1]].map(([n, v, on]) =>
     `<div class="pb${on ? " on" : ""}"><span>${n}</span><i><u style="width:${Math.max(1.5, 100 * v / m)}%"></u></i><b>${f(v)}</b></div>`).join(""); };
@@ -2960,8 +3038,8 @@ function initResults() {
   ].map(([b, t, bars]) => `<div class="card takeaway"><b>${b}</b><h4>${t}</h4>${bars}</div>`).join("");
   // 2 · the three methods side by side
   const M = [
-    [F, "Today", "Every bin, every 2 days, full or not.", `${fmt(100 * F.share_under_40)} % of its visits find a bin less than 40 % full.`],
-    [R, "Sensors only", `Empty a bin once it reads ${fmt(P.REACTIVE_AT)} %.`, "Too late: the bin often overflows before the truck arrives."],
+    [F, "Today", "Every bin, every 2 days, full or not.", `${fmt(100 * F.share_under_40)}% of its visits find a bin less than 40% full.`],
+    [R, "Sensors only", `Empty a bin once it reads ${fmt(P.REACTIVE_AT)}%.`, `Too late: the bin often overflows before the truck arrives. It drives the least, but ${fmt(100 * R.overflow_events_day * P.COST_OVERFLOW / R.cost_day)}% of its cost is the £${fmt(P.COST_OVERFLOW)} overflow penalty.`],
     [B, "Sensors + forecast", "Empty the bins that will be full tomorrow.", "Sees the overflow coming and gets there first."],
   ];
   $("#methods").innerHTML = M.map(([r, tag, how, verdict]) => `<div class="card method${r.policy === "binsight" ? " on" : ""}">
@@ -2997,7 +3075,7 @@ function initAgendaAndClosing() {
   const F = strat("timetable"), B = strat("binsight");
   const cut = (a, b) => Math.round(100 * (1 - b / a));
   $("#closeNums").innerHTML = [[cut(F.overflow_events_day, B.overflow_events_day), "fewer overflowing bins"], [cut(F.cost_day, B.cost_day), "lower cost"], [cut(F.km_day, B.km_day), "less distance driven"]]
-    .map(([v, l], k) => `<div style="--d:${300 + k * 180}ms"><b><span data-count="${v}" data-suf="\u00a0%">${v}\u00a0%</span></b><span>${l}</span></div>`).join("");
+    .map(([v, l], k) => `<div style="--d:${300 + k * 180}ms"><b><span data-count="${v}" data-suf="%">${v}%</span></b><span>${l}</span></div>`).join("");
   $("#teamList").innerHTML = TEAM.map(([n, part], k) => `<li style="--d:${k * 120}ms"><span class="av">${n.split(" ").map(w => w[0]).join("").slice(0, 2)}</span><b>${n}</b><small>${part}</small></li>`).join("");
 }
 function initBusiness() {
@@ -3050,7 +3128,7 @@ function initBusiness() {
   const calc = () => {
     const P = +$("#cProps").value || 0, C = +$("#cCost").value || 0, s = (+$("#cSave").value || 0) / 100, sh = (+$("#cShare").value || 0) / 100;
     const cost = P * C, saving = cost * s;
-    $("#oProps").textContent = fmt(P); $("#oCost").textContent = "£" + fmt(C, 2); $("#oSave").textContent = fmt(s * 100) + " %"; $("#oShare").textContent = fmt(sh * 100) + " %";
+    $("#oProps").textContent = fmt(P); $("#oCost").textContent = "£" + fmt(C, 2); $("#oSave").textContent = fmt(s * 100) + "%"; $("#oShare").textContent = fmt(sh * 100) + "%";
     const split = $("#split");
     split.style.setProperty("--save", pct(s)); split.style.setProperty("--share", pct(sh));
     $("#vCost").textContent = money(cost); $("#vSaved").textContent = money(saving);
@@ -3081,8 +3159,8 @@ function initBusiness() {
 
   // 6. evidence: each number gets a small moving picture
   const EV = [
-    ["44", " %", "lower collection cost when routes follow real fill levels", "(Hannan <i>et al.</i>, 2020)", "bars", 44],
-    ["53", " %", "fewer bin visits in Derby’s 200-bin sensor trial", '(<a href="https://www.government-transformation.com/connected-places/derby-city-council-rolls-out-litter-bin-sensors" target="_blank" rel="noopener">Government Transformation, 2023</a>)', "ticks", 53],
+    ["44", "%", "lower collection cost when routes follow real fill levels", "(Hannan <i>et al.</i>, 2020)", "bars", 44],
+    ["53", "%", "fewer bin visits in Derby’s 200-bin sensor trial", '(<a href="https://www.government-transformation.com/connected-places/derby-city-council-rolls-out-litter-bin-sensors" target="_blank" rel="noopener">Government Transformation, 2023</a>)', "ticks", 53],
     ["11000", "", "sensors already in Edinburgh’s bins (a £6.4m programme). The data exists; routes don’t use it yet.", '(<a href="https://www.edinburgh.gov.uk/bins-recycling/smart-bin-sensors/1" target="_blank" rel="noopener">City of Edinburgh Council, no date a</a>)', "grid", 0],
     ["2700", "", "of about 3,400 communal glass bins had sensors by late 2024", '(<a href="https://theedinburghreporter.co.uk/2024/12/glass-recycling-bins-to-be-fitted-with-sensors/" target="_blank" rel="noopener">Edinburgh Reporter, 2024</a>)', "ring", 2700 / 3400],
   ];
@@ -3702,10 +3780,10 @@ addEventListener("load", () => { const el = location.hash.length > 1 && document
     const DEPTH = 1.2, SOUND = 343;
     const upd = () => {
       const f = +fillIn.value / 100, dist = Math.max(.02, DEPTH * (1 - f));
-      $("#oFill").textContent = Math.round(f * 100) + " %";
+      $("#oFill").textContent = Math.round(f * 100) + "%";
       $("#eTime").textContent = (2 * dist / SOUND * 1000).toFixed(1) + " ms";
       $("#eDist").textContent = dist.toFixed(2) + " m";
-      $("#ePct").textContent = Math.round((1 - dist / DEPTH) * 100) + " %";
+      $("#ePct").textContent = Math.round((1 - dist / DEPTH) * 100) + "%";
       binFill = f; setBinFill && setBinFill();
     };
     fillIn.addEventListener("input", upd); upd();

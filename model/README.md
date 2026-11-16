@@ -16,15 +16,15 @@ How fast a stop fills is derived from how the council runs the service, not gues
 
 - **Collection frequency (real).** The council empties communal general-waste bins every K = 2 days, so a stop's capacity is sized for about two days of its households' waste.
 - **Fill speed.** If a stop is on average a share U full when the truck comes, it fills ρᵢ = U / K · e^(σZᵢ) of its capacity a day. σ = 0.35 spreads the stops, because some serve more flats than others (structural assumption: the register does not say how many flats each stop serves).
-- **Calibration (real target).** Of about 100,000 communal-bin collections a month, 1–1.5 % draw a complaint (council Transport and Environment Committee report, December 2017); we use the lower end, 1 %. `calibrate.py` runs the council's every-two-days timetable for a grid of U and picks the U at which overflows are 1 % of collections: **U = 0.415**. At that value bins are on average 44 % full when the timetable truck empties them. The complaint rate is a lower bound on overflows, so this is conservative.
+- **Calibration (real target).** Of about 100,000 communal-bin collections a month, 1–1.5% draw a complaint (council Transport and Environment Committee report, December 2017); we use the lower end, 1%. `calibrate.py` runs the council's every-two-days timetable for a grid of U and picks the U at which overflows are 1% of collections: **U = 0.415**. At that value bins are on average 44% full when the timetable truck empties them. The complaint rate is a lower bound on overflows, so this is conservative.
 - **Deposits.** Households drop one 30 L kitchen-bin bag at a time (real: a small/medium kitchen pedal bin is 30 L). In hour t, Nᵢₜ ~ Poisson(λᵢₜ) bags arrive, with λᵢₜ = (Dᵢ / 30 L) · a(hour) · wₜ / 24 and Dᵢ = capᵢ · ρᵢ. The hour-of-day profile a (quiet at night, morning and evening peaks, mean 1) is the second structural assumption.
-- **Sensors.** Readings are the true fill plus N(0, 1²) percentage points (real: ultrasonic bin sensors are accurate to about ±10 mm, about 1 % of a 1 m deep container).
+- **Sensors.** Readings are the true fill plus N(0, 1²) percentage points (real: ultrasonic bin sensors are accurate to about ±10 mm, about 1% of a 1 m deep container).
 
 **Weather and holidays.** The hourly weather (Open-Meteo) and the council's public and school holidays are real. Their effect on deposits is one factor per hour,
 
   wₜ ∝ exp(−0.15 · 1[rain ≥ 0.5 mm]) · (1 + 0.01 · (Tₜ − 10 °C)) · (1 + 0.10 · 1[holiday]),
 
-rescaled to mean 1 over the month so the calibrated U still holds: 14 % fewer bags in a wet hour, 1 % more per °C above 10 °C, 10 % more on a holiday. The weather and the holidays are real; **the three effect sizes are assumptions** (`RAIN_EFFECT`, `TEMP_EFFECT`, `HOLIDAY_EFFECT` in `config.py`), because we found no published figure. The forecast sees rain, temperature and holidays as inputs and learns their effect from the data; the route model puts the same factor in its constraints (section 4).
+rescaled to mean 1 over the month so the calibrated U still holds: 14% fewer bags in a wet hour, 1% more per °C above 10 °C, 10% more on a holiday. The weather and the holidays are real; **the three effect sizes are assumptions** (`RAIN_EFFECT`, `TEMP_EFFECT`, `HOLIDAY_EFFECT` in `config.py`), because we found no published figure. The forecast sees rain, temperature and holidays as inputs and learns their effect from the data; the route model puts the same factor in its constraints (section 4).
 
 ## 2 · Predict: a random-forest fill forecast (`predict.py`)
 
@@ -32,7 +32,7 @@ Every morning at 05:00 one random forest (scikit-learn defaults, 100 trees) pred
 
   ŷᵢ = yᵢ + ĝᵢ · hours
 
-and may pass 100 %: a stop projected at 130 % is expected to overflow well before then.
+and may pass 100%: a stop projected at 130% is expected to overflow well before then.
 
 **Inputs** (only what a real system has): latest reading; fill rate since last emptied; change over the last 24 h; hours since last emptied; capacity; weekday; hours of rain and mean temperature before the next chance of a truck; share of those hours on a holiday.
 
@@ -42,13 +42,15 @@ and may pass 100 %: a stop projected at 130 % is expected to overflow well befor
 
 ## 3 · Decide: fullest first until the fleet is full (`decide.py`)
 
-  **Sort the stops by ŷᵢ, fullest first, and take them while the fleet has time. Never take a stop with ŷᵢ < 80 %.**
+  **Sort the stops by ŷᵢ, fullest first, and take them while the fleet has time. Never take a stop with ŷᵢ < 80%.**
 
-80 % is the threshold smart-bin systems commonly use to flag a bin for collection. A stop's time is its lifting time plus the drive from its nearest other candidate; each full load adds a 25-minute tip. The estimate is rough on purpose: routing has the final say, and if the trips do not fit the fleet it drops the least full stops first.
+80% is the threshold smart-bin systems commonly use to flag a bin for collection. A stop's time is its lifting time plus the drive from its nearest other candidate; each full load adds a 25-minute tip. The estimate is rough on purpose: routing has the final say, and if the trips do not fit the fleet it drops the least full stops first.
 
-## 4 · Route: one model, solved by simulated annealing (`route.py`, `decide.py`, `network.py`)
+## 4 · Optimise: the lowest-cost routes for the chosen stops (`route.py`, `decide.py`, `network.py`)
 
-The stops chosen in section 3 are routed as one **prize-collecting multi-trip vehicle-routing problem with a shift limit**: K trucks leave the Seafield depot (0), and truck k makes trips r = 1, 2, …, tipping at the depot between them.
+  **Find the lowest-cost plan for the fleet to empty the stops chosen in section 3, within one shift per truck.**
+
+The plan is one **prize-collecting multi-trip vehicle-routing problem with a shift limit**, solved by simulated annealing: K trucks leave the Seafield depot (0), and truck k makes trips r = 1, 2, …, tipping at the depot between them.
 
 - **Network (real).** Dijkstra on the OpenStreetMap street graph (largest connected component, undirected, speeds by road class) gives every distance dᵢⱼ (km) and driving time τᵢⱼ (min).
 - **Cost of a drive.** cᵢⱼ = 1.45 · dᵢⱼ + 75 · θτᵢⱼ / 60 (£): £1.45 per km for fuel and wear, £75 per truck-hour for crew and vehicle. θ ≥ 1 is the rain slowdown (below).
@@ -57,9 +59,11 @@ The stops chosen in section 3 are routed as one **prize-collecting multi-trip ve
 
 **Variables.** xᵢⱼₖᵣ = 1 if truck k drives i → j on trip r; zᵢₖᵣ = 1 if that trip empties stop i; uₖᵣ = 1 if the trip is made.
 
-  minimise   Σₖᵣ Σᵢⱼ cᵢⱼ xᵢⱼₖᵣ + Σᵢ πᵢ (1 − Σₖᵣ zᵢₖᵣ)   (driving cost + prizes of the stops left out)
+**Objective.** Minimise the total cost: driving, plus the prizes of the stops left out.
 
-subject to
+  minimise   Σₖᵣ Σᵢⱼ cᵢⱼ xᵢⱼₖᵣ + Σᵢ πᵢ (1 − Σₖᵣ zᵢₖᵣ)
+
+**Constraints.**
 
 1. Σₖᵣ zᵢₖᵣ ≤ 1: each stop is emptied at most once;
 2. Σⱼ xᵢⱼₖᵣ = Σⱼ xⱼᵢₖᵣ = zᵢₖᵣ: a truck that arrives at a stop leaves it;
@@ -73,7 +77,7 @@ Serving stop i costs the drive to reach it; skipping it costs πᵢ. A stop is t
 **Weather and holidays** enter (4) and (5) through the same hourly factor wₕ as the simulator (section 1):
 
 - **Load.** qᵢ = capᵢ · min(1, (yᵢ + bᵢW) / 100), with yᵢ the latest reading, bᵢ = yᵢ / Σ wₕ over the hours since stop i was last emptied (its fill per unit of factor), and W = Σ wₕ from the decision to mid-shift. Rain lowers qᵢ; warmth or a holiday raises it.
-- **Shift.** θ = 1 + 0.10 · (share of the shift's hours with ≥ 0.5 mm of rain). Rain lengthens every drive, so fewer stops fit and each costs more. The 10 % is an assumption (`RAIN_SLOWDOWN`).
+- **Shift.** θ = 1 + 0.10 · (share of the shift's hours with ≥ 0.5 mm of rain). Rain lengthens every drive, so fewer stops fit and each costs more. The 10% is an assumption (`RAIN_SLOWDOWN`).
 
 **Algorithm: simulated annealing.** The model is NP-hard and a day has over a thousand stops, so it is solved approximately, by this one method. Every plan it visits satisfies (1)–(6).
 
@@ -85,6 +89,10 @@ Serving stop i costs the drive to reach it; skipping it costs πᵢ. A stop is t
 
    where c̄ is the mean arc cost of the starting plan, and t_max = 30 s for tomorrow's plan, 15 s a day in the experiment.
 4. **Return** the best plan seen.
+
+**Tomorrow, before and after annealing.** The start plan needs 81 trips, 15 of them less than half full (trucks 82% full on average): 1,677 km and £7,862. Annealing empties the same 2,127 stops in 70 trips, 94% full on average: 1,289 km and £6,103 (−22%). Of the 388 km saved, 282 km are drives to and from Seafield: fuller trips mean fewer of them. `scripts/export_first_plan.py` rebuilds the start plan and writes it to `data/first_plan.json`.
+
+**Worked example on the website (maths, step 4).** The same two steps, run from scratch with two trucks on tomorrow's 65 stops (139 bins) in one 1.8 km window around Sighthill (36 stops in the Sighthill/Gorgie ward, 25 in Pentland Hills, 4 in Drum Brae/Gyle), 12 km by road from Seafield. The start plan needs 3 trips and 91 km (£419): the first truck's two trips use 479 of its 480 minutes, so the second truck drives out for the last 2 stops, 3% of a load. Annealing needs 2 trips, one per truck, and 61 km (£280, −33%); 27 of the 30 km saved are the extra drive to and from Seafield. `scripts/export_first_plan.py` writes it to `data/route_example.json`. The website draws it on the same Edinburgh street map as the live map (OpenStreetMap via OpenFreeMap), with a small map of the city showing where the area and Seafield are; it zooms with the wheel, a trackpad pinch or two fingers, drags, and a corner button goes back to the whole example.
 
 **Fleet.** Each timetable round g is routed with the trucks its start needs, then with one fewer at a time until a stop is left out; K(g) is the last count that still empties every stop. The fleet for all three policies is K = max K(g) over the rounds, i.e. what the busiest round needs.
 
@@ -107,7 +115,7 @@ Three policies on the same simulated city, with the same deposits, weather and s
 | Policy | Empties | Stands for |
 |---|---|---|
 | Timetable | every stop every second day, in fixed geographic rounds | today's practice |
-| Reactive | every stop reading ≥ 80 % at 05:00 | sensors, no forecast |
+| Reactive | every stop reading ≥ 80% at 05:00 | sensors, no forecast |
 | BinSight | forecast → fullest first → routes | this model |
 
 **Same fleet for all three.** No public figure says how many of Edinburgh's roughly 100 refuse trucks serve communal general waste, so the fleet is derived from the council's own practice: the timetable is routed without a fleet limit, and the number of trucks it needs on its busiest day becomes the fleet for every policy. BinSight is therefore compared with today's practice at equal resources.
