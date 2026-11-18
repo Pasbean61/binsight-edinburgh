@@ -1143,8 +1143,8 @@ function initBusiness() {
     shop: '<path d="M4 10v10h16V10M3 6h18l-1 4H4L3 6zM9 20v-5h6v5"/>',
     tent: '<path d="M12 4L3 20h18L12 4zM12 4v16M9 20l3-6 3 6"/>',
   };
-  const BUY = [["council", "Local councils", "Main customer", "Overflowing bins, rising costs, the 2028 landfill ban"],
-    ["truck", "Private contractors", "", "Fuel and hours lost on fixed rounds"],
+  const BUY = [["council", "Local councils", "", "Overflowing bins, rising costs, the 2028 landfill ban"],
+    ["truck", "Private contractors", "Main customer", "Fuel and hours lost on fixed rounds"],
     ["uni", "Universities", "", "Waste peaks at move-in and move-out"],
     ["shop", "Businesses, landlords", "", "Paying to empty half-empty bins"],
     ["tent", "Event organisers", "", "Short, sharp peaks, like the August festivals"]];
