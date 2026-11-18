@@ -1129,11 +1129,7 @@ header.top.over nav.sections a b { color: var(--mint); }
 .competitor.play .competitor-flow-icon.drive { animation-delay: 1.35s; }
 
 .competitor-comparison { margin-top: 12px; }
-.competitor-comparison summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; list-style: none; color: var(--ink-2); font-size: 14px; font-weight: 650; }
-.competitor-comparison summary::-webkit-details-marker { display: none; }
-.competitor-comparison summary::after { content: ""; flex: none; width: 9px; height: 9px; margin-right: 3px; border-right: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: rotate(45deg); transition: transform .25s var(--ease-out); }
-.competitor-comparison summary:hover { color: var(--ink); }
-.competitor-comparison[open] summary::after { transform: rotate(225deg); }
+.competitor-comparison h3 { color: var(--ink-2); font-size: 14px; font-weight: 650; }
 
 .rival-picker { position: relative; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; padding: 0; margin: 18px 0 0; border: 0; min-width: 0; }
 .rival-picker label { position: relative; text-align: center; cursor: pointer; }
@@ -1498,8 +1494,8 @@ header.top.over nav.sections a b { color: var(--mint); }
     <h3>BinSight</h3>
     <p>Fill forecast <span class="sr">to</span><i aria-hidden="true">→</i> Next-day routes</p>
   </div>
-  <details class="card competitor-comparison">
-    <summary>Compare competitors</summary>
+  <div class="card competitor-comparison">
+    <h3>Compare competitors</h3>
     <fieldset class="rival-picker">
       <legend class="sr">Choose a competitor</legend>
       <label><input type="radio" name="rival" value="SmartEnds" checked><span>SmartEnds</span></label>
@@ -1530,7 +1526,7 @@ header.top.over nav.sections a b { color: var(--mint); }
         <p>Councils · Haulers · Hardware + subscriptions · <a href="https://wastehero.io/platform">Platform ↗</a></p>
       </div>
     </fieldset>
-  </details>
+  </div>
 </section>
 </div>
 
