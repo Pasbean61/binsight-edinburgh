@@ -1317,7 +1317,7 @@ addEventListener("load", () => { const el = location.hash.length > 1 && document
     $$("section.chapter", sheet).forEach(sec => {
       for (const ch of sec.children) {
         if (ch.hidden) continue;
-        if (ch.matches(".chapter-head, .stats, .steps, .sensor-demo, .takeaways3, .methods, .biz-grid")) els.push(...ch.children);
+        if (ch.matches(".chapter-head, .stats, .steps, .sensor-demo, .takeaways3, .methods, .biz-grid, .competition-cards")) els.push(...ch.children);
         else els.push(ch);
       }
     });
