@@ -147,7 +147,7 @@ function fillKeys() {
     overflowCut: fixed && bs ? "−" + fmt(100 * (1 - bs.overflow_events_day / fixed.overflow_events_day)) + "%" : "–",
     overflowCutWord: fixed && bs ? fmt(100 * (1 - bs.overflow_events_day / fixed.overflow_events_day)) + "%" : "–",
     costCutWord: fixed && bs ? fmt(100 * (1 - bs.cost_day / fixed.cost_day)) + "%" : "–",
-    forecastShort: fmtDate(s.plan_day + "T06:00", { day: "numeric", month: "short" }),
+    forecastMonth: fmtDate(s.plan_day + "T06:00", { month: "short" }),
     generated: "Data built " + fmtDate(s.generated, { day: "numeric", month: "long", year: "numeric" }),
   };
   $$("[data-k]").forEach(el => { const v = vals[el.dataset.k]; if (v != null) el.textContent = v; });

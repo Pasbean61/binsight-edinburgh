@@ -1264,7 +1264,7 @@ header.top.over nav.sections a b { color: var(--mint); }
         <a class="cover-btn" href="#problem">See how it works <span aria-hidden="true">→</span></a>
       </div>
       <div class="cover-hud">
-        <div class="hud-top"><span class="hud-clock num" id="cvClock">06:00</span><span class="hud-day">Tomorrow’s plan · <span data-k="forecastShort">3 Nov</span> <small>sim.</small></span></div>
+        <div class="hud-top"><span class="hud-clock num" id="cvClock">06:00</span><span class="hud-day">Tomorrow’s plan · <span data-k="forecastMonth">Nov</span> <small>sim.</small></span></div>
         <div class="hud-bar"><i id="cvBar"></i></div>
         <dl class="hud-leg">
           <div><dt><i class="d full"></i><span class="num" id="cvFull" data-k="flagged">2,127</span></dt><dd>full by tomorrow</dd></div>
@@ -1988,7 +1988,7 @@ function fillKeys() {
     overflowCut: fixed && bs ? "−" + fmt(100 * (1 - bs.overflow_events_day / fixed.overflow_events_day)) + "%" : "–",
     overflowCutWord: fixed && bs ? fmt(100 * (1 - bs.overflow_events_day / fixed.overflow_events_day)) + "%" : "–",
     costCutWord: fixed && bs ? fmt(100 * (1 - bs.cost_day / fixed.cost_day)) + "%" : "–",
-    forecastShort: fmtDate(s.plan_day + "T06:00", { day: "numeric", month: "short" }),
+    forecastMonth: fmtDate(s.plan_day + "T06:00", { month: "short" }),
     generated: "Data built " + fmtDate(s.generated, { day: "numeric", month: "long", year: "numeric" }),
   };
   $$("[data-k]").forEach(el => { const v = vals[el.dataset.k]; if (v != null) el.textContent = v; });
