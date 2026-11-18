@@ -37,7 +37,7 @@ function initMaths() {
   const root = $("#maths"), walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   for (let n; (n = walk.nextNode());) if (n.nodeValue.includes("@")) n.nodeValue = n.nodeValue.replace(/@(\w+)@/g, (m, k) => tok[k] ?? m);
   typeset(root);
-  mathsSimulate(M); mathsPredict(M); mathsDecide(M); mathsRoute(M); mathsCheck(M);
+  mathsSimulate(M); mathsPredict(M); mathsDecide(M); mathsRoute(M);
 }
 
 /* 1 · Poisson bag arrivals, emptied by the timetable every K days */
@@ -292,11 +292,3 @@ function mathsRoute(M) {
   }).catch(() => { host.textContent = "The example could not be loaded."; });
 }
 
-/* 5 · before and after: the three policies */
-function mathsCheck(M) {
-  const ag = D.site.experiments.aggregate, f = p => ag.find(a => a.policy === p), tt = f("timetable"), re = f("reactive"), bs = f("binsight");
-  if (!tt || !bs) return;
-  const cut = (a, b) => fmt(100 * (1 - b / a));
-  $("#chkResult").textContent = `${cut(tt.overflow_events_day, bs.overflow_events_day)}% fewer overflows and ${cut(tt.cost_day, bs.cost_day)}% lower cost than the timetable.`;
-  $("#chkReact").textContent = re ? `By the time a bin reads ${fmt(M.params.REACTIVE_AT)}% it is often too late: reacting overflows ${fmt(re.overflow_events_day)} times a day, against ${fmt(bs.overflow_events_day)} for BinSight.` : "";
-}
