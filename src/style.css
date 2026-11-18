@@ -1126,22 +1126,26 @@ header.top.over nav.sections a b { color: var(--mint); }
 .competitor-comparison summary::after { content: ""; flex: none; width: 9px; height: 9px; margin-right: 3px; border-right: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: rotate(45deg); transition: transform .25s var(--ease-out); }
 .competitor-comparison summary:hover { color: var(--ink); }
 .competitor-comparison[open] summary::after { transform: rotate(225deg); }
-.competitor-comparison[open] tr { animation: competitor-table-reveal .42s var(--ease-out) both; }
-.competitor-comparison[open] tbody tr:nth-child(2) { animation-delay: .06s; }
-.competitor-comparison[open] tbody tr:nth-child(3) { animation-delay: .12s; }
-.competitor-comparison[open] tbody tr:nth-child(4) { animation-delay: .18s; }
-.competitor-comparison[open] tbody tr:nth-child(5) { animation-delay: .24s; }
-@keyframes competitor-table-reveal { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
-.competitor-scroll-hint { display: none; color: var(--ink-2); font: 12px var(--mono); }
-.competitor-table-scroll { overflow-x: auto; margin-top: 12px; scrollbar-color: var(--line-2) var(--paper); }
-.competitor-table-scroll:focus-visible { outline-offset: 3px; }
-.competitor-table { width: 100%; min-width: 690px; table-layout: fixed; border-collapse: separate; border-spacing: 0; font-size: 14px; line-height: 1.45; }
-.competitor-table th, .competitor-table td { padding: 13px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; white-space: normal; }
-.competitor-table th:first-child { position: sticky; left: 0; z-index: 1; width: 15%; background: var(--paper); font-weight: 650; }
-.competitor-table thead th { color: var(--accent); font-weight: 700; }
-.competitor-table tbody td { color: var(--ink-2); transition: background-color .2s; }
-.competitor-table tbody tr:hover td { background-color: var(--accent-soft); }
-.competitor-table tbody tr:last-child > * { border-bottom: 0; }
+
+.rival-picker { position: relative; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; padding: 0; margin: 18px 0 0; border: 0; min-width: 0; }
+.rival-picker label { position: relative; text-align: center; cursor: pointer; }
+.rival-picker input { position: absolute; opacity: 0; }
+.rival-picker label span { display: block; padding: 8px 2px; border-radius: 7px; background: var(--raised); color: var(--ink-2); font-size: 13px; }
+.rival-picker input:checked + span { background: var(--accent-soft); color: var(--mint); font-weight: 700; }
+.rival-picker input:focus-visible + span { outline: 2px solid var(--mint); }
+.rival-scene { display: none; grid-column: 1 / -1; padding: 22px 0 0; }
+.rival-picker:has([value="SmartEnds"]:checked) [data-rival="SmartEnds"],
+.rival-picker:has([value="Sensoneo"]:checked) [data-rival="Sensoneo"],
+.rival-picker:has([value="WasteHero"]:checked) [data-rival="WasteHero"] { display: block; }
+.rival-scene ol { position: relative; display: grid; grid-template-columns: repeat(3,1fr); list-style: none; margin: 0; padding: 0; }
+.rival-scene ol::before, .rival-scene ol::after { content: ""; position: absolute; top: 26px; left: 16.667%; right: 16.667%; height: 3px; background: var(--line-2); }
+.rival-scene ol::after { background: var(--accent); transform-origin: left; animation: competitor-draw 2.2s linear both; }
+.rival-scene li { position: relative; display: grid; justify-items: center; gap: 6px; font: 13px var(--mono); }
+.rival-scene i { display: grid; place-items: center; width: 54px; height: 54px; border: 1px solid var(--line-2); border-radius: 15px; background: var(--raised); font: 26px/1 system-ui; animation: rival-arrive .55s ease-out both; }
+.rival-scene li:nth-child(2) i { animation-delay: 1.1s; }
+.rival-scene li:nth-child(3) i { animation-delay: 2.2s; }
+@keyframes rival-arrive { from { transform: scale(.85); } 65% { transform: scale(1.12); box-shadow: 0 0 0 7px var(--accent-soft); } to { transform: scale(1); border-color: var(--accent); } }
+.rival-scene p { margin-top: 18px; text-align: center; color: var(--ink-2); font-size: 12px; }
 .competitor-takeaway { display: flex; align-items: baseline; gap: 6px 18px; flex-wrap: wrap; border-inline-start: 3px solid var(--accent); }
 .competitor-takeaway h3 { color: var(--accent); }
 .competitor-takeaway p { font-size: 14px; color: var(--ink-2); }
@@ -1151,9 +1155,6 @@ header.top.over nav.sections a b { color: var(--mint); }
 @media (max-width: 780px) {
   .competition-cards { grid-template-columns: 1fr; }
   .competitor-viz { height: 88px; }
-  .competitor-scroll-hint { display: block; margin-top: 12px; }
-  .competitor-table th:first-child { width: 105px; }
-  .competitor-table th, .competitor-table td { padding: 11px 9px; }
   .competitor-head { margin-bottom: 14px; }
 }
 

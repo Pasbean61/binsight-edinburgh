@@ -280,19 +280,36 @@
   </div>
   <details class="card competitor-comparison">
     <summary>Compare competitors</summary>
-    <p class="competitor-scroll-hint" aria-hidden="true">Scroll to compare →</p>
-    <div class="competitor-table-scroll" role="region" aria-label="Competitor comparison" tabindex="0">
-      <table class="competitor-table" aria-label="Competitor comparison">
-        <thead><tr><th scope="col">Category</th><th scope="col">SmartEnds</th><th scope="col">Sensoneo</th><th scope="col">WasteHero</th></tr></thead>
-        <tbody>
-          <tr><th scope="row">Products</th><td>BrighterBins sensors · VisnLine cameras · SmartEnds OS</td><td>Hardware · Software · Consulting</td><td>Fill sensors · Analytics · Driver app</td></tr>
-          <tr><th scope="row">Routing</th><td>Pickup detection · Scheduling</td><td>Monitoring · Planning · Driver app</td><td>Dynamic routes · Navigation</td></tr>
-          <tr><th scope="row">Tools</th><td>Overflow and contamination alerts</td><td>Bin access · RFID · WatchDog tracking</td><td>Fleet · CRM · Waste analytics</td></tr>
-          <tr><th scope="row">Buyers</th><td>Cities · Universities · Business campuses</td><td>Cities · Haulers · Deposit-return schemes</td><td>Councils · Haulers</td></tr>
-          <tr><th scope="row">Scale &amp; sales</th><td><a href="https://www.edinburgh.gov.uk/downloads/file/37162/cerp-progress-and-review-2024">Sensor-led rollout · Glass first <span aria-hidden="true">↗</span></a></td><td>85+ countries · <a href="https://www.sensoneo.com/success-stories/madrid-largest-global-smart-waste-installation/">11,100 Madrid sensors <span aria-hidden="true">↗</span></a></td><td>Hardware sales · Software subscriptions</td></tr>
-        </tbody>
-      </table>
-    </div>
+    <fieldset class="rival-picker">
+      <legend class="sr">Choose a competitor</legend>
+      <label><input type="radio" name="rival" value="SmartEnds" checked><span>SmartEnds</span></label>
+      <label><input type="radio" name="rival" value="Sensoneo"><span>Sensoneo</span></label>
+      <label><input type="radio" name="rival" value="WasteHero"><span>WasteHero</span></label>
+      <div class="rival-scene" data-rival="SmartEnds">
+        <ol aria-label="SmartEnds workflow">
+          <li><i aria-hidden="true">📡</i>Sense</li>
+          <li><i aria-hidden="true">📷</i>Inspect</li>
+          <li><i aria-hidden="true">🗓️</i>Schedule</li>
+        </ol>
+        <p>Cities · Universities · Business campuses · <a href="https://www.edinburgh.gov.uk/downloads/file/37162/cerp-progress-and-review-2024">Edinburgh rollout ↗</a></p>
+      </div>
+      <div class="rival-scene" data-rival="Sensoneo">
+        <ol aria-label="Sensoneo workflow">
+          <li><i aria-hidden="true">🏷️</i>RFID</li>
+          <li><i aria-hidden="true">📍</i>Track</li>
+          <li><i aria-hidden="true">🚛</i>Dispatch</li>
+        </ol>
+        <p>Cities · Haulers · Deposit-return operators · <a href="https://www.sensoneo.com/success-stories/madrid-largest-global-smart-waste-installation/">11,100 Madrid sensors ↗</a></p>
+      </div>
+      <div class="rival-scene" data-rival="WasteHero">
+        <ol aria-label="WasteHero workflow">
+          <li><i aria-hidden="true">🗑️</i>Measure</li>
+          <li><i aria-hidden="true">🗺️</i>Plan</li>
+          <li><i aria-hidden="true">📱</i>Navigate</li>
+        </ol>
+        <p>Councils · Haulers · Hardware + subscriptions · <a href="https://wastehero.io/platform">Platform ↗</a></p>
+      </div>
+    </fieldset>
   </details>
 </section>
 </div>
