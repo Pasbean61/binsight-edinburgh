@@ -1064,7 +1064,7 @@ const MODELS = [
 ];
 
 /* ── agenda (who presents what) and the closing frame ── */
-const TEAM = [["Zhance Xu", "Problem · How it works"], ["Harry", "Market · Competition · Business demo · Next steps"], ["Ioannis Alexandrides", "Market · Competition · Business demo · Next steps"], ["Chenyi He", "Maths · Results"], ["Wang Chenzhang", "Maths · Results"]];
+const TEAM = [["Zhance Xu", "Problem · How it works"], ["Harry", "Market · Competition · Business demo · Next steps"], ["Ioannis Alexandrides", "Market · Competition · Business demo · Next steps"], ["Chenyi He", "Maths · Results · Closing"], ["Wang Chenzhang", "Maths · Results"]];
 function initAgendaAndClosing() {
   const rows = $$("#agendaCard tbody tr");
   rows.forEach(tr => { tr.style.cursor = "pointer"; tr.addEventListener("click", e => { if (!e.target.closest("a")) BS.jump(tr.querySelector("a").getAttribute("href")); }); });
