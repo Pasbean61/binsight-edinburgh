@@ -1243,7 +1243,7 @@ header.top.over nav.sections a b { color: var(--mint); }
       <a href="#maths" title="Implementation - Mathematics · Chenyi He &amp; Wang Chenzhang">Maths</a>
       <a href="#results" title="Validation - Mathematical Results · Chenyi He &amp; Wang Chenzhang">Results</a>
       <a href="#nextsteps" title="Validation &amp; Next Steps - Business · Harry &amp; Ioannis Alexandrides">Next steps</a>
-      <a href="#closing" title="Conclusion &amp; Closing · Team / TBD">Closing</a>
+      <a href="#closing" title="Conclusion &amp; Closing · Chenyi He">Closing</a>
       <a href="#sources">Refs</a>
     </nav>
   </div>
@@ -1307,7 +1307,7 @@ header.top.over nav.sections a b { color: var(--mint); }
       <tr class="" style="--d:350ms"><td>Chenyi He &amp; Wang Chenzhang</td><td><a href="#maths">Implementation - Mathematics</a></td></tr>
       <tr class="" style="--d:420ms"><td>Chenyi He &amp; Wang Chenzhang</td><td><a href="#results">Validation - Mathematical Results</a></td></tr>
       <tr class="" style="--d:490ms"><td>Harry &amp; Ioannis Alexandrides</td><td><a href="#nextsteps">Validation &amp; Next Steps - Business</a></td></tr>
-      <tr class="" style="--d:560ms"><td>Team / TBD</td><td><a href="#closing">Conclusion &amp; Closing</a></td></tr>
+      <tr class="" style="--d:560ms"><td>Chenyi He</td><td><a href="#closing">Conclusion &amp; Closing</a></td></tr>
       </tbody>
     </table></div>
   </div>
@@ -1805,7 +1805,7 @@ header.top.over nav.sections a b { color: var(--mint); }
 <div class="page band">
 <section class="chapter wrap" id="closing">
   <div class="chapter-head">
-    <div><span class="eyebrow seg"><span class="seg-who">Team / TBD</span></span><h2>Conclusion &amp; Closing</h2></div>
+    <div><span class="eyebrow seg"><span class="seg-who">Chenyi He</span></span><h2>Conclusion &amp; Closing</h2></div>
   </div>
   <div class="card bz close-hero" id="closeHero">
     <p class="close-line"><span class="ln"><span>Empty the full bins.</span></span><em class="ln"><span>Skip the rest.</span></em></p>
@@ -3210,7 +3210,7 @@ const MODELS = [
 ];
 
 /* ── agenda (who presents what) and the closing frame ── */
-const TEAM = [["Zhance Xu", "Problem · How it works"], ["Harry", "Market · Competition · Business demo · Next steps"], ["Ioannis Alexandrides", "Market · Competition · Business demo · Next steps"], ["Chenyi He", "Maths · Results"], ["Wang Chenzhang", "Maths · Results"]];
+const TEAM = [["Zhance Xu", "Problem · How it works"], ["Harry", "Market · Competition · Business demo · Next steps"], ["Ioannis Alexandrides", "Market · Competition · Business demo · Next steps"], ["Chenyi He", "Maths · Results · Closing"], ["Wang Chenzhang", "Maths · Results"]];
 function initAgendaAndClosing() {
   const rows = $$("#agendaCard tbody tr");
   rows.forEach(tr => { tr.style.cursor = "pointer"; tr.addEventListener("click", e => { if (!e.target.closest("a")) BS.jump(tr.querySelector("a").getAttribute("href")); }); });
