@@ -1661,9 +1661,9 @@ header.top.over nav.sections a b { color: var(--mint); }
           </div>
         </div>
         <ul class="m-list">
-          <li><b>Decisions</b> (each 0 or 1): \(x_{ijkr}\) truck \(k\) drives \(i \to j\) on trip \(r\); \(z_{ikr}\) it empties bin \(i\); \(u_{kr}\) it makes trip \(r\).</li>
-          <li><b>Costs.</b> \(c_{ij}\) = £@costKm@ per km + £@costHour@ per truck-hour. Leaving bin \(i\) out costs \(\pi_i = @costOverflow@ \times \hat y_i / 100\), so the emptiest wait first.</li>
-          <li><b>Solved by simulated annealing:</b> from a quick plan, try small route changes and keep those that cut the cost (early on, a few worse ones too, so it does not get stuck). <span data-mk="saIters">6.2 million</span> tries in <span data-mk="saSecs">30</span>&nbsp;s.</li>
+          <li><b>Decisions.</b> Three yes-or-no choices: <span style="white-space:nowrap">\(x\),</span> does a truck drive straight from one stop to the next; <span style="white-space:nowrap">\(z\),</span> does this trip empty this bin; <span style="white-space:nowrap">\(u\),</span> does the truck make this trip at all.</li>
+          <li><b>Costs.</b> Every plan is priced the same way: cost per day = £@costKm@&nbsp;×&nbsp;km (driving) + £@costHour@&nbsp;×&nbsp;truck-hours (crew) + £@costOverflow@&nbsp;×&nbsp;overflows (penalty). In the objective, \(c_{ij}\) is the driving and crew cost of the road from one stop to the next. \(\pi_i\) is the penalty for leaving a bin for later: its overflow has not happened yet, so it counts as £@costOverflow@ × the bin’s forecast fill, and the emptiest bins are the ones that wait.</li>
+          <li><b>Solved by simulated annealing.</b> Start from a quick plan, then keep trying small changes: move a stop, swap two stops, turn part of a trip around. Keep each change that lowers the cost, and early on a few that don’t, so the search does not get stuck. <span data-mk="saIters">6.2 million</span> tries in <span data-mk="saSecs">30</span>&nbsp;s.</li>
         </ul>
       </div>
       <div class="m-widget">
@@ -1688,11 +1688,8 @@ header.top.over nav.sections a b { color: var(--mint); }
         <div><b>Reactive</b><span>Empty a bin once it reads @reactive@%. Sensors, no forecast.</span></div>
         <div><b>BinSight</b><span>Forecast, fullest first, best routes.</span></div>
       </div>
-      <div class="eq hl">\[ \text{cost per day} = \underbrace{£@costKm@ \times \text{km}}_{\text{driving}} + \underbrace{£@costHour@ \times \text{truck-hours}}_{\text{crew}} + \underbrace{£@costOverflow@ \times \text{overflows}}_{\text{penalty}} \]</div>
       <ul class="m-list">
-        <li><b>A fair test.</b> Same bins, same bags, same weather, same @fleet@ trucks. Only the method changes.</li>
-        <li><b>Result:</b> <span id="chkResult"></span></li>
-        <li><b>Why not just react?</b> <span id="chkReact"></span></li>
+        <li><b>A fair test.</b> Same bins, same bags, same weather, same @fleet@ trucks, and the same routing and costs as step 4. Only the method changes.</li>
       </ul>
       <p><a class="btn primary sm" href="#results">See the results →</a></p>
     </div>
@@ -2887,7 +2884,7 @@ function initMaths() {
   const root = $("#maths"), walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   for (let n; (n = walk.nextNode());) if (n.nodeValue.includes("@")) n.nodeValue = n.nodeValue.replace(/@(\w+)@/g, (m, k) => tok[k] ?? m);
   typeset(root);
-  mathsSimulate(M); mathsPredict(M); mathsDecide(M); mathsRoute(M); mathsCheck(M);
+  mathsSimulate(M); mathsPredict(M); mathsDecide(M); mathsRoute(M);
 }
 
 /* 1 · Poisson bag arrivals, emptied by the timetable every K days */
@@ -3142,14 +3139,6 @@ function mathsRoute(M) {
   }).catch(() => { host.textContent = "The example could not be loaded."; });
 }
 
-/* 5 · before and after: the three policies */
-function mathsCheck(M) {
-  const ag = D.site.experiments.aggregate, f = p => ag.find(a => a.policy === p), tt = f("timetable"), re = f("reactive"), bs = f("binsight");
-  if (!tt || !bs) return;
-  const cut = (a, b) => fmt(100 * (1 - b / a));
-  $("#chkResult").textContent = `${cut(tt.overflow_events_day, bs.overflow_events_day)}% fewer overflows and ${cut(tt.cost_day, bs.cost_day)}% lower cost than the timetable.`;
-  $("#chkReact").textContent = re ? `By the time a bin reads ${fmt(M.params.REACTIVE_AT)}% it is often too late: reacting overflows ${fmt(re.overflow_events_day)} times a day, against ${fmt(bs.overflow_events_day)} for BinSight.` : "";
-}
 
 
 /* ── results ─────────────────────────────────────── */
