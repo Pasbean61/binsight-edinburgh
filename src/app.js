@@ -1171,34 +1171,41 @@ function initBusiness() {
   $("#evTiles").innerHTML = EV.map(([n, suf, line, src, kind, v]) => `<div class="bz-evt"><div class="bz-viz">${viz(kind, v)}</div><b data-count="${n}" data-suf="${suf}">${(+n).toLocaleString("en-GB")}${suf}</b><p>${line}</p><span class="src">${src}</span></div>`).join("");
 
   // 7. risks turn from red to green
-  const RISKS = [["Councils buy slowly", "Start with universities, businesses and a grant-funded campus pilot"],
-    ["Bins come in many shapes", "One universal mounting kit"],
-    ["Sensors get damaged", "Cheap, tough sensors inside the lid"],
-    ["The council already has routing software", "Plug in through an API, don’t compete"],
-    ["Data protection (UK GDPR)", "Bin data only; the app asks for minimal personal data, with consent"],
-    ["Savings not yet proven here", "Gain-share: the council pays only when it saves"],
-    ["Fake or duplicate reports", "Only verified reports earn points, with a daily limit"],
-    ["Too few voucher sponsors", "Start with a few shops near the pilot; the council co-funds at first"],
-    ["Recycling plants won’t pay yet", "Free data during the pilot"],
-    ["Drivers’ shift time (from our model)", "Add a working-time limit to the solver"]];
-  // each risk plays in turn: warning → a sweep → the risk is struck out → shield-check → the fix
-  const RK_STEP = 300, RK_FIX = 1150;
-  const rkIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><g class="rk-warn"><path d="M12 3.2 22 20.5H2z"/><path class="rk-mark" d="M12 9.5v5M12 17.4v.2"/></g><g class="rk-ok"><path class="rk-shield" d="M12 2.8 20 6v6c0 4.6-3.4 8.1-8 9.4C7.4 20.1 4 16.6 4 12V6z"/><path class="rk-tick" d="m8.2 12.2 2.6 2.6 5-5.2"/></g></svg>`;
-  $("#risks").innerHTML = RISKS.map(([r, f], i) => `<div class="rk" style="--d:${i * RK_STEP}ms"><span class="rk-ic">${rkIcon}</span><div class="rk-body"><span class="rk-r">${r}</span><i class="rk-bar" aria-hidden="true"></i><span class="rk-f">${f}</span></div></div>`).join("");
+  // risks as pictures: a red risk card flips, one by one, into its green fix
+  const RISKS = [
+    ["Slow council buying", "M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9", "Campus pilot first", "M2 9.5 12 4.5l10 5-10 5zM6 11.5v4.8c3.2 2.6 8.8 2.6 12 0v-4.8M22 9.5v5"],
+    ["Many bin shapes", "M2.5 10h5v10h-5zM9.5 5.5h5V20h-5zM16.5 13a2.5 2.5 0 0 1 5 0v7h-5z", "One mounting kit", "M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"],
+    ["Damaged sensors", "M4 7h16v10H4zM11.5 7l2 3.5-2 2 2 4.5M7 12h.01M17 12h.01", "Tough lid sensors", "M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6zM8.5 12l2.5 2.5 4.5-5"],
+    ["Council has routing software", "M3 4h18v12H3zM8 20h8M12 16v4M6.5 12.5l3-4 3 3 4-5", "Plug in by API", "M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0zM12 17v5"],
+    ["UK GDPR", "M3 5h18v14H3zM9 9a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM5.5 16.5c.8-2 6.2-2 7 0M14.5 10h4M14.5 13h4", "Bin data only", "M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4M12 15v2.5"],
+    ["Savings unproven", "M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.7.3-1 .8-1 1.5v.6M12 16.8v.2", "Pay only if it saves", "M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM14.6 8.6A2.4 2.4 0 0 0 10.4 10v6.2M8.6 13h4.2M8.6 16.2h6.8"],
+    ["Fake reports", "M8 3h9l3 3v11H8zM17 3v3h3M4.5 7H8M4.5 7v14H16v-4", "Verified only", "M12 2.5l2.4 1.8 3-.2.9 2.9 2.5 1.7-1 2.8 1 2.8-2.5 1.7-.9 2.9-3-.2L12 21.5l-2.4-1.8-3 .2-.9-2.9-2.5-1.7 1-2.8-1-2.8 2.5-1.7.9-2.9 3 .2zM8.6 12l2.4 2.4 4.4-4.6"],
+    ["Few sponsors", "M3 6h18v4a2 2 0 0 0 0 4v4H3v-4a2 2 0 0 0 0-4zM14.5 6v2.2M14.5 10.9v2.2M14.5 15.8v2.2", "Local shops first", "M3.5 9 5.5 4h13l2 5M3.5 9h17v1.5a2.8 2.8 0 0 1-5.7 0 2.8 2.8 0 0 1-5.6 0 2.8 2.8 0 0 1-5.7 0zM5 13v8h14v-8M10 21v-5h4v5"],
+    ["Plants won’t pay yet", "M3 21V11l5 3v-3l5 3V7h3v14zM17.5 3.5l4 4M21.5 3.5l-4 4", "Free data in pilot", "M3 8h18v4H3zM5 12v9h14v-9M12 8v13M12 8C11 5 7 4 7 6.5S10 8 12 8c2 0 5-.5 5-1.5S13 5 12 8"],
+    ["Long driver shifts", "M12 4a8.5 8.5 0 1 1 0 17 8.5 8.5 0 0 1 0-17zM12 8.5v4.5l3 2M9 1.8h6", "Shift limit in solver", "M12 4a8.5 8.5 0 1 1 0 17 8.5 8.5 0 0 1 0-17zM8.4 12.6l2.5 2.5 4.7-4.9M9 1.8h6"],
+  ];
+  const RK_FIRST = 900, RK_STEP = 380;
+  const rkSvg = d => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
+  $("#risks").innerHTML = RISKS.map(([r, ri, f, fi], i) => `<button type="button" class="rk3" style="--i:${i}" aria-label="Risk: ${r}. Fix: ${f}">
+    <span class="rk3-in"><span class="rk3-face rk3-front"><span class="rk3-ic">${rkSvg(ri)}</span><span class="rk3-l">${r}</span></span>
+    <span class="rk3-face rk3-back"><span class="rk3-ic">${rkSvg(fi)}<i class="rk3-ok" aria-hidden="true"></i></span><span class="rk3-l">${f}</span></span></span></button>`).join("");
   $("#rkT").textContent = RISKS.length;
-  const rkCard = $("#riskCard"), rkN = $("#rkN");
+  const rkCard = $("#riskCard"), rkN = $("#rkN"), rkTiles = $$("#risks .rk3");
   let rkTimers = [];
-  const rkCount = () => {
+  const rkFlip = (tile, k) => { tile.classList.add("flip"); rkN.textContent = k; rkN.classList.remove("bump"); void rkN.offsetWidth; rkN.classList.add("bump"); };
+  const rkRun = () => {
     rkTimers.forEach(clearTimeout); rkTimers = [];
-    if (still) { rkN.textContent = RISKS.length; return; }
-    rkN.textContent = 0;
-    RISKS.forEach((_, i) => rkTimers.push(setTimeout(() => { rkN.textContent = i + 1; rkN.classList.remove("bump"); void rkN.offsetWidth; rkN.classList.add("bump"); }, i * RK_STEP + RK_FIX)));
+    rkTiles.forEach(t => t.classList.remove("flip", "peek")); rkN.textContent = 0;
+    if (still) { rkTiles.forEach(t => t.classList.add("flip")); rkN.textContent = RISKS.length; return; }
+    rkTiles.forEach((t, i) => rkTimers.push(setTimeout(() => rkFlip(t, i + 1), RK_FIRST + i * RK_STEP)));
   };
-  new MutationObserver(() => { if (rkCard.classList.contains("play") && !rkCard.dataset.counted) { rkCard.dataset.counted = 1; rkCount(); } }).observe(rkCard, { attributes: true, attributeFilter: ["class"] });
-  $("#rkReplay").addEventListener("click", () => {
-    rkCard.classList.add("rk-reset"); rkCard.classList.remove("play"); void rkCard.offsetWidth;
-    rkCard.classList.remove("rk-reset"); rkCard.classList.add("play"); rkCount();
+  new MutationObserver(() => { if (rkCard.classList.contains("play") && !rkCard.dataset.counted) { rkCard.dataset.counted = 1; rkRun(); } }).observe(rkCard, { attributes: true, attributeFilter: ["class"] });
+  rkTiles.forEach(t => {
+    t.addEventListener("mouseenter", () => t.classList.contains("flip") && t.classList.add("peek"));
+    t.addEventListener("mouseleave", () => t.classList.remove("peek"));
+    t.addEventListener("click", () => t.classList.contains("flip") && t.classList.toggle("peek"));
   });
+  $("#rkReplay").addEventListener("click", () => { rkCard.classList.add("rk-reset"); rkTiles.forEach(t => t.classList.remove("flip", "peek")); void rkCard.offsetWidth; rkCard.classList.remove("rk-reset"); rkRun(); });
 
   // play each card once it comes on screen
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;

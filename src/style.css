@@ -1205,7 +1205,7 @@ header.top.over nav.sections a b { color: var(--mint); }
 /* references: links wrap at <wbr> points only, never mid-word */
 .refs a { overflow-wrap: normal; word-break: normal; }
 
-/* ── Next steps: risks play one by one, each turning into its fix ── */
+/* ── Next steps: risks as pictures; each red card flips into its green fix ── */
 .rk-top { display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; }
 .rk-top h3 { margin: 0; }
 .rk-meta { display: flex; align-items: center; gap: 12px; }
@@ -1213,35 +1213,41 @@ header.top.over nav.sections a b { color: var(--mint); }
 .rk-count b { display: inline-block; min-width: 1.4ch; text-align: right; color: var(--accent); font-size: 18px; }
 .rk-count b.bump { animation: rkBump .45s var(--ease-out); }
 @keyframes rkBump { 40% { transform: scale(1.35); } }
-.rk-replay { font: 600 13px var(--sans, inherit); color: var(--ink-2); background: transparent; border: 1px solid var(--line-2); border-radius: 999px; padding: 6px 13px; cursor: pointer; transition: color .2s, border-color .2s; }
+.rk-replay { font: 600 13px inherit; font-family: inherit; color: var(--ink-2); background: transparent; border: 1px solid var(--line-2); border-radius: 999px; padding: 6px 13px; cursor: pointer; transition: color .2s, border-color .2s; }
 .rk-replay:hover { color: var(--accent); border-color: var(--accent); }
-.rk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
-@media (max-width: 800px) { .rk-grid { grid-template-columns: minmax(0, 1fr); } }
-.rk { --t: calc(var(--d) + 1.15s); position: relative; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 14px; align-items: start;
-  padding: 14px 16px 15px; border-radius: 14px; background: var(--raised); border: 1px solid var(--line); border-left: 3px solid var(--good); overflow: hidden;
-  transition: opacity .45s ease var(--d), transform .6s var(--ease-out) var(--d), border-left-color .35s ease var(--t), box-shadow .6s ease var(--t); }
-.rk::after { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 140% at 0% 50%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%); opacity: 0; pointer-events: none; }
-.bz.play .rk::after { animation: rkGlow 1.4s ease var(--t) both; }
-@keyframes rkGlow { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
-.bz-ready .bz:not(.play) .rk { opacity: 0; transform: translateY(14px); border-left-color: var(--bad); }
-.rk-ic svg { width: 30px; height: 30px; overflow: visible; display: block; }
-.rk-warn path { fill: none; stroke: var(--bad); stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
-.rk-warn { transform-origin: 12px 13px; transition: opacity .3s ease var(--t), transform .35s ease var(--t); }
-.bz-ready .bz:not(.play) .rk-warn { animation: none; }
-.bz.play .rk-warn { opacity: 0; transform: scale(.4) rotate(-20deg); }
-.rk-ok { opacity: 0; transition: opacity .25s ease var(--t); }
-.bz.play .rk-ok { opacity: 1; }
-.rk-shield { fill: color-mix(in srgb, var(--accent) 16%, transparent); stroke: var(--accent); stroke-width: 1.7; stroke-linejoin: round; stroke-dasharray: 60; stroke-dashoffset: 60; transition: stroke-dashoffset .6s var(--ease-out) var(--t); }
-.rk-tick { fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 14; stroke-dashoffset: 14; transition: stroke-dashoffset .35s ease calc(var(--t) + .4s); }
-.bz.play .rk-shield, .bz.play .rk-tick { stroke-dashoffset: 0; }
-.rk-body { display: grid; gap: 7px; min-width: 0; }
-.rk-r { justify-self: start; font-size: 13.5px; color: var(--bad); letter-spacing: .01em;
-  background: linear-gradient(currentColor, currentColor) 0 55% / 0 1.5px no-repeat; transition: color .35s ease var(--t), background-size .4s ease var(--t); }
-.bz.play .rk-r { color: var(--ink-3); background-size: 100% 1.5px; }
-.rk-bar { display: block; height: 3px; border-radius: 2px; background: linear-gradient(90deg, var(--bad), var(--warn) 45%, var(--accent)); transform: scaleX(0); transform-origin: 0 50%; opacity: 1;
-  transition: transform .7s cubic-bezier(.6, 0, .3, 1) calc(var(--d) + .45s), opacity .4s ease calc(var(--t) + .5s); }
-.bz.play .rk-bar { transform: scaleX(1); opacity: .35; }
-.rk-f { font-size: 15.5px; font-weight: 550; line-height: 1.45; color: var(--ink); transition: opacity .45s ease var(--t), transform .55s var(--ease-out) var(--t); }
-.bz-ready .bz:not(.play) .rk-f { opacity: 0; transform: translateY(8px); }
-.rk-reset, .rk-reset * , .rk-reset *::after { transition: none !important; animation: none !important; }
-@media (prefers-reduced-motion: reduce) { .rk-replay { display: none; } }
+.rk-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; margin-top: 20px; }
+@media (max-width: 980px) { .rk-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .rk-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } }
+.rk3 { all: unset; display: block; cursor: pointer; perspective: 900px; height: 168px; min-width: 0;
+  transition: opacity .45s ease calc(var(--i) * 60ms), transform .6s var(--ease-out) calc(var(--i) * 60ms); }
+.bz-ready .bz:not(.play) .rk3 { opacity: 0; transform: translateY(16px) scale(.96); }
+.rk3:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 16px; }
+.rk3-in { position: relative; display: block; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .75s cubic-bezier(.3, 1.3, .5, 1); }
+.rk3.flip .rk3-in { transform: rotateY(180deg); }
+.rk3.flip.peek .rk3-in { transform: rotateY(0deg); }
+.rk3-face { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 14px 12px; border-radius: 16px;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden; text-align: center; }
+.rk3-front { background: color-mix(in srgb, var(--bad) 9%, var(--raised)); border: 1px solid color-mix(in srgb, var(--bad) 40%, var(--line)); }
+.rk3-back { transform: rotateY(180deg); background: color-mix(in srgb, var(--accent) 10%, var(--raised)); border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.rk3-ic { position: relative; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; }
+.rk3-front .rk3-ic { color: var(--bad); background: color-mix(in srgb, var(--bad) 13%, transparent); }
+.rk3-back .rk3-ic { color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }
+.rk3-ic svg { width: 34px; height: 34px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.rk3-front .rk3-ic::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--bad); opacity: 0; }
+.bz.play .rk3:not(.flip) .rk3-front .rk3-ic::after { animation: rkPing 1.3s ease-out infinite; }
+@keyframes rkPing { 0% { transform: scale(.9); opacity: .8; } 100% { transform: scale(1.45); opacity: 0; } }
+.bz.play .rk3:not(.flip) .rk3-front .rk3-ic svg { animation: rkShake 1.3s ease-in-out infinite; }
+@keyframes rkShake { 0%, 60%, 100% { transform: none; } 70% { transform: rotate(-8deg); } 80% { transform: rotate(7deg); } 90% { transform: rotate(-4deg); } }
+.rk3-ok { position: absolute; right: -3px; bottom: -3px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--raised); transform: scale(0); transition: transform .4s cubic-bezier(.3, 1.6, .5, 1) .45s; }
+.rk3-ok::after { content: ""; position: absolute; left: 7.5px; top: 4px; width: 5px; height: 10px; border: solid var(--accent-ink); border-width: 0 2.4px 2.4px 0; transform: rotate(45deg); }
+.rk3.flip .rk3-ok { transform: scale(1); }
+.rk3.flip.peek .rk3-ok { transition-delay: 0s; transform: scale(0); }
+.rk3-back .rk3-ic svg { transform: scale(.6); opacity: 0; transition: transform .5s var(--ease-out) .3s, opacity .3s ease .3s; }
+.rk3.flip .rk3-back .rk3-ic svg { transform: none; opacity: 1; }
+.rk3-l { font-size: 14px; line-height: 1.3; font-weight: 600; text-wrap: balance; }
+.rk3-front .rk3-l { color: color-mix(in srgb, var(--bad) 75%, var(--ink)); }
+.rk3-back .rk3-l { color: var(--ink); }
+.rk3.flip:not(.peek):hover .rk3-back { box-shadow: 0 10px 26px -12px color-mix(in srgb, var(--accent) 60%, transparent); }
+.rk-reset .rk3, .rk-reset .rk3 * { transition: none !important; animation: none !important; }
+@media (max-width: 600px) { .rk3 { height: 150px; } .rk3-ic { width: 54px; height: 54px; } .rk3-ic svg { width: 28px; height: 28px; } .rk3-l { font-size: 13px; } }
+@media (prefers-reduced-motion: reduce) { .rk-replay { display: none; } .rk3-in { transition: none; } }
