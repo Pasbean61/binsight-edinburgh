@@ -1181,7 +1181,24 @@ function initBusiness() {
     ["Too few voucher sponsors", "Start with a few shops near the pilot; the council co-funds at first"],
     ["Recycling plants won’t pay yet", "Free data during the pilot"],
     ["Drivers’ shift time (from our model)", "Add a working-time limit to the solver"]];
-  $("#risks").innerHTML = RISKS.map(([r, f], i) => `<div class="bz-risk" style="--d:${i * 120}ms"><span class="bz-st" aria-hidden="true"></span><span class="bz-r">${r}</span><span class="bz-ar" aria-hidden="true">→</span><span class="bz-f">${f}</span></div>`).join("");
+  // each risk plays in turn: warning → a sweep → the risk is struck out → shield-check → the fix
+  const RK_STEP = 300, RK_FIX = 1150;
+  const rkIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><g class="rk-warn"><path d="M12 3.2 22 20.5H2z"/><path class="rk-mark" d="M12 9.5v5M12 17.4v.2"/></g><g class="rk-ok"><path class="rk-shield" d="M12 2.8 20 6v6c0 4.6-3.4 8.1-8 9.4C7.4 20.1 4 16.6 4 12V6z"/><path class="rk-tick" d="m8.2 12.2 2.6 2.6 5-5.2"/></g></svg>`;
+  $("#risks").innerHTML = RISKS.map(([r, f], i) => `<div class="rk" style="--d:${i * RK_STEP}ms"><span class="rk-ic">${rkIcon}</span><div class="rk-body"><span class="rk-r">${r}</span><i class="rk-bar" aria-hidden="true"></i><span class="rk-f">${f}</span></div></div>`).join("");
+  $("#rkT").textContent = RISKS.length;
+  const rkCard = $("#riskCard"), rkN = $("#rkN");
+  let rkTimers = [];
+  const rkCount = () => {
+    rkTimers.forEach(clearTimeout); rkTimers = [];
+    if (still) { rkN.textContent = RISKS.length; return; }
+    rkN.textContent = 0;
+    RISKS.forEach((_, i) => rkTimers.push(setTimeout(() => { rkN.textContent = i + 1; rkN.classList.remove("bump"); void rkN.offsetWidth; rkN.classList.add("bump"); }, i * RK_STEP + RK_FIX)));
+  };
+  new MutationObserver(() => { if (rkCard.classList.contains("play") && !rkCard.dataset.counted) { rkCard.dataset.counted = 1; rkCount(); } }).observe(rkCard, { attributes: true, attributeFilter: ["class"] });
+  $("#rkReplay").addEventListener("click", () => {
+    rkCard.classList.add("rk-reset"); rkCard.classList.remove("play"); void rkCard.offsetWidth;
+    rkCard.classList.remove("rk-reset"); rkCard.classList.add("play"); rkCount();
+  });
 
   // play each card once it comes on screen
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;

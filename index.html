@@ -1222,6 +1222,47 @@ header.top.over nav.sections a b { color: var(--mint); }
 /* references: links wrap at <wbr> points only, never mid-word */
 .refs a { overflow-wrap: normal; word-break: normal; }
 
+/* ── Next steps: risks play one by one, each turning into its fix ── */
+.rk-top { display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; }
+.rk-top h3 { margin: 0; }
+.rk-meta { display: flex; align-items: center; gap: 12px; }
+.rk-count { font: 600 14px var(--mono); color: var(--ink-3); }
+.rk-count b { display: inline-block; min-width: 1.4ch; text-align: right; color: var(--accent); font-size: 18px; }
+.rk-count b.bump { animation: rkBump .45s var(--ease-out); }
+@keyframes rkBump { 40% { transform: scale(1.35); } }
+.rk-replay { font: 600 13px var(--sans, inherit); color: var(--ink-2); background: transparent; border: 1px solid var(--line-2); border-radius: 999px; padding: 6px 13px; cursor: pointer; transition: color .2s, border-color .2s; }
+.rk-replay:hover { color: var(--accent); border-color: var(--accent); }
+.rk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+@media (max-width: 800px) { .rk-grid { grid-template-columns: minmax(0, 1fr); } }
+.rk { --t: calc(var(--d) + 1.15s); position: relative; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 14px; align-items: start;
+  padding: 14px 16px 15px; border-radius: 14px; background: var(--raised); border: 1px solid var(--line); border-left: 3px solid var(--good); overflow: hidden;
+  transition: opacity .45s ease var(--d), transform .6s var(--ease-out) var(--d), border-left-color .35s ease var(--t), box-shadow .6s ease var(--t); }
+.rk::after { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 140% at 0% 50%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%); opacity: 0; pointer-events: none; }
+.bz.play .rk::after { animation: rkGlow 1.4s ease var(--t) both; }
+@keyframes rkGlow { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+.bz-ready .bz:not(.play) .rk { opacity: 0; transform: translateY(14px); border-left-color: var(--bad); }
+.rk-ic svg { width: 30px; height: 30px; overflow: visible; display: block; }
+.rk-warn path { fill: none; stroke: var(--bad); stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
+.rk-warn { transform-origin: 12px 13px; transition: opacity .3s ease var(--t), transform .35s ease var(--t); }
+.bz-ready .bz:not(.play) .rk-warn { animation: none; }
+.bz.play .rk-warn { opacity: 0; transform: scale(.4) rotate(-20deg); }
+.rk-ok { opacity: 0; transition: opacity .25s ease var(--t); }
+.bz.play .rk-ok { opacity: 1; }
+.rk-shield { fill: color-mix(in srgb, var(--accent) 16%, transparent); stroke: var(--accent); stroke-width: 1.7; stroke-linejoin: round; stroke-dasharray: 60; stroke-dashoffset: 60; transition: stroke-dashoffset .6s var(--ease-out) var(--t); }
+.rk-tick { fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 14; stroke-dashoffset: 14; transition: stroke-dashoffset .35s ease calc(var(--t) + .4s); }
+.bz.play .rk-shield, .bz.play .rk-tick { stroke-dashoffset: 0; }
+.rk-body { display: grid; gap: 7px; min-width: 0; }
+.rk-r { justify-self: start; font-size: 13.5px; color: var(--bad); letter-spacing: .01em;
+  background: linear-gradient(currentColor, currentColor) 0 55% / 0 1.5px no-repeat; transition: color .35s ease var(--t), background-size .4s ease var(--t); }
+.bz.play .rk-r { color: var(--ink-3); background-size: 100% 1.5px; }
+.rk-bar { display: block; height: 3px; border-radius: 2px; background: linear-gradient(90deg, var(--bad), var(--warn) 45%, var(--accent)); transform: scaleX(0); transform-origin: 0 50%; opacity: 1;
+  transition: transform .7s cubic-bezier(.6, 0, .3, 1) calc(var(--d) + .45s), opacity .4s ease calc(var(--t) + .5s); }
+.bz.play .rk-bar { transform: scaleX(1); opacity: .35; }
+.rk-f { font-size: 15.5px; font-weight: 550; line-height: 1.45; color: var(--ink); transition: opacity .45s ease var(--t), transform .55s var(--ease-out) var(--t); }
+.bz-ready .bz:not(.play) .rk-f { opacity: 0; transform: translateY(8px); }
+.rk-reset, .rk-reset * , .rk-reset *::after { transition: none !important; animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .rk-replay { display: none; } }
+
 </style>
 </head>
 <body>
@@ -1793,9 +1834,12 @@ header.top.over nav.sections a b { color: var(--mint); }
     <div class="bz-road" id="road"></div>
   </div>
 
-  <div class="card bz" id="riskCard">
-    <h3>Risks, and the fix for each</h3>
-    <div class="bz-risks" id="risks"></div>
+  <div class="card bz rk-card" id="riskCard">
+    <div class="rk-top">
+      <h3>Risks, and the fix for each</h3>
+      <div class="rk-meta"><span class="rk-count" aria-live="polite"><b id="rkN">0</b>/<span id="rkT">10</span> fixed</span><button type="button" class="rk-replay" id="rkReplay">Replay <span aria-hidden="true">↻</span></button></div>
+    </div>
+    <div class="rk-grid" id="risks"></div>
   </div>
 
 </section>
@@ -3327,7 +3371,24 @@ function initBusiness() {
     ["Too few voucher sponsors", "Start with a few shops near the pilot; the council co-funds at first"],
     ["Recycling plants won’t pay yet", "Free data during the pilot"],
     ["Drivers’ shift time (from our model)", "Add a working-time limit to the solver"]];
-  $("#risks").innerHTML = RISKS.map(([r, f], i) => `<div class="bz-risk" style="--d:${i * 120}ms"><span class="bz-st" aria-hidden="true"></span><span class="bz-r">${r}</span><span class="bz-ar" aria-hidden="true">→</span><span class="bz-f">${f}</span></div>`).join("");
+  // each risk plays in turn: warning → a sweep → the risk is struck out → shield-check → the fix
+  const RK_STEP = 300, RK_FIX = 1150;
+  const rkIcon = `<svg viewBox="0 0 24 24" aria-hidden="true"><g class="rk-warn"><path d="M12 3.2 22 20.5H2z"/><path class="rk-mark" d="M12 9.5v5M12 17.4v.2"/></g><g class="rk-ok"><path class="rk-shield" d="M12 2.8 20 6v6c0 4.6-3.4 8.1-8 9.4C7.4 20.1 4 16.6 4 12V6z"/><path class="rk-tick" d="m8.2 12.2 2.6 2.6 5-5.2"/></g></svg>`;
+  $("#risks").innerHTML = RISKS.map(([r, f], i) => `<div class="rk" style="--d:${i * RK_STEP}ms"><span class="rk-ic">${rkIcon}</span><div class="rk-body"><span class="rk-r">${r}</span><i class="rk-bar" aria-hidden="true"></i><span class="rk-f">${f}</span></div></div>`).join("");
+  $("#rkT").textContent = RISKS.length;
+  const rkCard = $("#riskCard"), rkN = $("#rkN");
+  let rkTimers = [];
+  const rkCount = () => {
+    rkTimers.forEach(clearTimeout); rkTimers = [];
+    if (still) { rkN.textContent = RISKS.length; return; }
+    rkN.textContent = 0;
+    RISKS.forEach((_, i) => rkTimers.push(setTimeout(() => { rkN.textContent = i + 1; rkN.classList.remove("bump"); void rkN.offsetWidth; rkN.classList.add("bump"); }, i * RK_STEP + RK_FIX)));
+  };
+  new MutationObserver(() => { if (rkCard.classList.contains("play") && !rkCard.dataset.counted) { rkCard.dataset.counted = 1; rkCount(); } }).observe(rkCard, { attributes: true, attributeFilter: ["class"] });
+  $("#rkReplay").addEventListener("click", () => {
+    rkCard.classList.add("rk-reset"); rkCard.classList.remove("play"); void rkCard.offsetWidth;
+    rkCard.classList.remove("rk-reset"); rkCard.classList.add("play"); rkCount();
+  });
 
   // play each card once it comes on screen
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
