@@ -1260,6 +1260,33 @@ header.top.over nav.sections a b { color: var(--mint); }
 @media (max-width: 600px) { .rk3 { height: 150px; } .rk3-ic { width: 54px; height: 54px; } .rk3-ic svg { width: 28px; height: 28px; } .rk3-l { font-size: 13px; } }
 @media (prefers-reduced-motion: reduce) { .rk-replay { display: none; } .rk3-in { transition: none; } }
 
+/* ── 12-minute talk timer, fixed top right under the header ── */
+.talk-timer { position: fixed; z-index: 49; top: calc(env(safe-area-inset-top, 0px) + 72px); right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 14px; border-radius: 999px; overflow: hidden;
+  background: color-mix(in srgb, var(--raised) 92%, transparent); border: 1px solid var(--line-2); box-shadow: 0 10px 28px -14px rgba(0, 0, 0, .6);
+  transition: border-color .3s, box-shadow .3s; }
+.tt-time { font: 700 19px/1 var(--mono); color: var(--ink); min-width: 4.6ch; text-align: right; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.tt-go, .tt-reset { font-family: inherit; cursor: pointer; border-radius: 999px; transition: background .2s, color .2s, border-color .2s, opacity .2s; }
+.tt-go { font-size: 13px; font-weight: 700; min-width: 68px; padding: 7px 12px; border: 0; background: var(--accent); color: var(--accent-ink); }
+.tt-go:hover { filter: brightness(1.08); }
+.tt-reset { width: 30px; height: 30px; font-size: 16px; line-height: 1; padding: 0; color: var(--ink-2); background: transparent; border: 1px solid var(--line-2); }
+.tt-reset:hover { color: var(--accent); border-color: var(--accent); }
+.tt-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: color-mix(in srgb, var(--ink) 10%, transparent); }
+.tt-bar i { position: absolute; inset: 0; background: var(--accent); transform-origin: 0 50%; transition: transform .25s linear, background .3s; }
+.talk-timer[data-state="run"] { border-color: color-mix(in srgb, var(--accent) 60%, var(--line-2)); }
+.talk-timer[data-state="run"] .tt-go, .talk-timer[data-state="pause"] .tt-go { background: transparent; color: var(--ink); border: 1px solid var(--line-2); }
+.talk-timer[data-state="pause"] .tt-time { animation: ttBlink 1.2s steps(2, start) infinite; }
+.talk-timer[data-zone="warn"] { border-color: var(--warn); } .talk-timer[data-zone="warn"] .tt-time { color: var(--warn); } .talk-timer[data-zone="warn"] .tt-bar i { background: var(--warn); }
+.talk-timer[data-zone="last"] { border-color: var(--bad); box-shadow: 0 0 0 3px color-mix(in srgb, var(--bad) 22%, transparent); }
+.talk-timer[data-zone="last"] .tt-time { color: var(--bad); } .talk-timer[data-zone="last"] .tt-bar i { background: var(--bad); }
+.talk-timer[data-zone="over"] { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 18%, var(--raised)); animation: ttPulse 1s ease-in-out infinite; }
+.talk-timer[data-zone="over"] .tt-time { color: var(--bad); }
+.talk-timer[data-zone="over"] .tt-go { background: var(--bad); color: #fff; opacity: 1; cursor: default; }
+@keyframes ttBlink { to { opacity: .35; } }
+@keyframes ttPulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--bad) 25%, transparent); } }
+@media (max-width: 600px) { .talk-timer { top: calc(env(safe-area-inset-top, 0px) + 64px); padding: 5px 5px 5px 11px; gap: 6px; } .tt-time { font-size: 16px; } .tt-go { min-width: 58px; padding: 6px 10px; font-size: 12px; } .tt-reset { width: 26px; height: 26px; font-size: 14px; } }
+@media (prefers-reduced-motion: reduce) { .talk-timer, .tt-time { animation: none !important; } }
+
 </style>
 <div class="shell">
 <header class="top" id="top">
@@ -1284,6 +1311,12 @@ header.top.over nav.sections a b { color: var(--mint); }
     </nav>
   </div>
 </header>
+<div class="talk-timer" id="talkTimer" data-state="idle" role="timer" aria-label="12-minute talk timer">
+  <span class="tt-time" id="ttTime">12:00</span>
+  <button type="button" class="tt-go" id="ttGo">Start</button>
+  <button type="button" class="tt-reset" id="ttReset" aria-label="Reset the timer to 12:00" title="Reset">↺</button>
+  <i class="tt-bar" aria-hidden="true"><i id="ttBar"></i></i>
+</div>
 
 <main id="home">
 <!-- ── HERO ───────────────────────────────────────────── -->
@@ -4002,6 +4035,41 @@ boot().catch(err => {
   console.error(err);
   const n = $("#mapNote"); if (n) n.textContent = "Data failed to load: " + err.message;
 });
+})();
+
+
+/* ── 12-minute talk timer (top right): click Start, Pause, Resume; ↺ resets ── */
+(() => {
+  const box = document.getElementById("talkTimer");
+  if (!box) return;
+  const TOTAL = 12 * 60 * 1000, KEY = "binsight-talk-timer";
+  const time = document.getElementById("ttTime"), go = document.getElementById("ttGo"), reset = document.getElementById("ttReset"), bar = document.getElementById("ttBar");
+  let state = "idle", left = TOTAL, endAt = 0, tick = 0;
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ state, left, endAt })); } catch (e) {} };
+  const fmt = ms => { const s = Math.ceil(Math.max(0, ms) / 1000); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+  const draw = () => {
+    const ms = state === "run" ? endAt - Date.now() : left;
+    if (state === "run" && ms <= 0) { state = "done"; left = 0; clearInterval(tick); save(); }
+    const now = state === "done" ? 0 : ms;
+    time.textContent = fmt(now);
+    bar.style.transform = `scaleX(${(now / TOTAL).toFixed(4)})`;
+    box.dataset.state = state;
+    box.dataset.zone = state === "done" ? "over" : now <= 60000 ? "last" : now <= 120000 ? "warn" : "";
+    go.textContent = { idle: "Start", run: "Pause", pause: "Resume", done: "Time’s up" }[state];
+    go.disabled = state === "done";
+  };
+  const run = () => { clearInterval(tick); tick = setInterval(draw, 250); draw(); };
+  go.addEventListener("click", () => {
+    if (state === "idle" || state === "pause") { endAt = Date.now() + left; state = "run"; run(); }
+    else if (state === "run") { left = Math.max(0, endAt - Date.now()); state = "pause"; clearInterval(tick); draw(); }
+    save();
+  });
+  reset.addEventListener("click", () => { clearInterval(tick); state = "idle"; left = TOTAL; endAt = 0; save(); draw(); });
+  try {   // survive a reload in the middle of the talk
+    const o = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (o && ["run", "pause", "done"].includes(o.state)) { state = o.state; left = +o.left || 0; endAt = +o.endAt || 0; }
+  } catch (e) {}
+  state === "run" ? run() : draw();
 })();
 
 </script>

@@ -1818,3 +1818,38 @@ boot().catch(err => {
   const n = $("#mapNote"); if (n) n.textContent = "Data failed to load: " + err.message;
 });
 })();
+
+
+/* ── 12-minute talk timer (top right): click Start, Pause, Resume; ↺ resets ── */
+(() => {
+  const box = document.getElementById("talkTimer");
+  if (!box) return;
+  const TOTAL = 12 * 60 * 1000, KEY = "binsight-talk-timer";
+  const time = document.getElementById("ttTime"), go = document.getElementById("ttGo"), reset = document.getElementById("ttReset"), bar = document.getElementById("ttBar");
+  let state = "idle", left = TOTAL, endAt = 0, tick = 0;
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ state, left, endAt })); } catch (e) {} };
+  const fmt = ms => { const s = Math.ceil(Math.max(0, ms) / 1000); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+  const draw = () => {
+    const ms = state === "run" ? endAt - Date.now() : left;
+    if (state === "run" && ms <= 0) { state = "done"; left = 0; clearInterval(tick); save(); }
+    const now = state === "done" ? 0 : ms;
+    time.textContent = fmt(now);
+    bar.style.transform = `scaleX(${(now / TOTAL).toFixed(4)})`;
+    box.dataset.state = state;
+    box.dataset.zone = state === "done" ? "over" : now <= 60000 ? "last" : now <= 120000 ? "warn" : "";
+    go.textContent = { idle: "Start", run: "Pause", pause: "Resume", done: "Time’s up" }[state];
+    go.disabled = state === "done";
+  };
+  const run = () => { clearInterval(tick); tick = setInterval(draw, 250); draw(); };
+  go.addEventListener("click", () => {
+    if (state === "idle" || state === "pause") { endAt = Date.now() + left; state = "run"; run(); }
+    else if (state === "run") { left = Math.max(0, endAt - Date.now()); state = "pause"; clearInterval(tick); draw(); }
+    save();
+  });
+  reset.addEventListener("click", () => { clearInterval(tick); state = "idle"; left = TOTAL; endAt = 0; save(); draw(); });
+  try {   // survive a reload in the middle of the talk
+    const o = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (o && ["run", "pause", "done"].includes(o.state)) { state = o.state; left = +o.left || 0; endAt = +o.endAt || 0; }
+  } catch (e) {}
+  state === "run" ? run() : draw();
+})();
